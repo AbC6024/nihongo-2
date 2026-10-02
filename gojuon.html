@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>五十音圖 · 遊戲學日語</title>
+<meta name="description" content="用遊戲練五十音：五十音順序、平假名片假名對照、聽音選字，附完整五十音表。">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/home.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%E3%81%82%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+
+<div class="petal-field" aria-hidden="true">
+  <i style="--x:12%;--d:20s;--delay:1s;--drift:70px;--sc:.85"></i>
+  <i style="--x:34%;--d:17s;--delay:5.2s;--drift:-60px;--sc:.7"></i>
+  <i style="--x:58%;--d:23s;--delay:2.4s;--drift:80px;--sc:.95"></i>
+  <i style="--x:79%;--d:19s;--delay:8.1s;--drift:-70px;--sc:.6"></i>
+</div>
+
+<div id="site-header"></div>
+
+<main>
+  <section id="view-home" class="view">
+    <div class="portal-hero">
+      <div class="sky-decor" aria-hidden="true">
+        <span class="cloud cl-a"></span>
+        <span class="cloud cl-b"></span>
+        <span class="cloud cl-c"></span>
+        <span class="cloud cl-d"></span>
+        <span class="sun-glow"></span>
+      </div>
+
+      <div class="portal-head">
+        <div class="wrap">
+          <a class="back-site" href="index.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
+            回遊戲總覽
+          </a>
+          <p class="eyebrow">Kana Quest</p>
+          <h1>五十音圖</h1>
+          <p class="portal-lede">日語的假名只有幾十個，記熟之後看單字會順很多。<br>先玩三種練習，再回頭看下面那張完整的五十音表。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <h2 class="section-title">選擇一款玩法 <small>Pick a game</small></h2>
+      <div class="game-bars" id="gameGrid"></div>
+
+      <h2 class="section-title">五十音表 <small>Gojuon chart</small></h2>
+      <p class="section-note">點任何一個假名都可以聽它怎麼念。五十音是日語的字母表，先記順序再記形狀會快很多。</p>
+      <div id="kanaTable"></div>
+    </div>
+  </section>
+
+  <section id="view-game" class="view hidden">
+    <div class="wrap">
+      <div class="hud">
+        <button class="icon-btn back" id="hudBack" type="button" title="回五十音圖">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
+        </button>
+        <div class="hud-title">
+          <strong id="hudTitle">遊戲</strong>
+          <span id="hudSub"></span>
+        </div>
+        <div class="hud-bar"><i id="hudFill"></i></div>
+        <div class="hud-right" id="hudRight"></div>
+      </div>
+      <div id="stage"></div>
+    </div>
+  </section>
+</main>
+
+<div id="site-footer"></div>
+
+<div class="modal hidden" id="modal">
+  <div class="modal-box" role="dialog" aria-modal="true">
+    <h3 id="modalTitle"></h3>
+    <div id="modalBody"></div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
+
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<script src="js/core.js"></script>
+<script src="js/catalog.js"></script>
+<script src="js/site.js"></script>
+<script src="js/kana-data.js"></script>
+<script src="js/gojuon.js"></script>
+<script src="js/home.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  JPQ.store.load();
+  JPQ.site.mountChrome('gojuon');
+  JPQ.site.wireTools();
+  JPQ.hud.init();
+  JPQ.fx.boot();
+  JPQ.home.render();
+
+  addEventListener('hashchange', function () {
+    JPQ.modal.close();
+    JPQ.home.render();
+    JPQ.router();
+  });
+
+  if (!location.hash || location.hash === '#' || location.hash === '#/') {
+    if (location.hash !== '#/') location.hash = '#/'; else JPQ.router();
+  } else {
+    JPQ.router();
+  }
+});
+</script>
+</body>
+</html>

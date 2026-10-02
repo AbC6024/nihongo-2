@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>遊戲學日語 · 免費的日語學習小遊戲</title>
+<meta name="description" content="遊戲學日語：用一款款小遊戲練日語。助詞大冒險、五十音圖、單字閃卡、數字日期練習，免費、免安裝，打開瀏覽器就能玩。">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/home.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%E2%9C%B8%3C/text%3E%3C/svg%3E">
+</head>
+<body class="page-home">
+
+<div class="blobfield" aria-hidden="true">
+  <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
+  <span class="blob b4"></span><span class="blob b5"></span><span class="blob b6"></span>
+  <span class="blob b7"></span><span class="blob b8"></span><span class="blob b9"></span>
+  <span class="blob b10"></span><span class="blob b11"></span><span class="blob b12"></span>
+</div>
+
+<div id="site-header"></div>
+
+<main class="site-main">
+  <div class="sheet">
+    <div class="wrap">
+
+      <h2 class="sheet-title" id="all-games">所有遊戲 <em>All games</em></h2>
+      <div class="game-bars" id="gameGrid"></div>
+
+      <h2 class="sheet-title">怎麼開始 <em>How to play</em></h2>
+      <div class="step-grid" id="stepGrid"></div>
+
+      <h2 class="sheet-title" id="about">關於本站 <em>About</em></h2>
+      <div class="about">
+        <p>「遊戲學日語」是一個免費的日語學習小遊戲網站，專門給剛開始學日語的人使用。內容以日語 N5 的基礎為主，題目都取自生活中真的會用到的句子。</p>
+        <p>網站沒有帳號、沒有付費牆，也不用安裝任何程式。遊戲進度只存在你自己的瀏覽器裡，不會上傳到任何地方；換一台電腦就要重新開始，這是刻意的選擇，讓資料留在你手上。</p>
+        <p>網站會慢慢增加新遊戲。如果某一題的答案讓你困惑，每款遊戲旁邊都附有助詞速查表，可以隨時回頭複習。</p>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<div class="modal hidden" id="modal">
+  <div class="modal-box" role="dialog" aria-modal="true">
+    <h3 id="modalTitle"></h3>
+    <div id="modalBody"></div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
+
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<script src="js/core.js"></script>
+<script src="js/catalog.js"></script>
+<script src="js/site.js"></script>
+<script src="js/home.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  JPQ.store.load();
+  JPQ.fx.boot();
+  JPQ.site.mountChrome('games');
+  JPQ.site.wireTools();
+  JPQ.home.render();
+});
+</script>
+</body>
+</html>
