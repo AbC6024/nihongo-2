@@ -223,11 +223,33 @@ function handleAPI(req, res, urlPath) {
 /* =========================================================
    靜態檔案
    ========================================================= */
+
+/* 伺服器原始碼、部署設定、成績資料不應該被任何人下載。
+   就算忘了 gitignore，被抓到公開網址上也只是拿不到這些檔案。 */
+const PRIVATE_FILES = new Set([
+  'server.js', 'package.json', 'package-lock.json', 'npm-shrinkwrap.json',
+  'render.yaml', 'fly.toml', 'procfile', 'railway.json', 'nixpacks.toml',
+  'dockerfile', '.gitignore', '.env', '.npmrc', 'readme.md'
+]);
+const PRIVATE_DIRS = new Set(['data', 'node_modules', '.git', '.github']);
+
+function isPrivatePath(filePath) {
+  const rel = path.relative(ROOT, path.resolve(filePath));
+  if (!rel || rel.startsWith('..')) return true;
+  const parts = rel.split(path.sep);
+  if (parts.some(p => p.startsWith('.') && p !== '.' && p !== '..')) return true;
+  if (PRIVATE_DIRS.has(parts[0].toLowerCase())) return true;
+  return PRIVATE_FILES.has(parts[parts.length - 1].toLowerCase());
+}
+
 function serveStatic(req, res, urlPath) {
   if (urlPath === '/') urlPath = '/index.html';
 
   const filePath = path.join(ROOT, urlPath);
   if (filePath !== ROOT && !filePath.startsWith(ROOT + path.sep)) {
+    res.writeHead(403); return res.end('Forbidden');
+  }
+  if (isPrivatePath(filePath)) {
     res.writeHead(403); return res.end('Forbidden');
   }
 
