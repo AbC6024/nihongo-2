@@ -20,13 +20,21 @@ function envPath(name, fallback) {
 const DATA_DIR = envPath('DATA_DIR', path.join(ROOT, 'data'));
 const DB_FILE = envPath('DB_FILE', path.join(DATA_DIR, 'leaderboard.json'));
 
+/* ---- 排行榜儲存位置 ----
+   1. 有設定 Upstash Redis → 成績存在雲端資料庫，重啟也不會不見（免費額度就夠）
+   2. 沒有 → 用本機的 JSON 檔案。雲端平台的磁碟是暫存的，重啟會清空。 */
+const UPSTASH_URL = String(process.env.UPSTASH_REDIS_REST_URL || '').trim().replace(/\/+$/, '');
+const UPSTASH_TOKEN = String(process.env.UPSTASH_REDIS_REST_TOKEN || '').trim();
+const USE_REDIS = !!(UPSTASH_URL && UPSTASH_TOKEN);
+
 /* 判斷是不是跑在雲端平台的暫存磁碟上。
    這裡沒有 DATA_DIR 又跑在 Render / Railway / Fly 上，磁碟就是暫存的，
-   重啟後成績會不見 → 前端要主動告訴玩家，不要讓人以為成績還在。 */
+   重啟後成績會不見 → 前端要主動告訴玩家，不要讓人以為成績還在。
+   有用 Redis 的話就已經不依賴磁碟了，不算暫存。 */
 const ON_CLOUD = !!(process.env.RENDER || process.env.RAILWAY_ENVIRONMENT ||
                     process.env.FLY_APP_NAME || process.env.DYNO);
 const EPHEMERAL = String(process.env.EPHEMERAL || '').trim().toLowerCase() === 'true' ||
-                  (ON_CLOUD && !process.env.DATA_DIR);
+                  (ON_CLOUD && !process.env.DATA_DIR && !USE_REDIS);
 
 const MAX_PER_GAME = 30;          /* 每種遊戲最多留幾筆 */
 const MAX_TOTAL = 400;            /* 全部最多幾筆 */
@@ -47,18 +55,20 @@ const MIME = {
 };
 
 /* =========================================================
-   排行榜：簡單的 JSON 檔案資料庫
+   排行榜儲存層
+   readAll() → { entries: [{name, game, score, detail, at}] }
+   submit()  → { bestOld, entries }
    ========================================================= */
-let cache = null;        /* { entries: [...] } */
+let cache = null;        /* 檔案模式下的 { entries: [...] } */
 let writing = Promise.resolve();
 
 function emptyDB() { return { entries: [], updatedAt: 0 }; }
 
-function loadDB() {
+/* ---------- 檔案模式 ---------- */
+function fileReadAll() {
   if (cache) return cache;
   try {
-    const raw = fs.readFileSync(DB_FILE, 'utf8');
-    const data = JSON.parse(raw);
+    const data = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
     cache = (data && Array.isArray(data.entries)) ? data : emptyDB();
   } catch (e) {
     cache = emptyDB();
@@ -66,7 +76,6 @@ function loadDB() {
   return cache;
 }
 
-/* 寫入排隊，避免同時寫壞檔案 */
 let lastWriteOk = true;
 let lastWriteError = '';
 
@@ -86,6 +95,118 @@ function saveDB(db) {
   }));
   return writing;
 }
+
+/* ---------- Redis 模式（Upstash REST API，不需要任何 npm 套件） ---------- */
+/* 用 Redis sorted set 存分數，member 就是暱稱。
+   ZADD GT 只在新分數比較高時才更新 → 「同名保留最高分」變成一個原子指令，
+   不會有兩個人同時登記就互相覆蓋的問題。 */
+function redisPipe(cmds) {
+  return fetch(UPSTASH_URL + '/pipeline', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + UPSTASH_TOKEN,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(cmds)
+  }).then(r => {
+    if (!r.ok) throw new Error('Redis HTTP ' + r.status);
+    return r.json();
+  });
+}
+
+const rk = g => 'jpq:z:' + g;          /* 分數 */
+const mk = g => 'jpq:m:' + g;          /* 詳情 */
+const GAMES_KEY = 'jpq:games';         /* 有資料的遊戲 */
+
+async function redisReadAll() {
+  const first = await redisPipe([['SMEMBERS', GAMES_KEY]]);
+  if (first[0] && first[0].error) throw new Error(first[0].error);
+  const games = first[0] && first[0].result ? first[0].result : [];
+  if (!games.length) return { entries: [], updatedAt: 0 };
+
+  const cmds = [];
+  games.forEach(g => {
+    cmds.push(['ZRANGE', rk(g), '0', String(MAX_PER_GAME - 1), 'REV', 'WITHSCORES']);
+    cmds.push(['HGETALL', mk(g)]);
+  });
+  const res = await redisPipe(cmds);
+
+  const entries = [];
+  games.forEach((g, i) => {
+    const flat = (res[i * 2] && res[i * 2].result) || [];
+    const metaRaw = (res[i * 2 + 1] && res[i * 2 + 1].result) || [];
+    /* HGETQL 回傳 [欄位, 值, 欄位, 值, ...]，轉成查表用的物件 */
+    const meta = {};
+    if (Array.isArray(metaRaw)) {
+      for (let j = 0; j < metaRaw.length; j += 2) meta[metaRaw[j]] = metaRaw[j + 1];
+    }
+    for (let j = 0; j < flat.length; j += 2) {
+      const name = flat[j];
+      let m = {};
+      try { m = JSON.parse(meta[name] || '{}'); } catch (e) { m = {}; }
+      entries.push({
+        name: name, game: g,
+        score: Number(flat[j + 1]),
+        detail: m.d || '', at: m.t || 0
+      });
+    }
+  });
+  return { entries, updatedAt: 0 };
+}
+
+async function redisSubmit(game, name, score, detail) {
+  const prev = await redisPipe([['ZSCORE', rk(game), name]]);
+  const raw = prev[0] && prev[0].result;
+  const bestOld = (raw === null || raw === undefined) ? -1 : Number(raw);
+
+  await redisPipe([
+    ['ZADD', rk(game), 'GT', String(score), name],
+    ['HSET', mk(game), name, JSON.stringify({ d: detail || '', t: Date.now() })],
+    ['SADD', GAMES_KEY, game],
+    /* 只留前 MAX_PER_GAME 名。
+       ZREMRANGEBYRANK 的 stop 是負數索引（-1 = 最後一筆），
+       所以要刪掉「0 到 -(MAX_PER_GAME + 1)」才會剛好剩下 MAX_PER_GAME 筆。 */
+    ['ZREMRANGEBYRANK', rk(game), '0', String(-(MAX_PER_GAME + 1))]
+  ]);
+  return bestOld;
+}
+
+/* ---------- 依設定選用哪一種 ---------- */
+const store = USE_REDIS ? {
+  kind: 'redis',
+  readAll: redisReadAll,
+  submit: async (game, name, score, detail) => {
+    const bestOld = await redisSubmit(game, name, score, detail);
+    lastWriteOk = true; lastWriteError = '';
+    return { bestOld, db: await redisReadAll() };
+  }
+} : {
+  kind: 'file',
+  readAll: async () => fileReadAll(),
+  submit: async (game, name, score, detail) => {
+    const db = fileReadAll();
+    /* 同一個暱稱在同一個遊戲只保留最高分 */
+    const prev = db.entries.find(e => e.game === game && e.name === name);
+    const bestOld = prev ? prev.score : -1;
+    if (!prev || score >= prev.score) {
+      db.entries = db.entries.filter(e => !(e.game === game && e.name === name));
+      db.entries.push({ name, game, score, detail, at: Date.now() });
+    }
+    /* 每一種只留前 MAX_PER_GAME 名 */
+    const games = [...new Set(db.entries.map(e => e.game))];
+    games.forEach(g => {
+      const list = db.entries.filter(e => e.game === g).sort((a, b) => b.score - a.score || a.at - b.at);
+      const keep = new Set(list.slice(0, MAX_PER_GAME));
+      db.entries = db.entries.filter(e => !(e.game === g && !keep.has(e)));
+    });
+    if (db.entries.length > MAX_TOTAL) {
+      db.entries = db.entries.slice().sort((a, b) => b.at - a.at).slice(0, MAX_TOTAL);
+    }
+    db.updatedAt = Date.now();
+    await saveDB(db);
+    return { bestOld, db };
+  }
+};
 
 function cleanText(s, max) {
   return String(s == null ? '' : s)
@@ -112,25 +233,34 @@ function sendJSON(res, code, obj) {
   res.end(body);
 }
 
-function handleAPI(req, res, urlPath) {
+async function handleAPI(req, res, urlPath) {
   /* ---- GET /api/health（平台健康檢查用） ---- */
   if (req.method === 'GET' && urlPath === '/api/health') {
     let writable = false;
-    try {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
-      fs.accessSync(DATA_DIR, fs.constants.W_OK);
+    if (USE_REDIS) {
       writable = true;
-    } catch (e) { writable = false; }
+    } else {
+      try {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+        fs.accessSync(DATA_DIR, fs.constants.W_OK);
+        writable = true;
+      } catch (e) { writable = false; }
+    }
+
+    let entries = 0;
+    try { entries = (await store.readAll()).entries.length; } catch (e) { entries = -1; }
 
     sendJSON(res, 200, {
       ok: true,
       service: 'nihongo-2',
       port: PORT,
-      storage: { dir: DATA_DIR, file: DB_FILE, writable: writable },
-      leaderboardPersistent: writable && !EPHEMERAL,
+      storage: USE_REDIS
+        ? { kind: 'redis', persistent: true }
+        : { kind: 'file', dir: DATA_DIR, file: DB_FILE, writable: writable },
+      leaderboardPersistent: USE_REDIS || (writable && !EPHEMERAL),
       ephemeral: EPHEMERAL,
       onCloud: ON_CLOUD,
-      entries: loadDB().entries.length,
+      entries: entries,
       uptimeSec: Math.round(process.uptime())
     });
     return;
@@ -138,12 +268,18 @@ function handleAPI(req, res, urlPath) {
 
   /* ---- GET /api/leaderboard ---- */
   if (req.method === 'GET' && urlPath === '/api/leaderboard') {
-    const db = loadDB();
+    let db;
+    try {
+      db = await store.readAll();
+    } catch (e) {
+      sendJSON(res, 503, { ok: false, error: '排行榜暫時無法讀取：' + e.message });
+      return;
+    }
     const games = {};
     db.entries.forEach(e => { games[e.game] = true; });
     sendJSON(res, 200, {
       ok: true,
-      persistent: lastWriteOk && !EPHEMERAL,
+      persistent: (lastWriteOk || USE_REDIS) && !EPHEMERAL,
       ephemeral: EPHEMERAL,
       note: lastWriteOk ? '' : ('儲存失敗：' + lastWriteError),
       updatedAt: db.updatedAt || 0,
@@ -177,31 +313,10 @@ function handleAPI(req, res, urlPath) {
         sendJSON(res, 400, { ok: false, error: '成績格式錯誤' }); return;
       }
 
-      const db = loadDB();
-      /* 同一個暱稱在同一個遊戲只保留最高分 */
-      const prev = db.entries.find(e => e.game === game && e.name === name);
-      const bestOld = prev ? prev.score : -1;
-      if (!prev || score >= prev.score) {
-        db.entries = db.entries.filter(e => !(e.game === game && e.name === name));
-        db.entries.push({ name, game, score, detail, at: Date.now() });
-      }
-
-      /* 每一種只留前 MAX_PER_GAME 名 */
-      const games = [...new Set(db.entries.map(e => e.game))];
-      games.forEach(g => {
-        const list = db.entries.filter(e => e.game === g).sort((a, b) => b.score - a.score || a.at - b.at);
-        const keep = new Set(list.slice(0, MAX_PER_GAME));
-        db.entries = db.entries.filter(e => !(e.game === g && !keep.has(e)));
-      });
-      if (db.entries.length > MAX_TOTAL) {
-        const all = db.entries.slice().sort((a, b) => b.at - a.at).slice(0, MAX_TOTAL);
-        db.entries = all;
-      }
-      db.updatedAt = Date.now();
-
-      saveDB(db).then(() => {
+      store.submit(game, name, score, detail).then(({ bestOld, db }) => {
         const board = rankOf(db.entries, game);
         const mine = board.find(e => e.name === name);
+        const games = [...new Set(db.entries.map(e => e.game))];
         sendJSON(res, 200, {
           ok: true,
           saved: lastWriteOk,
@@ -212,6 +327,8 @@ function handleAPI(req, res, urlPath) {
           improved: score > bestOld,
           boards: games.reduce((acc, g) => { acc[g] = rankOf(db.entries, g); return acc; }, {})
         });
+      }).catch(err => {
+        sendJSON(res, 503, { ok: false, error: '儲存失敗：' + err.message });
       });
     });
     return;
@@ -326,18 +443,27 @@ server.listen(PORT, '0.0.0.0', () => {
     console.log('  區域網路（手機、平板、其他電腦）：');
     lan.forEach(l => console.log(`    ${l.name.padEnd(12)} http://${l.address}:${PORT}`));
   }
-  console.log('  ─────────────────────────────────────');
+console.log('  ─────────────────────────────────────');
   console.log('  排行榜 API：GET /api/leaderboard · POST /api/leaderboard');
   console.log('  健康檢查：  GET /api/health');
-  console.log(`  成績檔案：  ${DB_FILE}`);
+  if (USE_REDIS) {
+    console.log('  成績儲存：  Upstash Redis（雲端資料庫，重啟不會消失）');
+  } else {
+    console.log(`  成績檔案：  ${DB_FILE}`);
+  }
   if (!writable) {
     console.log('');
     console.log('  ⚠ 成績資料夾無法寫入！排行榜在這台機器上不會保存。');
+  } else if (USE_REDIS) {
+    console.log('');
+    console.log('  ✓ 排行榜使用 Upstash Redis，重啟後成績不會消失。');
   } else if (EPHEMERAL) {
     console.log('');
     console.log('  ℹ 偵測到暫存磁碟（雲端免費方案常見情況）：');
     console.log('    遊戲可以正常玩，但服務重啟後排行榜成績會被清空。');
-    console.log('    想永久保存請掛載持久磁碟並設定 DATA_DIR。');
+    console.log('    永久保存的兩種方式：');
+    console.log('      1. 設定 UPSTASH_REDIS_REST_URL 與 UPSTASH_REDIS_REST_TOKEN（免費額度就夠）');
+    console.log('      2. 掛載持久磁碟並設定 DATA_DIR');
   }
   console.log('  按 Ctrl+C 停止伺服器');
   console.log('');

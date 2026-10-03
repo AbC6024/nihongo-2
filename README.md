@@ -59,9 +59,21 @@ node server.js 8080     # 換埠號
 - `healthCheckPath: /api/health`
 - `region: singapore`
 
-### 讓排行榜永久保存（選用）
+### 讓排行榜永久保存（免費）
 
-如果不介意花一點錢，只要掛一個持久磁碟就行。在 `render.yaml` 加上：
+用 Upstash Redis 的免費額度，**不用花錢**。
+在 Render 後台加兩個環境變數就完成了：
+
+| Key | Value |
+|---|---|
+| `UPSTASH_REDIS_REST_URL` | `https://xxx.upstash.io` |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash 提供的 Token |
+
+詳細說明見下面〈排行榜永久保存（免費）〉。
+
+### 或者掛持久磁碟（付費）
+
+如果不介意花一點錢，在 `render.yaml` 加上：
 
 ```yaml
     envVars:
@@ -73,15 +85,6 @@ node server.js 8080     # 換埠號
         sizeGB: 1
 ```
 
-伺服器偵測到 `DATA_DIR` 之後就會知道磁碟是持久的，前端的提醒也會自動消失。
-
-### 免費又永久保存的折衷方案
-
-用 [Upstash Redis](https://console.upstash.io/) 這類有免費額度的資料庫存成績，
-再把 `server.js` 的 `loadDB`／`saveDB` 改成走 HTTP API。
-這樣網站可以放最便宜的免費主機，成績也不會消失。
-需要的話跟我說，我可以幫你改。
-
 ### 其他平台
 
 | 平台 | 起始指令 | 備註 |
@@ -91,6 +94,44 @@ node server.js 8080     # 換埠號
 | 任何容器平台 | `node server.js` | 平台會自動設定 `PORT` |
 
 `DATA_DIR`（選用）— 指向持久磁碟路徑。沒設定時預設用專案資料夾底下的 `data/`。
+
+## 排行榜永久保存（免費）
+
+用 [Upstash Redis](https://console.upstash.com/) 的免費額度把成績存到雲端，
+這樣網站可以放在免費主機上，重啟後成績也不會消失。
+
+免費額度：**500,000 指令 / 月**、256 MB 資料、10 GB 頻寬。
+讀一次排行榜大約 15 個指令，教室規模使用綽綽有餘。
+
+### 設定步驟
+
+1. 到 [console.upstash.com](https://console.upstash.com/) 建立資料庫（免費，不用信用卡）
+2. 建立後在畫面上找到 **REST API** 的 **URL** 和 **Token**
+3. 到 Render 的 Service → **Environment**，新增兩個變數：
+
+   | Key | Value |
+   |---|---|
+   | `UPSTASH_REDIS_REST_URL` | `https://xxx.upstash.io` |
+   | `UPSTASH_REDIS_REST_TOKEN` | 你的 Token |
+
+4. 存檔後 Render 會自動重新部署
+
+設好之後 `/api/health` 的 `storage.kind` 會顯示 `redis`，
+網站上的「排行榜是暫時的」提醒也會自動消失。
+
+### 資料結構
+
+| Key | 型態 | 內容 |
+|---|---|---|
+| `jpq:z:<game>` | Sorted Set | member = 暱稱，score = 分數 |
+| `jpq:m:<game>` | Hash | 暱稱 → `{d: 詳情, t: 時間}` |
+| `jpq:games` | Set | 有成績的遊戲清單 |
+
+用 sorted set 的好處是「同名保留最高分」可以用 `ZADD GT` 一個原子指令完成，
+兩個人同時登記不會互相覆蓋。不需要安裝任何 npm 套件，直接用內建的 `fetch` 打 REST API。
+
+沒有設定這兩個變數時，會自動退回用本機的 JSON 檔案（`data/leaderboard.json`），
+本機使用完全不受影響。
 
 ## 如果只想放靜態空間
 
