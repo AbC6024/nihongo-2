@@ -105,16 +105,18 @@ node server.js 8080     # 換埠號
 
 ### 設定步驟
 
-1. 到 [console.upstash.com](https://console.upstash.com/) 建立資料庫（免費，不用信用卡）
-2. 建立後在畫面上找到 **REST API** 的 **URL** 和 **Token**
-3. 到 Render 的 Service → **Environment**，新增兩個變數：
+1. 到 [console.upstash.com](https://console.upstash.com/) → 點 **Redis** 建立資料庫
+   （免費，不需要信用卡。Usage 顯示 $0.00 就是免費額度）
+2. 建立後在 Database 頁面找到 **REST API** 的 **URL** 和 **Token**
+3. 到 Render，點進 **Nihongo** 服務（左側導覽選 **Environment**，不是 `dashboard.render.com/env`），
+   按 **Add Environment Variable** 新增兩個變數：
 
    | Key | Value |
    |---|---|
    | `UPSTASH_REDIS_REST_URL` | `https://xxx.upstash.io` |
    | `UPSTASH_REDIS_REST_TOKEN` | 你的 Token |
 
-4. 存檔後 Render 會自動重新部署
+4. 按 **Save Changes**，Render 會自動重新部署
 
 設好之後 `/api/health` 的 `storage.kind` 會顯示 `redis`，
 網站上的「排行榜是暫時的」提醒也會自動消失。

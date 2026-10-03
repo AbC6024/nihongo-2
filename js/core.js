@@ -167,6 +167,7 @@
         b.addEventListener('click', () => { JPQ.sfx.click(); if (a.onClick) a.onClick(); });
         act.appendChild(b);
       });
+      box.classList.toggle('wide', !!opts.wide);
       box.classList.remove('hidden');
     },
     close() { U.$('#modal').classList.add('hidden'); }

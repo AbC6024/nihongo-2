@@ -164,7 +164,7 @@ JPQ.lb = {
                   <p style="font-size:13.5px;color:#8b91ad">目前共 ${j.total} 筆紀錄${j.improved ? '　·　刷新了個人最佳' : ''}</p>
                   ${this.ephemeral ? '<p style="font-size:12.5px;color:#b0894a;margin-top:8px">提醒：這個免費空間重啟後成績會被清空，這次登記只是體驗看看。</p>' : ''}`,
                 actions: [
-                  { label: '看排行榜', onClick: () => { JPQ.modal.close(); this.refresh().then(() => this.paintAll()); } },
+                  { label: '看排行榜', onClick: () => { JPQ.modal.close(); this.refresh().then(() => this.paintAll()); this.openBoard(game); } },
                   { label: '關閉', cls: 'grey', onClick: () => JPQ.modal.close() }
                 ]
               });
@@ -176,6 +176,58 @@ JPQ.lb = {
       ]
     });
     void mine; void U;
+  },
+
+  /* 直接用對話框顯示排行榜，玩遊戲中也能看 */
+  openBoard: function (game) {
+    const U = JPQ.util;
+    if (this.ok === false) {
+      JPQ.modal.show({
+        title: '排行榜開不起來',
+        html: '<p>要先在專案資料夾執行 <b>node server.js</b>，<br>並用 http://localhost:8000 開啟網站。</p>',
+        actions: [{ label: '知道了', onClick: () => JPQ.modal.close() }]
+      });
+      return;
+    }
+    if (game && JPQ.LB_GAMES[game]) this.activeGame = game;
+
+    const keys = Object.keys(JPQ.LB_GAMES);
+    const active = this.activeGame && keys.includes(this.activeGame) ? this.activeGame : keys[0];
+    const list = this.boards[active] || [];
+    const meta = JPQ.LB_GAMES[active];
+    const myName = this.rememberedName(active);
+
+    const tabs = keys.map(k => `<button class="lb-tab${k === active ? ' on' : ''}" data-game="${k}">${JPQ.LB_GAMES[k].label}</button>`).join('');
+    const rows = list.length ? list.map(e => `<li class="lb-row${e.rank <= 3 ? ' top' : ''}${e.name === myName ? ' me' : ''}">
+        <span class="lb-rank">${e.rank}</span>
+        <span class="lb-name">${U.strip ? U.strip(e.name) : e.name}</span>
+        <span class="lb-score">${e.score}<em>${meta.unit}</em></span>
+        ${e.detail ? `<span class="lb-detail">${e.detail}</span>` : ''}
+      </li>`).join('')
+      : '<li class="lb-empty">還沒有人登記，自己來當第一個吧！</li>';
+
+    const box = document.createElement('div');
+    box.className = 'lb-box';
+    box.innerHTML = `
+      ${this.ephemeral ? `<div class="lb-warn"><b>ℹ 這份排行榜是暫時的</b><p>這個網站目前跑在免費空間上，伺服器重啟後成績就會被清空。<br>遊戲和你的個人進度（存在瀏覽器裡）都不受影響。</p></div>` : ''}
+      <div class="lb-tabs">${tabs}</div>
+      <p class="lb-hint">${meta.desc}　·　同一個暱稱只留最高分</p>
+      <ol class="lb-list">${rows}</ol>`;
+
+    JPQ.modal.show({
+      title: '排行榜',
+      html: '<div id="lbModalBody"></div>',
+      wide: true,
+      actions: [{ label: '關閉', cls: 'grey', onClick: () => JPQ.modal.close() }]
+    });
+
+    const host = document.getElementById('lbModalBody');
+    if (host) host.appendChild(box);
+
+    U.$$('.lb-tab', box).forEach(b => b.addEventListener('click', () => {
+      this.activeGame = b.dataset.game;
+      this.openBoard(this.activeGame);
+    }));
   },
 
   /* 頁面上所有排行榜區塊一起重畫 */

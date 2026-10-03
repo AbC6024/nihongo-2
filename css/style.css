@@ -489,7 +489,17 @@ a{color:inherit;text-decoration:none}
 @keyframes rise{from{opacity:0;transform:translateY(22px) scale(.95)}}
 .modal-box h3{font-size:23px;margin-bottom:10px;color:#3d3766}
 .modal-box p{color:var(--ink-2);font-size:15px}
+.modal-box.wide{max-width:620px}
 .modal-actions{display:flex;gap:11px;justify-content:center;flex-wrap:wrap;margin-top:24px}
+
+/* 排行榜彈窗 */
+.lb-box{text-align:left}
+.lb-box .lb-list{max-height:46vh;overflow-y:auto;margin-top:4px}
+.lb-row.me{box-shadow:0 0 0 2px rgba(150,140,235,.4) inset}
+@media (max-width:560px){
+  .modal-box.wide{max-width:100%}
+  .lb-box .lb-list{max-height:38vh}
+}
 
 /* ---------------- footer / fx ---------------- */
 .site-footer{
