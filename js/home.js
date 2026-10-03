@@ -159,7 +159,30 @@
     }));
   }
 
+  /* ---- 首頁排行榜按鈕 ---- */
+  function renderLeaderboardBtn() {
+    const box = U.$('#lbHomeBtn');
+    if (!box) return;
+    box.innerHTML = `
+      <button type="button" class="lb-home-btn" data-lb-open>
+        <span class="lb-home-ico" aria-hidden="true">
+          <span class="pane-thumb thumb-quiz">${JPQ.site.thumb('speed')}</span>
+        </span>
+        <span class="lb-home-txt">
+          <strong>排行榜</strong>
+          <em>看看大家在各款遊戲的最好成績</em>
+        </span>
+      </button>`;
+    U.$('[data-lb-open]', box).addEventListener('click', () => {
+      JPQ.sfx.click();
+      JPQ.lb.refresh().then(() => JPQ.lb.openBoard());
+    });
+  }
+
   JPQ.home = {
-    render: function () { renderCatalog(); renderSteps(); renderParticles(); renderStats(); renderKanaTable(); }
+    render: function () {
+      renderCatalog(); renderSteps(); renderParticles(); renderStats();
+      renderKanaTable(); renderLeaderboardBtn();
+    }
   };
 })(window);
