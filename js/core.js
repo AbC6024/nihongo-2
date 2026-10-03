@@ -20,6 +20,11 @@
     pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; },
     clamp(n, min, max) { return Math.max(min, Math.min(max, n)); },
     pad(n) { return n < 10 ? '0' + n : '' + n; },
+    escapeHTML(text) {
+      return String(text == null ? '' : text).replace(/[&<>"']/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[ch]));
+    },
 
     /* 題庫寫法：東京[とうきょう] → 假名標在「東京」正上方 */
     ruby(text) {

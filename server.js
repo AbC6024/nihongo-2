@@ -39,6 +39,10 @@ const EPHEMERAL = String(process.env.EPHEMERAL || '').trim().toLowerCase() === '
 const MAX_PER_GAME = 30;          /* 每種遊戲最多留幾筆 */
 const MAX_TOTAL = 400;            /* 全部最多幾筆 */
 const NAME_MAX = 16;              /* 暱稱最長幾字 */
+const ALLOWED_GAMES = new Set([
+  'quiz', 'speed', 'scramble', 'match',
+  'kana-order', 'kana-convert', 'kana-listen'
+]);
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -154,20 +158,30 @@ async function redisReadAll() {
   return { entries, updatedAt: 0 };
 }
 
-async function redisSubmit(game, name, score, detail) {
-  const prev = await redisPipe([['ZSCORE', rk(game), name]]);
-  const raw = prev[0] && prev[0].result;
-  const bestOld = (raw === null || raw === undefined) ? -1 : Number(raw);
+const REDIS_SUBMIT_SCRIPT = `
+local old = redis.call('ZSCORE', KEYS[1], ARGV[1])
+if (not old) or (tonumber(ARGV[2]) > tonumber(old)) then
+  redis.call('ZADD', KEYS[1], ARGV[2], ARGV[1])
+  redis.call('HSET', KEYS[2], ARGV[1], ARGV[3])
+end
+redis.call('SADD', KEYS[3], ARGV[4])
+local dropped = redis.call('ZRANGE', KEYS[1], 0, tonumber(ARGV[5]))
+for _, member in ipairs(dropped) do
+  redis.call('ZREM', KEYS[1], member)
+  redis.call('HDEL', KEYS[2], member)
+end
+return old
+`;
 
-  await redisPipe([
-    ['ZADD', rk(game), 'GT', String(score), name],
-    ['HSET', mk(game), name, JSON.stringify({ d: detail || '', t: Date.now() })],
-    ['SADD', GAMES_KEY, game],
-    /* 只留前 MAX_PER_GAME 名。
-       ZREMRANGEBYRANK 的 stop 是負數索引（-1 = 最後一筆），
-       所以要刪掉「0 到 -(MAX_PER_GAME + 1)」才會剛好剩下 MAX_PER_GAME 筆。 */
-    ['ZREMRANGEBYRANK', rk(game), '0', String(-(MAX_PER_GAME + 1))]
-  ]);
+async function redisSubmit(game, name, score, detail) {
+  /* 分數與詳情必須一起更新，避免低分覆蓋高分的詳情。 */
+  const result = await redisPipe([[
+    'EVAL', REDIS_SUBMIT_SCRIPT, '3', rk(game), mk(game), GAMES_KEY,
+    name, String(score), JSON.stringify({ d: detail || '', t: Date.now() }),
+    game, String(-(MAX_PER_GAME + 1))
+  ]]);
+  const raw = result[0] && result[0].result;
+  const bestOld = (raw === null || raw === undefined) ? -1 : Number(raw);
   return bestOld;
 }
 
@@ -188,7 +202,7 @@ const store = USE_REDIS ? {
     /* 同一個暱稱在同一個遊戲只保留最高分 */
     const prev = db.entries.find(e => e.game === game && e.name === name);
     const bestOld = prev ? prev.score : -1;
-    if (!prev || score >= prev.score) {
+    if (!prev || score > prev.score) {
       db.entries = db.entries.filter(e => !(e.game === game && e.name === name));
       db.entries.push({ name, game, score, detail, at: Date.now() });
     }
@@ -214,6 +228,12 @@ function cleanText(s, max) {
     .replace(/[<>&"'\\]/g, '')             /* 避免注入 */
     .trim()
     .slice(0, max);
+}
+
+function escapeHTML(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[ch]));
 }
 
 function rankOf(entries, game) {
@@ -294,8 +314,9 @@ async function handleAPI(req, res, urlPath) {
     let body = '';
     let tooBig = false;
     req.on('data', c => {
+      if (tooBig) return;
       body += c;
-      if (body.length > 4000) { tooBig = true; req.destroy(); }
+      if (body.length > 4000) { tooBig = true; body = ''; }
     });
     req.on('end', () => {
       if (tooBig) { sendJSON(res, 413, { ok: false, error: '資料太大' }); return; }
@@ -309,6 +330,7 @@ async function handleAPI(req, res, urlPath) {
       const detail = cleanText(data.detail, 40);
 
       if (!game || !name) { sendJSON(res, 400, { ok: false, error: '需要遊戲名稱與暱稱' }); return; }
+      if (!ALLOWED_GAMES.has(game)) { sendJSON(res, 400, { ok: false, error: '不支援這個遊戲' }); return; }
       if (!isFinite(score) || score < 0 || score > 1000000) {
         sendJSON(res, 400, { ok: false, error: '成績格式錯誤' }); return;
       }
@@ -385,7 +407,7 @@ function serveStatic(req, res, urlPath) {
         return res.end(`<!doctype html><meta charset="utf-8">
           <title>找不到頁面</title>
           <body style="font-family:system-ui;padding:60px;text-align:center;color:#5b5580">
-          <h1>404</h1><p>找不到「${urlPath}」這個頁面。</p>
+          <h1>404</h1><p>找不到「${escapeHTML(urlPath)}」這個頁面。</p>
           <p><a href="/" style="color:#7b6fd0">回到遊戲總覽</a></p>`);
       }
       res.writeHead(200, {

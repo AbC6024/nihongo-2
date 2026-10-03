@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
+    "test": "node tests/smoke.js",
     "health": "node -e \"fetch('http://localhost:'+(process.env.PORT||8000)+'/api/health').then(r=>r.json()).then(j=>console.log(j))\""
   },
   "keywords": [

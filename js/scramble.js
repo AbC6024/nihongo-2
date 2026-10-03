@@ -15,7 +15,7 @@
     stage.innerHTML = `<div class="panel narrow center">
       <h2>句子重排</h2>
       <p class="section-note" style="margin-top:10px">
-        看中文，把打亂的單字照正確順序點出來，組成完整的日语句子。<br>
+        看中文，把打亂的單字照正確順序點出來，組成完整的日語句子。<br>
         連續答對會有連擊加分；卡住時可以按「提示」。
       </p>
       <p style="font-size:13px;color:#8b91ad;margin-top:8px">共 ${items().length} 句</p>
@@ -199,7 +199,7 @@ actions: [
   JPQ.registerGame({
     name: 'scramble',
     title: '句子重排',
-    sub: '看中文，把日语句子排出來',
+    sub: '看中文，把日語句子排出來',
     card: {
       thumb: 'tiles',
       icon: '🧩',

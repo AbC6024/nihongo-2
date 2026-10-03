@@ -19,7 +19,7 @@ JPQ.lb = {
   ok: null,               /* 伺服器 API 是否可用 */
   ephemeral: false,       /* 成績會不會在主機重啟後消失 */
   boards: {},
-  names: {},              /* 記住每台裝器上次輸入的暱稱 */
+  names: {},              /* 記住每台裝置上次輸入的暱稱 */
 
   /* ---------- API ---------- */
   probe: async function () {
@@ -71,6 +71,7 @@ JPQ.lb = {
   /* ---------- 面板 ---------- */
   renderPanel: function (el) {
     const U = JPQ.util;
+    const esc = U.escapeHTML;
     if (!el) return;
     if (this.ok === false) {
       el.innerHTML = `<div class="lb-off">
@@ -91,9 +92,9 @@ JPQ.lb = {
 
     const rows = list.length ? list.map(e => `<li class="lb-row${e.rank <= 3 ? ' top' : ''}">
         <span class="lb-rank">${e.rank}</span>
-        <span class="lb-name">${U.strip ? U.strip(e.name) : e.name}</span>
+        <span class="lb-name">${esc(U.strip ? U.strip(e.name) : e.name)}</span>
         <span class="lb-score">${e.score}<em>${meta.unit}</em></span>
-        ${e.detail ? `<span class="lb-detail">${e.detail}</span>` : ''}
+        ${e.detail ? `<span class="lb-detail">${esc(e.detail)}</span>` : ''}
       </li>`).join('')
       : '<li class="lb-empty">還沒有人登記，自己來當第一個吧！</li>';
 
@@ -120,6 +121,7 @@ JPQ.lb = {
   /* 玩完之後呼叫：offer('speed', 120, '答對 12 題') */
   offer: function (game, score, detail) {
     const U = JPQ.util;
+    const esc = U.escapeHTML;
     if (this.ok === false) {
       JPQ.modal.show({
         title: '排行榜開不起來',
@@ -138,7 +140,7 @@ JPQ.lb = {
         <p style="margin-bottom:14px">遊戲：<b>${meta.label}</b>　成績：<b style="font-size:22px;color:#6f66a8">${score}</b> ${meta.unit}</p>
         <label style="display:block;text-align:left;font-size:13px;font-weight:700;color:#6a7096;margin-bottom:6px">你的暱稱（最多 16 字）</label>
         <input id="lbName" type="text" maxlength="16" placeholder="例如：小明"
-          value="${this.rememberedName(game).replace(/"/g, '&quot;')}"
+          value="${esc(this.rememberedName(game))}"
           style="width:100%;padding:12px 14px;border-radius:12px;border:2px solid #e6e8f2;font-size:16px;font-family:inherit;text-align:center">
         <p class="lb-msg" style="margin-top:12px;font-size:13.5px;min-height:20px"></p>`,
       actions: [
@@ -152,7 +154,7 @@ JPQ.lb = {
             this.submit(game, name, score, detail).then(j => {
               JPQ.modal.close();
               if (!j.ok) {
-                JPQ.modal.show({ title: '送出失敗', html: '<p>' + (j.error || '請稍後再試') + '</p>',
+                JPQ.modal.show({ title: '送出失敗', html: '<p>' + esc(j.error || '請稍後再試') + '</p>',
                   actions: [{ label: '好', onClick: () => JPQ.modal.close() }] });
                 return;
               }
@@ -160,7 +162,7 @@ JPQ.lb = {
               JPQ.fx.center();
               JPQ.modal.show({
                 title: j.rank ? '第 ' + j.rank + ' 名！' : '已登記',
-                html: `<p style="font-size:17px;margin-bottom:6px"><b>${name}</b> 在「${meta.label}」得到 <b style="color:#6f66a8">${score}</b> ${meta.unit}</p>
+                html: `<p style="font-size:17px;margin-bottom:6px"><b>${esc(name)}</b> 在「${meta.label}」得到 <b style="color:#6f66a8">${score}</b> ${meta.unit}</p>
                   <p style="font-size:13.5px;color:#8b91ad">目前共 ${j.total} 筆紀錄${j.improved ? '　·　刷新了個人最佳' : ''}</p>
                   ${this.ephemeral ? '<p style="font-size:12.5px;color:#b0894a;margin-top:8px">提醒：這個免費空間重啟後成績會被清空，這次登記只是體驗看看。</p>' : ''}`,
                 actions: [
@@ -181,6 +183,7 @@ JPQ.lb = {
   /* 直接用對話框顯示排行榜，玩遊戲中也能看 */
   openBoard: function (game) {
     const U = JPQ.util;
+    const esc = U.escapeHTML;
     if (this.ok === false) {
       JPQ.modal.show({
         title: '排行榜開不起來',
@@ -200,9 +203,9 @@ JPQ.lb = {
     const tabs = keys.map(k => `<button class="lb-tab${k === active ? ' on' : ''}" data-game="${k}">${JPQ.LB_GAMES[k].label}</button>`).join('');
     const rows = list.length ? list.map(e => `<li class="lb-row${e.rank <= 3 ? ' top' : ''}${e.name === myName ? ' me' : ''}">
         <span class="lb-rank">${e.rank}</span>
-        <span class="lb-name">${U.strip ? U.strip(e.name) : e.name}</span>
+        <span class="lb-name">${esc(U.strip ? U.strip(e.name) : e.name)}</span>
         <span class="lb-score">${e.score}<em>${meta.unit}</em></span>
-        ${e.detail ? `<span class="lb-detail">${e.detail}</span>` : ''}
+        ${e.detail ? `<span class="lb-detail">${esc(e.detail)}</span>` : ''}
       </li>`).join('')
       : '<li class="lb-empty">還沒有人登記，自己來當第一個吧！</li>';
 

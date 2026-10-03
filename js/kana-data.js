@@ -20,11 +20,13 @@ JPQ.KANA = [
   { row: 'ま行', css: 'ma',   cells: [
     ['ま','ma'],['み','mi'],['む','mu'],['め','me'],['も','mo'] ] },
   { row: 'や行', css: 'ya',   cells: [
-    ['や','ya'],['ゆ','yu'],['よ','yo'] ] },
+    ['や','ya'],null,['ゆ','yu'],null,['よ','yo'] ] },
   { row: 'ら行', css: 'ra',   cells: [
     ['ら','ra'],['り','ri'],['る','ru'],['れ','re'],['ろ','ro'] ] },
   { row: 'わ行', css: 'wa',   cells: [
-    ['わ','wa'],['を','wo'],['ん','n'] ] }
+    ['わ','wa'],null,null,null,['を','wo'] ] },
+  { row: 'ん', css: 'n', cells: [
+    ['ん','n'],null,null,null,null ] }
 ];
 
 /* 濁音・半濁音 */
@@ -50,6 +52,7 @@ JPQ.kana = {
   list: function () {
     const out = [];
     JPQ.KANA.forEach(r => r.cells.forEach((c, i) => {
+      if (!c) return;
       out.push({
         hira: c[0], romaji: c[1], row: r.row, col: i,
         kata: toKata(c[0])
@@ -66,14 +69,16 @@ JPQ.kana = {
   },
   byRomaji: function (romaji) {
     return JPQ.kana.list().find(k => k.romaji === romaji) || null;
-  }
+  },
+  toKatakana: toKata
 };
 
-/* 平假名 → 片假名（ㄓㄔㄕ 對應 チ ツ ト 等少數例外） */
+/* 平假名 → 片假名（包含拗音中的小寫 ゃ／ゅ／ょ） */
 function toKata(h) {
-  const map = {
-    'し': 'シ', 'ち': 'チ', 'つ': 'ツ', 'じ': 'ジ', 'ぢ': 'ヂ', 'づ': 'ヅ',
-    'や': 'ヤ', 'ゆ': 'ユ', 'よ': 'ヨ', 'を': 'ヲ', 'ん': 'ン'
-  };
-  return map[h] || String.fromCharCode(h.charCodeAt(0) + 0x60);
+  return Array.from(String(h)).map(ch => {
+    const code = ch.charCodeAt(0);
+    return code >= 0x3041 && code <= 0x3096
+      ? String.fromCharCode(code + 0x60)
+      : ch;
+  }).join('');
 }

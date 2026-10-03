@@ -169,7 +169,11 @@
       const distract = U.shuffle(all.filter(k => k.hira !== q.hira)).slice(0, 3);
       const opts = U.shuffle(distract.concat([q]));
       reverse = Math.random() < .5;
-      st = { q: q, opts: opts, total: (st ? st.total : 0), right: (st ? st.right : 0) };
+      st = {
+        q: q, opts: opts,
+        total: (st ? st.total : 0), right: (st ? st.right : 0),
+        streak: (st ? st.streak : 0), best: (st ? st.best : 0)
+      };
 
       stage.innerHTML = `<div class="panel">
         <div class="q-zh">${reverse ? '這個片假名，平假名怎麼寫？' : '這個平假名，片假名怎麼寫？'}</div>
@@ -263,7 +267,11 @@
       const all = JPQ.kana.list();
       const q = U.pick(all);
       const opts = U.shuffle(U.shuffle(all.filter(k => k.romaji !== q.romaji)).slice(0, 3).concat([q]));
-      st = { q: q, opts: opts, total: (st ? st.total : 0), right: (st ? st.right : 0) };
+      st = {
+        q: q, opts: opts,
+        total: (st ? st.total : 0), right: (st ? st.right : 0),
+        streak: (st ? st.streak : 0), best: (st ? st.best : 0)
+      };
 
       stage.innerHTML = `<div class="panel">
         <div class="q-zh">聽聽看是哪一個假名</div>
@@ -339,7 +347,7 @@
         clearKeys();
         speech.init();
         st = { total: 0, right: 0, streak: 0, best: 0 };
-        JPQ.hud.set('聽音選字', '聽唸音選假名');
+        JPQ.hud.set('聽音選字', '聽發音選假名');
         draw(stage);
       },
       unmount: function () { clearKeys(); if (global.speechSynthesis) global.speechSynthesis.cancel(); }
@@ -371,6 +379,6 @@
   reg({ ...convertGame(), title: '平假名 ⇄ 片假名', sub: '看字選另一種寫法',
         icon: '🔁', color: '#7fc4f0', thumb: 'tiles', tag: '雙向題', desc: '看到平假名選片假名，也會反過來出題。' });
 
-  reg({ ...listenGame(), title: '聽音選字', sub: '聽唸音選假名',
-        icon: '🔊', color: '#8fd6b8', thumb: 'listen', tag: '需要語音', desc: '播放假名的唸音，從四個選項中選出對應的假名。' });
+  reg({ ...listenGame(), title: '聽音選字', sub: '聽發音選假名',
+        icon: '🔊', color: '#8fd6b8', thumb: 'listen', tag: '需要語音', desc: '播放假名的發音，從四個選項中選出對應的假名。' });
 })(window);

@@ -121,8 +121,8 @@
       } catch (e) { /* 沒語音就靜默 */ }
     };
 
-    const head = '<div class="kana-head">' + ['あ段', '', '', '', ''].map(h =>
-      h ? `<div>${h}</div>` : '<div></div>').join('') + '</div>';
+    const head = '<div class="kana-head"><div class="kana-head-label"></div>' + ['あ段', 'い段', 'う段', 'え段', 'お段'].map(h =>
+      `<div>${h}</div>`).join('') + '</div>';
 
     const seion = JPQ.KANA.map(r => `<div class="kana-row">
       <span class="kana-row-label">${r.row}</span>
@@ -141,8 +141,7 @@
     </div>`).join('');
 
     const yoon = JPQ.YOON.map(([h, r]) => {
-      const k = h.replace(/[ゃゅょ]/g, m => ({ 'ゃ': 'や', 'ゅ': 'ゆ', 'ょ': 'よ' }[m]));
-      const kata = k.replace(/[やゆよ]/g, m => ({ 'や': 'ヤ', 'ゆ': 'ユ', 'よ': 'ヨ' }[m]));
+      const kata = JPQ.kana.toKatakana(h);
       return `<button class="yoon-cell" data-say="${h}"><b>${h}　${kata}</b><i>${r}</i></button>`;
     }).join('');
 
@@ -179,10 +178,16 @@
     });
   }
 
+  /* 從遊戲返回首頁時，立即更新剛創下的個人最佳成績。 */
+  function renderPersonalBests() {
+    if (!JPQ.lb || typeof JPQ.lb.renderMyBest !== 'function') return;
+    U.$$('[data-mybest]').forEach(el => JPQ.lb.renderMyBest(el));
+  }
+
   JPQ.home = {
     render: function () {
       renderCatalog(); renderSteps(); renderParticles(); renderStats();
-      renderKanaTable(); renderLeaderboardBtn();
+      renderKanaTable(); renderLeaderboardBtn(); renderPersonalBests();
     }
   };
 })(window);
