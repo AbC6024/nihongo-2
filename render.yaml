@@ -1,0 +1,22 @@
+# Render 免費方案部署設定
+# 使用方式：把整個資料夾推到 GitHub，然後在 Render 後台選 "New +" → "Blueprint"
+#           指向這個儲存庫，Render 會自動讀取本檔。
+#
+# ⚠ 免費方案的代價：
+#   1) 免費服務閒置一陣子會進入休眠（第一次再開啟會比較慢）
+#   2) 暫存磁碟在服務重啟後會被清空 → 排行榜成績會歸零
+#   遊戲本身完全不受影響，玩家的個人進度存在自己的瀏覽器裡。
+services:
+  - type: web
+    name: nihongo-2
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: ""
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NODE_ENV
+        value: production

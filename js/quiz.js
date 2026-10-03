@@ -152,10 +152,15 @@
         <div>本關星星<b>${stars} / 3</b></div>
       </div>`;
 
-    JPQ.modal.show({
+JPQ.modal.show({
       title: '第 ' + lv.no + ' 關完成！',
       html: html,
       actions: [
+        { label: '🏆 登記排行榜', cls: 'gold', onClick: () => {
+            JPQ.modal.close();
+            const total = JPQ.store.totalStars();
+            JPQ.lb.offer('quiz', total, '第 ' + lv.no + ' 關 · 共 ' + total + ' 星星');
+          } },
         !isLast ? { label: '下一關 →', onClick: () => {
           JPQ.modal.close(); state = null; showLevels(stage);
         } } : null,

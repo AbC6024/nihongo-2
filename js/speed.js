@@ -116,7 +116,11 @@
             <div>正確率<b>${acc}%</b></div>
             <div>最高分<b>${JPQ.store.record('speed')}</b></div>
           </div>`,
-        actions: [
+actions: [
+          { label: '🏆 登記排行榜', cls: 'gold', onClick: () => {
+              JPQ.modal.close();
+              JPQ.lb.offer('speed', st.score, '答對 ' + st.right + ' 題 · 最高 ' + st.best + ' 連');
+            } },
           { label: '再玩一次', onClick: () => { JPQ.modal.close(); begin(stage); } },
           { label: '回主頁', cls: 'grey', onClick: () => { JPQ.modal.close(); JPQ.go('#/'); } }
         ]

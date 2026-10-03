@@ -51,6 +51,16 @@
       <h2 class="section-title">五十音表 <small>Gojuon chart</small></h2>
       <p class="section-note">點任何一個假名都可以聽它怎麼念。五十音是日語的字母表，先記順序再記形狀會快很多。</p>
       <div id="kanaTable"></div>
+
+      <h2 class="section-title">排行榜 <small>Leaderboard</small></h2>
+      <h3 class="lb-sub">我的最佳成績</h3>
+      <p class="section-note">這三種玩法是無限題，玩到滿意就可以按「🏆 登記」把成績放進排行榜。</p>
+      <div data-mybest="kana-order,kana-convert,kana-listen"></div>
+
+      <div class="panel" style="margin-top:26px">
+        <h3 class="lb-sub">全站排行榜</h3>
+        <div data-leaderboard="kana-order"></div>
+      </div>
     </div>
   </section>
 
@@ -89,6 +99,7 @@
 <script src="js/site.js"></script>
 <script src="js/kana-data.js"></script>
 <script src="js/gojuon.js"></script>
+<script src="js/leaderboard.js"></script>
 <script src="js/home.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -98,6 +109,7 @@ document.addEventListener('DOMContentLoaded', function () {
   JPQ.hud.init();
   JPQ.fx.boot();
   JPQ.home.render();
+  JPQ.lb.init();
 
   addEventListener('hashchange', function () {
     JPQ.modal.close();

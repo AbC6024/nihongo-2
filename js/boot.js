@@ -11,6 +11,7 @@
     JPQ.hud.init();
     JPQ.fx.boot();
     JPQ.home.render();
+    JPQ.lb.init();
 
     /* 返回鍵（瀏覽器上一頁）統一關掉彈窗 */
     global.addEventListener('hashchange', function () {

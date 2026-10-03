@@ -38,22 +38,22 @@
     draw(stage);
   }
 
-  function draw(stage) {
+function draw(stage) {
     if (st.i >= st.list.length) return finish(stage);
     st.cur = st.list[st.i];
     st.placed = [];
+    st.hintUsed = false;
     st.pool = U.shuffle(st.cur.ans.map((t, i) => ({ t: t, i: i })));
 
     stage.innerHTML = `<div class="panel">
       <div class="scr-prompt">
         <div class="zh">${st.cur.zh}</div>
-        <div class="jp-read">把下面 ${st.cur.ans.length} 個單字排成正確的日語句子</div>
+        <div class="jp-read">把下面 ${st.cur.ans.length} 個單字排成正確的日語句子　·　想重來可以點掉已排的單字</div>
       </div>
       <div class="scr-answer" id="slot"></div>
       <div class="scr-pool" id="pool"></div>
       <div class="scr-tools">
-        <button class="btn ghost" id="hintBtn">提示</button>
-        <button class="btn grey" id="clearBtn">清除</button>
+        <button class="btn ghost" id="hintBtn">💡 提示（每題一次）</button>
         <button class="btn" id="checkBtn">檢查答案</button>
       </div>
     </div>`;
@@ -66,26 +66,23 @@
       if (e.key === 'Backspace' || e.key === 'Delete') { pop(stage); }
     });
 
-    U.$('#checkBtn', stage).addEventListener('click', () => check(stage));
-    U.$('#clearBtn', stage).addEventListener('click', () => {
-      st.placed = []; st.pool = U.shuffle(st.pool); JPQ.sfx.click(); paintTokens(stage);
-    });
+U.$('#checkBtn', stage).addEventListener('click', () => check(stage));
     U.$('#hintBtn', stage).addEventListener('click', () => hint(stage));
   }
 
 function paintTokens(stage) {
     U.$('#slot', stage).innerHTML = st.placed.length
       ? st.placed.map((p, idx) =>
-          `<button class="tok" data-pool="${p.i}" data-slot="${idx}">${U.ruby(p.t)}</button>`).join('')
+          `<button class="tok" data-pool="${p.i}" data-slot="${idx}" data-t="${U.strip(p.t)}">${U.ruby(p.t)}</button>`).join('')
       : '<span style="color:#a8adC4;font-size:14px">點下面的單字開始排</span>';
     U.$('#pool', stage).innerHTML = st.pool.map(p =>
       `<button class="tok plain" data-pool="${p.i}" data-t="${U.strip(p.t)}">${U.ruby(p.t)}</button>`).join('');
 
     U.$$('[data-pool]', stage).forEach(b => b.addEventListener('click', () => {
       const idx = Number(b.dataset.pool);
-      if (b.dataset.slot !== undefined) {           // 從答案列移回
-        st.placed.splice(Number(b.dataset.slot), 1);
-        st.pool.push({ t: b.dataset.t, i: idx });
+      if (b.dataset.slot !== undefined) {           // 從答案列移回選字池
+        const item = st.placed.splice(Number(b.dataset.slot), 1)[0];
+        if (item) st.pool.push(item);                // 整包放回去，文字不會遺失
         JPQ.sfx.click();
       } else {                                        // 從選字池放進答案
         const at = st.pool.findIndex(x => x.i === idx);
@@ -99,15 +96,21 @@ function paintTokens(stage) {
     U.$('#checkBtn', stage).disabled = st.placed.length !== st.cur.ans.length;
   }
 
+  /* 提示：每一題只能用一次，避免一直按就把整句送完 */
   function hint(stage) {
-    const next = st.cur.ans.find((t, i) =>
-      !st.placed.some(p => p.i === i) && st.pool.some(x => x.i === i));
-    if (!next) return;
-    const at = st.pool.findIndex(x => x.i === next.i);
+    if (st.hintUsed) return;
+    const i = st.cur.ans.findIndex((t, k) =>
+      !st.placed.some(p => p.i === k) && st.pool.some(x => x.i === k));
+    if (i < 0) return;
+    const at = st.pool.findIndex(x => x.i === i);
     if (at < 0) return;
     st.placed.push(st.pool.splice(at, 1)[0]);
+    st.hintUsed = true;
     JPQ.sfx.match();
     paintTokens(stage);
+    const btn = U.$('#hintBtn', stage);
+    btn.disabled = true;
+    btn.textContent = '已用過提示';
   }
 
   function pop(stage) {
@@ -136,12 +139,19 @@ function check(stage) {
         <div class="btn-row"><button class="btn" id="nextBtn">${st.i + 1 >= st.list.length ? '看成績 →' : '下一句 →'}</button></div>`);
       U.$('#nextBtn', stage).addEventListener('click', () => { st.i++; draw(stage); });
       paint(stage);
-    } else {
+} else {
       st.combo = 0; st.wrong = (st.wrong || 0) + 1;
       slot.classList.add('shake');
       setTimeout(() => slot.classList.remove('shake'), 320);
       JPQ.sfx.wrong();
-      hint(stage);
+      /* 答錯就直接把正確寫法給你看，不再偷偷幫你填一個（那會吃掉提示） */
+      const answerHTML = st.cur.ans.map(t => U.ruby(t)).join('');
+      slot.insertAdjacentHTML('afterend', `
+        <div class="fb no show" style="text-align:center">
+          <strong>順序還不太對，正確的寫法是：</strong>
+          <p style="font-size:19px;margin:6px 0 2px">${answerHTML}</p>
+          <p>${st.cur.note || ''}</p>
+        </div>`);
     }
   }
 
@@ -169,7 +179,11 @@ function check(stage) {
           <div>最佳成績<b>${JPQ.store.record('scramble')}</b></div>
         </div>
         <p style="margin-top:14px;font-size:14px">${wrongOnes(st)}</p>`,
-      actions: [
+actions: [
+        { label: '🏆 登記排行榜', cls: 'gold', onClick: () => {
+            JPQ.modal.close();
+            JPQ.lb.offer('scramble', st.right, '最高 ' + st.best + ' 連');
+          } },
         { label: '再玩一次', onClick: () => { JPQ.modal.close(); begin(stage); } },
         { label: '回主頁', cls: 'grey', onClick: () => { JPQ.modal.close(); JPQ.go('#/'); } }
       ]

@@ -157,7 +157,11 @@
           <div>配錯<b>${st.mistakes}</b></div>
           <div>最高分<b>${JPQ.store.record('match')}</b></div>
         </div>`,
-      actions: [
+actions: [
+        { label: '🏆 登記排行榜', cls: 'gold', onClick: () => {
+            JPQ.modal.close();
+            JPQ.lb.offer('match', st.score, '配對 ' + st.done + ' · 失誤 ' + st.mistakes);
+          } },
         { label: '再玩一次', onClick: () => { JPQ.modal.close(); begin(stage); } },
         { label: '回主頁', cls: 'grey', onClick: () => { JPQ.modal.close(); JPQ.go('#/'); } }
       ]

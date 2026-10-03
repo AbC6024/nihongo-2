@@ -7,3 +7,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.log
+
+# 排行榜資料（正式環境會放在掛載的磁碟上，不進版控）
+data/

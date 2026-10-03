@@ -53,6 +53,7 @@
 
       st = {
         target: target, pool: U.shuffle(target.slice()), placed: [],
+        hintUsed: false,
         total: (st ? st.total : 0), right: (st ? st.right : 0),
         streak: (st ? st.streak : 0), best: (st ? st.best : 0)
       };
@@ -68,8 +69,7 @@
         </div>
         <div class="kanapool" id="kanapool"></div>
         <div class="scr-tools">
-          <button class="btn ghost" id="hintBtn">提示</button>
-          <button class="btn grey" id="clearBtn">清除</button>
+          <button class="btn ghost" id="hintBtn">💡 提示（每題一次）</button>
           <button class="btn" id="checkBtn">檢查答案</button>
         </div>
       </div>`;
@@ -78,20 +78,25 @@
         `<button class="kana-tile" data-pool="${i}"><b>${k.hira}</b><em>${k.romaji}</em></button>`).join('');
 
       paint(stage);
+      const hb = U.$('#hintBtn', stage);
+      if (hb && st.hintUsed) { hb.disabled = true; hb.textContent = '已用過提示'; }
       U.$$('#kanapool .kana-tile', stage).forEach(b => b.addEventListener('click', () => {
         const i = Number(b.dataset.pool);
         st.placed.push(st.pool.splice(i, 1)[0]);
         JPQ.sfx.click();
         draw(stage);
       }));
-      U.$('#clearBtn', stage).addEventListener('click', () => { st.placed = []; JPQ.sfx.click(); draw(stage); });
       U.$('#hintBtn', stage).addEventListener('click', () => {
+        if (st.hintUsed) return;
         const next = st.target.find((t, i) =>
           !st.placed.some(p => p.hira === t.hira) && st.pool.some(x => x.hira === t.hira));
         if (!next) return;
         st.placed.push(st.pool.splice(st.pool.findIndex(x => x.hira === next.hira), 1)[0]);
+        st.hintUsed = true;
         JPQ.sfx.match();
         draw(stage);
+        const btn = U.$('#hintBtn', stage);
+        if (btn) { btn.disabled = true; btn.textContent = '已用過提示'; }
       });
       U.$('#checkBtn', stage).addEventListener('click', () => check(stage));
     }

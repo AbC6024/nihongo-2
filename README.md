@@ -1,54 +1,123 @@
-# 遊戲學日語 · Nihongo 2
+# 遊戲學日語 · Games to Learn Japanese
 
-免費的日語學習小遊戲網站。純前端（HTML / CSS / 原生 JavaScript），沒有框架、沒有建置步驟、沒有依賴套件。
+用一款款小遊戲練日語。目前有兩款：
 
-## 遊戲
-
-| 遊戲 | 說明 |
-| --- | --- |
-| 助詞大冒險 | 練助詞（は／が／を／に／で…），情境選擇題 |
-| 五十音圖 | 平假名 / 片假名 對照與發音練習 |
-| 單字閃卡 | N5 基礎單字翻卡 |
-| 數字日期練習 | 數字、電話號碼、日期 |
-| 打翻重組 | 句子打亂重排 |
-| 配對 / 測驗 / 限時挑戰 | 其他練習模式 |
-
-進度存在瀏覽器的 `localStorage`，不會上傳到任何地方。
+- **助詞大冒險**（`particles.html`）— は・が・の・を・に・で・と・も 八大主題助詞，四種玩法
+- **五十音圖**（`gojuon.html`）— 五十音順序、平假名⇄片假名、聽音選字
 
 ## 本機執行
 
-需要 [Node.js](https://nodejs.org) 18 以上（其實任何版本都行）：
-
-```bash
-npm start          # 或 node server.js
-node server.js 9000   # 指定埠號，預設 8000
+```powershell
+node server.js          # 預設 8000
+node server.js 8080     # 換埠號
 ```
 
-啟動後開 <http://localhost:8000>。伺服器也會列出區域網路網址，手機、平板在同一個 Wi-Fi 下可以直接連進來玩。
+開啟 <http://localhost:8000>。同一個 Wi-Fi 的手機／平板可以用啟動畫面顯示的區網網址連進來。
 
-也可以直接打開 `index.html` 用瀏覽器看，但用伺服器比較接近正式環境。
+需要 Node.js 18 以上，不需要安裝任何 npm 套件。
 
-## 專案結構
+## 排行榜
+
+| 端點 | 用途 |
+|---|---|
+| `GET /api/leaderboard` | 取得所有排行榜 |
+| `POST /api/leaderboard` | 登記成績（`{game, name, score, detail}`） |
+| `GET /api/health` | 健康檢查，順便回報儲存狀態 |
+
+規則：
+
+- 同一個暱稱在同一款遊戲只保留**最高分**
+- 每款遊戲最多 30 筆，全部最多 400 筆
+- 暱稱最長 16 字，伺服器會過濾控制字元與 `< > " ' \`
+
+遊戲進度（星星、最高分）存在玩家自己的瀏覽器 localStorage，排行榜則存在伺服器，兩者互影響。
+
+## 正式部署（免費方案）
+
+排行榜需要一個能跑 Node 的環境。設定檔都準備好了，用 Render 的免費方案即可。
+
+### 免費方案要知道的三件事
+
+1. **網站和所有遊戲完全正常** — 這部分不受影響
+2. **服務閒置一陣子會休眠**，重新打開時前幾秒會比較慢
+3. **排行榜成績在服務重啟後會被清空** — 雲端免費空間的磁碟是暫存的
+
+第 3 點網站會**主動在排行榜上方顯示提醒**，不會讓玩家以為成績還在。
+玩家自己的遊戲進度和最高分存在瀏覽器裡（`localStorage`），完全不受影響。
+
+### 部署步驟
+
+1. 把整個資料夾推到 GitHub
+2. 到 [dashboard.render.com](https://dashboard.render.com) 選 **New + → Blueprint**
+3. 指向剛才那個儲存庫，Render 會自動讀取 `render.yaml`
+4. 部署完成後會給你一個 `https://nihongo-2.onrender.com` 的網址
+
+`render.yaml` 裡已經設定好：
+
+- `plan: free`
+- `startCommand: node server.js`
+- `healthCheckPath: /api/health`
+- `region: singapore`
+
+### 讓排行榜永久保存（選用）
+
+如果不介意花一點錢，只要掛一個持久磁碟就行。在 `render.yaml` 加上：
+
+```yaml
+    envVars:
+      - key: DATA_DIR
+        value: /var/data
+    disks:
+      - name: leaderboard-data
+        mountPath: /var/data
+        sizeGB: 1
+```
+
+伺服器偵測到 `DATA_DIR` 之後就會知道磁碟是持久的，前端的提醒也會自動消失。
+
+### 免費又永久保存的折衷方案
+
+用 [Upstash Redis](https://console.upstash.io/) 這類有免費額度的資料庫存成績，
+再把 `server.js` 的 `loadDB`／`saveDB` 改成走 HTTP API。
+這樣網站可以放最便宜的免費主機，成績也不會消失。
+需要的話跟我說，我可以幫你改。
+
+### 其他平台
+
+| 平台 | 起始指令 | 備註 |
+|---|---|---|
+| Fly.io | `node server.js` | `fly.toml` 已準備好 |
+| Railway | `node server.js` | `Procfile` 已準備好 |
+| 任何容器平台 | `node server.js` | 平台會自動設定 `PORT` |
+
+`DATA_DIR`（選用）— 指向持久磁碟路徑。沒設定時預設用專案資料夾底下的 `data/`。
+
+## 如果只想放靜態空間
+
+GitHub Pages、Netlify 這類純靜態空間可以放，但**沒有 Node 伺服器，排行榜會顯示「需要啟動伺服器」的提示**，
+遊戲本身和個人進度都照常運作（存在訪客的瀏覽器裡）。
+
+## 檔案結構
 
 ```
-.
-├── index.html        首頁（遊戲總覽）
-├── gojuon.html       五十音圖
-├── particles.html    粒子 / 動效頁
-├── server.js         零依賴的靜態檔案伺服器
-├── css/
-│   ├── style.css     共用樣式
-│   └── home.css      首頁專用樣式
-└── js/
-    ├── core.js       工具函式、儲存、特效
-    ├── data.js       題庫與單字資料
-    ├── kana-data.js  五十音資料
-    ├── catalog.js    遊戲清單
-    ├── site.js       頁首 / 頁尾 / 工具列
-    ├── boot.js       共用啟動流程
-    └── home.js quiz.js match.js scramble.js speed.js gojuon.js
+index.html            遊戲總覽
+particles.html        助詞大冒險
+gojuon.html           五十音圖
+server.js             靜態伺服器 + 排行榜 API
+css/home.css          總覽頁樣式
+css/style.css         遊戲介面樣式
+js/site.js            全站殼層（header / footer / 縮圖）
+js/catalog.js         遊戲目錄 ← 加新遊戲改這裡
+js/leaderboard.js     排行榜客戶端
+js/core.js            共用核心（路由 / 進度 / 音效）
+js/data.js            助詞題庫（可加注音：東京[とうきょう]）
+js/kana-data.js       五十音資料
+js/{quiz,speed,scramble,match,gojuon}.js   遊戲邏輯
 ```
 
-## 授權
+## 加新遊戲
 
-MIT
+1. 在 `js/catalog.js` 加一筆，`status` 設為 `live`
+2. 寫一個 `xxx.html`（複製 `particles.html` 當範本）
+3. 寫 `js/xxx.js`，用 `JPQ.registerGame()` 註冊玩法
+4. 需要排行的話，在 `js/leaderboard.js` 的 `JPQ.LB_GAMES` 加一項
