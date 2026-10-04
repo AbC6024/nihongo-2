@@ -52,6 +52,73 @@
 
   /* ---------------- 進度儲存 ---------------- */
   const KEY = 'jpq.progress.v1';
+
+  /* 學習統計的資料格式：
+     runs   每玩一場記一筆 { game, at, total, right }
+     acc    每個助詞的累計答題 { correct, total }
+     days   有練習的日期（YYYY-MM-DD），用來算連續天數 */
+  function emptyStats() { return { runs: [], acc: {}, days: [] }; }
+
+  const today = () => {
+    const d = new Date();
+    return d.getFullYear() + '-' + U.pad(d.getMonth() + 1) + '-' + U.pad(d.getDate());
+  };
+
+  const stats = JPQ.stats = {
+    /* 記一場遊戲結果 */
+    run(game, total, right) {
+      const d = store.load();
+      if (!d.stats) d.stats = emptyStats();
+      const t = Math.max(0, Number(total) || 0);
+      const r = Math.max(0, Math.min(t, Number(right) || 0));
+
+      d.stats.runs.push({ game: game, at: Date.now(), total: t, right: r });
+      /* 只留最近 500 場，避免 localStorage 爆掉 */
+      if (d.stats.runs.length > 500) d.stats.runs = d.stats.runs.slice(-500);
+
+      const day = today();
+      if (d.stats.days.indexOf(day) === -1) {
+        d.stats.days.push(day);
+        if (d.stats.days.length > 400) d.stats.days = d.stats.days.slice(-400);
+      }
+      store.save();
+    },
+
+    /* 記一題的助詞表現，particle 是助詞本身（は／が／を…） */
+    answer(particle, ok) {
+      if (!particle) return;
+      const d = store.load();
+      if (!d.stats) d.stats = emptyStats();
+      const acc = d.stats.acc;
+      if (!acc[particle]) acc[particle] = { correct: 0, total: 0 };
+      acc[particle].total++;
+      if (ok) acc[particle].correct++;
+      store.save();
+    },
+
+    /* 依日期算出連續天數（從今天或昨天往前算） */
+    streak() {
+      const d = store.load();
+      if (!d.stats || !d.stats.days.length) return 0;
+      const set = new Set(d.stats.days);
+      const cur = new Date();
+      /* 今天還沒練不算斷，從今天或昨天起算 */
+      if (!set.has(today())) cur.setDate(cur.getDate() - 1);
+      let n = 0;
+      while (set.has(cur.getFullYear() + '-' + U.pad(cur.getMonth() + 1) + '-' + U.pad(cur.getDate()))) {
+        n++;
+        cur.setDate(cur.getDate() - 1);
+      }
+      return n;
+    },
+
+    reset() {
+      const d = store.load();
+      d.stats = emptyStats();
+      store.save();
+    }
+  };
+
   const store = JPQ.store = {
     data: null,
     load() {
@@ -60,6 +127,7 @@
       catch (e) { this.data = {}; }
       if (!this.data.levels) this.data.levels = {};
       if (!this.data.records) this.data.records = {};
+      if (!this.data.stats) this.data.stats = emptyStats();
       return this.data;
     },
     save() {
@@ -80,7 +148,7 @@
       if ((d.records[key] || 0) < val) { d.records[key] = val; this.save(); }
     },
     reset() {
-      this.data = { levels: {}, records: {} };
+      this.data = { levels: {}, records: {}, stats: emptyStats() };
       try { localStorage.removeItem(KEY); } catch (e) {}
     }
   };

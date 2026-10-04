@@ -143,6 +143,9 @@
       U.$('#nextBtn', stage).addEventListener('click', () => newRound(stage));
     }
 
+    /* 這款是無限題，每答一題就跟學習統計同步一次 */
+    function syncStats() { JPQ.stats.run('kana-order', st.total, st.right); }
+
     return {
       name: 'kana-order',
       mount: function (stage) {
@@ -153,7 +156,7 @@
         JPQ.hud.pills([{ label: '第', value: '0 題' }, { label: '答對', value: 0 }]);
         newRound(stage);
       },
-      unmount: function () { if (global.speechSynthesis) global.speechSynthesis.cancel(); }
+      unmount: function () { syncStats(); if (global.speechSynthesis) global.speechSynthesis.cancel(); }
     };
   }
 
@@ -240,7 +243,11 @@
         JPQ.hud.set('平假名 ⇄ 片假名', '看字選另一種寫法');
         draw(stage);
       },
-      unmount: function () { clearKeys(); if (global.speechSynthesis) global.speechSynthesis.cancel(); }
+      unmount: function () {
+        clearKeys();
+        if (st && st.total) JPQ.stats.run('kana-convert', st.total, st.right);
+        if (global.speechSynthesis) global.speechSynthesis.cancel();
+      }
     };
   }
 
@@ -350,7 +357,11 @@
         JPQ.hud.set('聽音選字', '聽發音選假名');
         draw(stage);
       },
-      unmount: function () { clearKeys(); if (global.speechSynthesis) global.speechSynthesis.cancel(); }
+      unmount: function () {
+        clearKeys();
+        if (st && st.total) JPQ.stats.run('kana-listen', st.total, st.right);
+        if (global.speechSynthesis) global.speechSynthesis.cancel();
+      }
     };
   }
 

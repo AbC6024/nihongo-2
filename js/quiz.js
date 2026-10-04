@@ -112,6 +112,9 @@
     if (ok) JPQ.sfx.correct();
     else { state.wrong++; JPQ.sfx.wrong(); }
 
+    /* 記錄學習統計：這題的助詞 + 對錯 */
+    JPQ.stats.answer(q.a, ok);
+
     fb.className = 'fb show ' + (ok ? 'ok' : 'no');
     fb.innerHTML = `<strong>${ok ? '答對了！' : '正確答案是「' + q.a + '」'}</strong>
                     <p>${U.ruby(q.tip || '')}</p>`;
@@ -134,6 +137,7 @@
   function finish(stage, lv) {
     const stars = state.wrong === 0 ? 3 : (state.wrong <= 2 ? 2 : 1);
     JPQ.store.setLevelStars(lv.no, stars);
+    JPQ.stats.run('quiz', lv.qs.length, lv.qs.length - state.wrong);
     if (unkey) { unkey(); unkey = null; }
     const row = U.$('#nextRow', stage);
     if (row) row.style.display = 'none';

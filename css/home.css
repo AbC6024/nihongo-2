@@ -95,8 +95,9 @@
   text-transform:uppercase;color:#9aa4c4;
 }
 
-/* ---------------- 首頁排行榜按鈕 ---------------- */
+/* ---------------- 首頁排行榜 / 學習紀錄 ---------------- */
 #lbHomeBtn{margin:26px 0 4px}
+.home-side{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .lb-home-btn{
   display:flex;align-items:center;gap:18px;width:100%;
   padding:18px 22px;border-radius:24px;cursor:pointer;
@@ -126,6 +127,30 @@
   font-size:26px;font-weight:900;color:#b6a3d8;transition:transform .16s,color .16s;
 }
 .lb-home-btn:hover::after{transform:translateX(5px);color:#8f7cc4}
+
+/* 學習紀錄那張卡 */
+.lr-home-btn{
+  background:linear-gradient(120deg,#eef7ff 0%,#fff 55%,#fff3f8 100%);
+  border-color:rgba(150,180,235,.5);
+  box-shadow:0 6px 0 rgba(200,214,232,.5),0 14px 26px rgba(90,85,150,.13);
+  align-items:flex-start;
+}
+.lr-home-btn:hover{border-color:rgba(140,175,235,.85);box-shadow:0 8px 0 rgba(200,214,232,.55),0 20px 32px rgba(90,85,150,.18)}
+.lr-home-btn:active{box-shadow:0 2px 0 rgba(200,214,232,.5)}
+.lr-home-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.lr-chip{
+  display:inline-flex;align-items:baseline;gap:3px;
+  padding:3px 9px;border-radius:999px;
+  background:rgba(140,175,235,.16);border:1px solid rgba(140,175,235,.3);
+  font-size:11.5px;font-weight:700;color:#5a6fa0;
+}
+.lr-chip b{font-size:13px;color:#2b3a8f;font-weight:900}
+.lr-chip.is-streak{background:rgba(255,214,140,.28);border-color:rgba(240,180,90,.45);color:#a5762a}
+.lr-chip.is-empty{background:transparent;border-style:dashed;color:#98a0c0;font-weight:600}
+
+@media (max-width:760px){
+  .home-side{grid-template-columns:1fr;gap:14px}
+}
 @media (max-width:560px){
   #lbHomeBtn{margin:22px 0 2px}
   .lb-home-btn{gap:14px;padding:15px 17px;border-radius:20px}

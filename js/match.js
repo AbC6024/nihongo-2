@@ -99,6 +99,7 @@
       st.done++;
       st.score += 10;
       JPQ.sfx.match();
+      JPQ.stats.answer(k, true);
       paint(stage);
       if (st.done % 4 === 0) JPQ.fx.burst(window.innerWidth / 2, 240, 50);
       if (st.done % 8 === 0) endRound(stage, false);
@@ -109,6 +110,7 @@
       prev.classList.add('miss');
       btn.classList.add('miss');
       JPQ.sfx.wrong();
+      JPQ.stats.answer(k, false);
       paint(stage);
       setTimeout(() => prev.classList.remove('miss'), 480);
       setTimeout(() => btn.classList.remove('miss'), 480);
@@ -142,6 +144,7 @@
 
   function finish(stage) {
     JPQ.store.setRecord('match', st.score);
+    JPQ.stats.run('match', st.done + st.mistakes, st.done);
     const stars = st.mistakes === 0 ? 3 : (st.mistakes <= 3 ? 2 : 1);
     JPQ.hud.progress(1);
     JPQ.hud.pills([{ label: '分數', value: st.score }]);

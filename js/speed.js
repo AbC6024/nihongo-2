@@ -93,6 +93,7 @@
         });
         JPQ.sfx.wrong();
       }
+      JPQ.stats.answer(st.cur.a, ok);
       paint();
       st.i++;
       setTimeout(() => { if (playing) { if (st.left <= 0) finish(); else redraw(); } }, ok ? 190 : 520);
@@ -101,8 +102,9 @@
     function end() {
       stop();
       JPQ.store.setRecord('speed', st.score);
-      JPQ.hud.pills([{ label: '分數', value: st.score }]);
       const wrong = st.i - st.right;
+      JPQ.stats.run('speed', st.right + wrong, st.right);
+      JPQ.hud.pills([{ label: '分數', value: st.score }]);
       const acc = (st.right + wrong) ? Math.round(st.right / (st.right + wrong) * 100) : 0;
       JPQ.sfx.levelup();
       JPQ.fx.center();

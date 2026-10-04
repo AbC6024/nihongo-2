@@ -119,6 +119,17 @@ function paintTokens(stage) {
     paintTokens(stage);
   }
 
+  /* 這句答案裡出現了哪些助詞？用來累加各助詞的答題表現 */
+  const PARTICLE_RE = /(は|が|を|に|で|と|も|の)/g;
+  function recordParticles(ok) {
+    if (!st.cur) return;
+    const seen = {};
+    String(st.cur.ans.join('')).replace(PARTICLE_RE, m => {
+      if (!seen[m]) { seen[m] = true; JPQ.stats.answer(m, ok); }
+      return m;
+    });
+  }
+
 function check(stage) {
     if (st.placed.length !== st.cur.ans.length) return;
     const mine = st.placed.map(p => U.strip(p.t));
@@ -129,6 +140,7 @@ function check(stage) {
       st.right++; st.combo++; st.best = Math.max(st.best, st.combo);
       slot.classList.add('good');
       JPQ.sfx.correct();
+      recordParticles(true);
       if (st.combo % 5 === 0) { JPQ.sfx.levelup(); JPQ.fx.burst(window.innerWidth / 2, 200, 60); }
       U.$$('.scr-tools .btn', stage).forEach(b => b.disabled = true);
       slot.insertAdjacentHTML('afterend', `
@@ -139,11 +151,12 @@ function check(stage) {
         <div class="btn-row"><button class="btn" id="nextBtn">${st.i + 1 >= st.list.length ? '看成績 →' : '下一句 →'}</button></div>`);
       U.$('#nextBtn', stage).addEventListener('click', () => { st.i++; draw(stage); });
       paint(stage);
-} else {
+    } else {
       st.combo = 0; st.wrong = (st.wrong || 0) + 1;
       slot.classList.add('shake');
       setTimeout(() => slot.classList.remove('shake'), 320);
       JPQ.sfx.wrong();
+      recordParticles(false);
       /* 答錯就直接把正確寫法給你看，不再偷偷幫你填一個（那會吃掉提示） */
       const answerHTML = st.cur.ans.map(t => U.ruby(t)).join('');
       slot.insertAdjacentHTML('afterend', `
@@ -166,6 +179,7 @@ function check(stage) {
 
   function finish(stage) {
     JPQ.store.setRecord('scramble', st.right);
+    JPQ.stats.run('scramble', st.list.length, st.right);
     JPQ.hud.progress(1);
     JPQ.hud.pills([{ label: '答對', value: st.right }]);
     JPQ.sfx.levelup();

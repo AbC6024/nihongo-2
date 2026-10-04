@@ -81,6 +81,22 @@
   }
 
   /* ---- 統計 ---- */
+  /* ---- 首頁學習紀錄摘要 ---- */
+  function renderLearnSummary() {
+    const box = U.$('#lrHomeSummary');
+    if (!box || !JPQ.learn) return;
+    const s = JPQ.learn.summary();
+    const chips = s.total
+      ? [
+          `<span class="lr-chip"><b>${s.total}</b> 題</span>`,
+          `<span class="lr-chip"><b>${s.right}</b> 答對</span>`,
+          `<span class="lr-chip"><b>${s.rate}%</b> 正確率</span>`,
+          s.streak > 1 ? `<span class="lr-chip is-streak">🔥 連續 <b>${s.streak}</b> 天</span>` : ''
+        ].filter(Boolean).join('')
+      : '<span class="lr-chip is-empty">還沒有紀錄，玩一局就會開始統計</span>';
+    box.innerHTML = chips;
+  }
+
   function renderStats() {
     const box = U.$('#heroStats');
     if (!box) return;
@@ -158,36 +174,49 @@
     }));
   }
 
-  /* ---- 首頁排行榜按鈕 ---- */
-  function renderLeaderboardBtn() {
+/* ---- 首頁排行榜 + 學習紀錄按鈕 ---- */
+  function renderSideCards() {
     const box = U.$('#lbHomeBtn');
     if (!box) return;
     box.innerHTML = `
-      <button type="button" class="lb-home-btn" data-lb-open>
-        <span class="lb-home-ico" aria-hidden="true">
-          <span class="pane-thumb thumb-quiz">${JPQ.site.thumb('speed')}</span>
-        </span>
-        <span class="lb-home-txt">
-          <strong>排行榜</strong>
-          <em>看看大家在各款遊戲的最好成績</em>
-        </span>
-      </button>`;
+      <div class="home-side">
+        <button type="button" class="lb-home-btn" data-lb-open>
+          <span class="lb-home-ico" aria-hidden="true">
+            <span class="pane-thumb thumb-quiz">${JPQ.site.thumb('speed')}</span>
+          </span>
+          <span class="lb-home-txt">
+            <strong>排行榜</strong>
+            <em>看看大家在各款遊戲的最好成績</em>
+          </span>
+        </button>
+
+        <button type="button" class="lb-home-btn lr-home-btn" data-lr-open>
+          <span class="lb-home-ico" aria-hidden="true">
+            <span class="pane-thumb thumb-kana">${JPQ.site.thumb('tiles')}</span>
+          </span>
+          <span class="lb-home-txt">
+            <strong>學習紀錄</strong>
+            <em>${U.strip ? '' : ''}看看自己的答題表現和哪個助詞還不熟</em>
+            <span class="lr-home-chips" id="lrHomeSummary"></span>
+          </span>
+        </button>
+      </div>`;
+
     U.$('[data-lb-open]', box).addEventListener('click', () => {
       JPQ.sfx.click();
       JPQ.lb.refresh().then(() => JPQ.lb.openBoard());
     });
-  }
-
-  /* 從遊戲返回首頁時，立即更新剛創下的個人最佳成績。 */
-  function renderPersonalBests() {
-    if (!JPQ.lb || typeof JPQ.lb.renderMyBest !== 'function') return;
-    U.$$('[data-mybest]').forEach(el => JPQ.lb.renderMyBest(el));
+    U.$('[data-lr-open]', box).addEventListener('click', () => {
+      JPQ.sfx.click();
+      JPQ.learn.open();
+    });
+    renderLearnSummary();
   }
 
   JPQ.home = {
     render: function () {
       renderCatalog(); renderSteps(); renderParticles(); renderStats();
-      renderKanaTable(); renderLeaderboardBtn(); renderPersonalBests();
+      renderKanaTable(); renderSideCards();
     }
   };
 })(window);
