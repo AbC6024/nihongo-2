@@ -64,6 +64,29 @@ function validateLearningData() {
     .forEach(text => assert(!learningSource.includes(text), `Known invalid example returned: ${text}`));
 }
 
+function validateSeoAssets() {
+  const pages = [
+    ['index.html', 'https://nihongo-2.onrender.com/'],
+    ['particles.html', 'https://nihongo-2.onrender.com/particles.html'],
+    ['gojuon.html', 'https://nihongo-2.onrender.com/gojuon.html']
+  ];
+
+  pages.forEach(([file, canonical]) => {
+    const source = fs.readFileSync(path.join(ROOT, file), 'utf8');
+    assert(source.includes(`<link rel="canonical" href="${canonical}">`), `${file} is missing its canonical URL`);
+    assert(source.includes('property="og:title"'), `${file} is missing Open Graph metadata`);
+    const structuredData = source.match(/<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/);
+    assert(structuredData, `${file} is missing structured data`);
+    assert.doesNotThrow(() => JSON.parse(structuredData[1]), `${file} has invalid structured data`);
+  });
+
+  const robots = fs.readFileSync(path.join(ROOT, 'robots.txt'), 'utf8');
+  assert(robots.includes('Sitemap: https://nihongo-2.onrender.com/sitemap.xml'));
+
+  const sitemap = fs.readFileSync(path.join(ROOT, 'sitemap.xml'), 'utf8');
+  pages.forEach(([, url]) => assert(sitemap.includes(`<loc>${url}</loc>`), `Sitemap is missing ${url}`));
+}
+
 function freePort() {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
@@ -153,6 +176,14 @@ async function validateServer() {
     result = await request(port, '/server.js');
     assert.strictEqual(result.status, 403, 'Private source files must not be served');
 
+    result = await request(port, '/robots.txt');
+    assert.strictEqual(result.status, 200, 'robots.txt must be publicly available');
+    assert(result.body.includes('/sitemap.xml'));
+
+    result = await request(port, '/sitemap.xml');
+    assert.strictEqual(result.status, 200, 'sitemap.xml must be publicly available');
+    assert(result.body.includes('<urlset'));
+
     result = await request(port, '/%3Cscript%3E');
     assert.strictEqual(result.status, 404);
     assert(!result.body.includes('<script>'), 'The 404 page must escape the requested path');
@@ -168,6 +199,7 @@ async function validateServer() {
 async function main() {
   compileJavaScript();
   validateLearningData();
+  validateSeoAssets();
   await validateServer();
   console.log('Smoke tests passed.');
 }
