@@ -51,7 +51,16 @@ function validateLearningData() {
   assert.strictEqual(JPQ.KANA.find(row => row.row === 'わ行').cells[4][0], 'を');
 
   const learningSource = fs.readFileSync(path.join(ROOT, 'js', 'data.js'), 'utf8');
-  ['日本語[にほんご]__　なれます', '妹[まなこ]', '休[やす]み日[び]', '東京[とうきょう]__　住[す]みます']
+  [
+    '日本語[にほんご]__　なれます',
+    '妹[まなこ]',
+    '休[やす]み日[び]',
+    '東京[とうきょう]__　住[す]みます',
+    '象[ぞう]__　鼻[はな]は　長[なが]いです。',
+    '「これ／それ／あれ」開頭的這類疑問句固定用「は」',
+    '今日[きょう]は寒[さむ]いです。妹[いもうと]__　セーターを着[き]ます。',
+    '「也」「還有」，會取代原本的 は／が'
+  ]
     .forEach(text => assert(!learningSource.includes(text), `Known invalid example returned: ${text}`));
 }
 
