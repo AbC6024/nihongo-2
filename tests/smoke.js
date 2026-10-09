@@ -184,6 +184,10 @@ async function validateServer() {
     assert.strictEqual(result.status, 200, 'sitemap.xml must be publicly available');
     assert(result.body.includes('<urlset'));
 
+    result = await request(port, '/google9c5c7b9e4d268263.html');
+    assert.strictEqual(result.status, 200, 'Google ownership verification file must be publicly available');
+    assert.strictEqual(result.body.trim(), 'google-site-verification: google9c5c7b9e4d268263.html');
+
     result = await request(port, '/%3Cscript%3E');
     assert.strictEqual(result.status, 404);
     assert(!result.body.includes('<script>'), 'The 404 page must escape the requested path');
