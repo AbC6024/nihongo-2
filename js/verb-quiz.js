@@ -78,7 +78,7 @@
       <div class="q-zh">${q.zh} · 請選出${lv.title} <span class="vb-tag">${JPQ.verb.TYPE_NAME[q.verb.type]}</span></div>
       <div class="opt-grid">
         ${opts.map((o, i) => `<button class="opt" data-o="${o}">
-          <span class="key">${i + 1}</span>${o}</button>`).join('')}
+          <span class="key">${i + 1}</span>${U.ruby(JPQ.verb.displayKana(q.verb, o))}</button>`).join('')}
       </div>
       <div class="fb" id="fb"></div>
       <div class="btn-row" id="nextRow" style="display:none">

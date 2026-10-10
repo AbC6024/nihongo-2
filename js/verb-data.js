@@ -443,6 +443,12 @@
       const kana = verb.conjugate(v, key);
       if (!kana) return '';
       if (v.displayFix && v.displayFix[key]) return v.displayFix[key];
+      return verb.displayKana(v, kana);
+    },
+
+    /* 選項（包含故意設計的錯誤變化）沿用同一動詞的漢字與假名。 */
+    displayKana: function (v, kana) {
+      if (!kana) return '';
       if (!v.ruby) return kana;
       if (v.type === 'kuru' && v.ruby === '来') return '来[' + kana[0] + ']' + kana.slice(1);
       return v.ruby + kana.slice(coverLen(v));

@@ -163,6 +163,9 @@ function validateVerbData() {
   assert.strictEqual(c('つくる', 'saseru'), 'つくらせる');
   assert.strictEqual(d('つかう', 'base'), '使う');
   assert.strictEqual(d('つかう', 'te'), '使って');
+  assert.strictEqual(verb.displayKana(verb.byKana('つかう'), 'つかいた'), '使[つか]いた');
+  assert.strictEqual(verb.displayKana(verb.byKana('のむ'), 'のみて'), '飲[の]みて');
+  assert.strictEqual(verb.displayKana(verb.byKana('くる'), 'くて'), '来[く]て');
   [['かう', 'you', 'かお', 'う'], ['まつ', 'meirei', 'ま', 'て'],
    ['いく', 'te', 'い', 'って'], ['ある', 'nai', '', 'ない']].forEach(([kana, key, head, tail]) => {
     const split = verb.split(verb.byKana(kana), key);
@@ -457,6 +460,11 @@ function validateVerbLevels() {
     });
   });
   pool.forEach(q => {
+    q.opts.concat(q.a).forEach(kana => {
+      const shown = verb.displayKana(q.verb, kana);
+      assert.strictEqual(shown.replace(/[一-龯々〆〇]+\[([^\]]+)\]/g, '$1'), kana,
+        'Adding kanji and furigana must preserve the answer kana');
+    });
     assert(q.opts.length === 2 && q.opts.indexOf(q.a) === -1,
       `Speed pool has a malformed question for ${q.verb.kana} ${q.key}`);
   });
