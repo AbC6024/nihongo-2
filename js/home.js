@@ -58,7 +58,7 @@
       { icon: '🌸', title: '回頭查速查表', text: '遊戲頁面下方永遠有一張助詞速查表可以隨時複習。' }
     ];
     box.innerHTML = steps.map((s, i) => `<div class="step-card">
-      <span class="step-no">${i + 1}</span>
+      <span class="step-no">${['一', '二', '三'][i]}</span>
       <span class="step-icon">${s.icon}</span>
       <strong>${s.title}</strong>
       <p>${s.text}</p>
@@ -182,7 +182,7 @@
       <div class="home-side">
         <button type="button" class="lb-home-btn" data-lb-open>
           <span class="lb-home-ico" aria-hidden="true">
-            <span class="pane-thumb thumb-quiz">${JPQ.site.thumb('speed')}</span>
+            <span class="pane-thumb thumb-speed">${JPQ.site.thumb('speed')}</span>
           </span>
           <span class="lb-home-txt">
             <strong>排行榜</strong>
@@ -192,7 +192,7 @@
 
         <button type="button" class="lb-home-btn lr-home-btn" data-lr-open>
           <span class="lb-home-ico" aria-hidden="true">
-            <span class="pane-thumb thumb-kana">${JPQ.site.thumb('tiles')}</span>
+            <span class="pane-thumb thumb-tiles">${JPQ.site.thumb('tiles')}</span>
           </span>
           <span class="lb-home-txt">
             <strong>學習紀錄</strong>

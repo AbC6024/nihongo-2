@@ -31,6 +31,7 @@
 
 <div class="washi-bg" aria-hidden="true">
   <span class="enso"></span>
+  <span class="sakura"><i style="--x:6%;--d:26s;--delay:0s;--sc:.9;--drift:70px"></i><i style="--x:16%;--d:31s;--delay:4s;--sc:.7;--drift:-50px"></i><i style="--x:27%;--d:24s;--delay:9s;--sc:1;--drift:90px"></i><i style="--x:38%;--d:35s;--delay:2s;--sc:.65;--drift:-70px"></i><i style="--x:49%;--d:28s;--delay:13s;--sc:.85;--drift:60px"></i><i style="--x:60%;--d:33s;--delay:6s;--sc:.75;--drift:-60px"></i><i style="--x:71%;--d:25s;--delay:17s;--sc:.95;--drift:80px"></i><i style="--x:82%;--d:30s;--delay:11s;--sc:.7;--drift:-45px"></i><i style="--x:92%;--d:36s;--delay:20s;--sc:.85;--drift:65px"></i></span>
   <span class="seigaiha"></span>
 </div>
 
@@ -38,9 +39,39 @@
 
 <main class="site-main">
   <div class="sheet">
+    <span class="washi-tape tape-sheet" aria-hidden="true"></span>
+
     <div class="wrap">
 
       <section class="hero">
+        <svg class="hero-branch" viewBox="0 0 240 150" fill="none" aria-hidden="true">
+          <g stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <path d="M10 142 C70 132 118 104 152 66 C176 40 200 22 232 12"/>
+            <path d="M118 104 C112 84 104 70 88 58"/>
+            <path d="M152 66 C170 68 190 62 206 48"/>
+            <path d="M86 118 C96 116 108 110 118 100"/>
+          </g>
+          <g fill="currentColor">
+            <g>
+              <circle cx="88" cy="54.6" r="3.4"/><circle cx="91.2" cy="56.9" r="3.4"/>
+              <circle cx="90" cy="60.8" r="3.4"/><circle cx="86" cy="60.8" r="3.4"/>
+              <circle cx="84.8" cy="57" r="3.4"/>
+            </g>
+            <g>
+              <circle cx="206" cy="44.6" r="3.4"/><circle cx="209.2" cy="46.9" r="3.4"/>
+              <circle cx="208" cy="50.8" r="3.4"/><circle cx="204" cy="50.8" r="3.4"/>
+              <circle cx="202.8" cy="46.9" r="3.4"/>
+            </g>
+            <g>
+              <circle cx="232" cy="8.8" r="3.2"/><circle cx="235" cy="11" r="3.2"/>
+              <circle cx="233.9" cy="14.6" r="3.2"/><circle cx="230.1" cy="14.6" r="3.2"/>
+              <circle cx="229" cy="11" r="3.2"/>
+            </g>
+            <ellipse cx="112" cy="96" rx="5" ry="2.6" transform="rotate(-35 112 96)"/>
+            <ellipse cx="124" cy="99" rx="5" ry="2.6" transform="rotate(-15 124 99)"/>
+          </g>
+        </svg>
+
         <div class="hero-copy">
           <p class="hero-eyebrow">遊びながら学ぶ・N5</p>
           <h1 class="hero-title">遊戲學日語</h1>
@@ -63,9 +94,14 @@
 
       <h2 class="sheet-title" id="about">關於本站 <em>About</em></h2>
       <div class="about">
+        <span class="washi-tape tape-about" aria-hidden="true"></span>
         <p>「遊戲學日語」是一個免費的日語學習小遊戲網站，專門給剛開始學日語的人使用。內容以日語 N5 的基礎為主，題目都取自生活中真的會用到的句子。</p>
         <p>網站沒有帳號、沒有付費牆，也不用安裝任何程式。遊戲進度只存在你自己的瀏覽器裡，不會上傳到任何地方；換一台電腦就要重新開始，這是刻意的選擇，讓資料留在你手上。</p>
         <p>網站會慢慢增加新遊戲。如果某一題的答案讓你困惑，每款遊戲旁邊都附有助詞速查表，可以隨時回頭複習。</p>
+        <p class="about-sign">
+          <span class="about-sign-text">遊びながら学ぶ</span>
+          <span class="about-seal">和</span>
+        </p>
       </div>
 
     </div>

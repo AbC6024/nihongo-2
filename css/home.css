@@ -1,9 +1,8 @@
 /* =========================================================
-   首頁專用：和紙 × 浮世繪淡彩
-   （全部限定在 .page-home，與 style.css 分開，其他頁面不受影響）
+   妫ｆ牠鐖滅亸鍫㈡暏閿涙艾鎷扮槐?鑴?濞搭喕绗樼换顏呰窗瑜?   閿涘牆鍙忛柈銊╂鐎规艾婀?.page-home閿涘矁鍨?style.css 閸掑棝鏋婇敍灞藉従娴犳牠鐖滈棃顫瑝閸欐濂栭棅鍖＄礆
    ========================================================= */
 
-/* ---------------- 色與字 ---------------- */
+/* ---------------- 閼硅尪鍨忕€?---------------- */
 .page-home{
   --washi:#f4eee0;
   --washi-hi:#fbf7ee;
@@ -22,7 +21,7 @@
   background:var(--washi);
 }
 
-/* ---------------- 紙底 ---------------- */
+/* ---------------- 缁辨瑥绨?---------------- */
 .page-home .washi-bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
 .page-home .washi-bg::before{
   content:"";position:absolute;inset:0;
@@ -41,7 +40,7 @@
   filter:blur(8px);
 }
 
-/* 青海波 */
+/* 闂堟帗鎹ｅ▔?*/
 .page-home .seigaiha{
   position:absolute;left:0;right:0;bottom:-2px;height:40vh;min-height:260px;
   background-image:
@@ -53,7 +52,7 @@
   -webkit-mask-image:linear-gradient(to top, #000 0%, rgba(0,0,0,.5) 40%, transparent 100%);
           mask-image:linear-gradient(to top, #000 0%, rgba(0,0,0,.5) 40%, transparent 100%);
 }
-/* 円相 */
+/* 閸愬棛娴?*/
 .page-home .enso{
   position:absolute;top:-9vh;right:-10vw;width:46vw;height:46vw;
   max-width:640px;max-height:640px;min-width:260px;min-height:260px;
@@ -63,7 +62,45 @@
           mask-image:conic-gradient(from 196deg, #000 0 76%, rgba(0,0,0,.35) 80%, transparent 84%);
 }
 
-/* ---------------- 頂部殼層 ---------------- */
+/* 濡楁粌鎯為梿?*/
+.page-home .sakura{position:absolute;inset:0;overflow:hidden;opacity:.5}
+.page-home .sakura i{
+  position:absolute;top:-6vh;left:var(--x);
+  width:9px;height:9px;background:rgba(226,146,166,.75);
+  border-radius:52% 48% 55% 45%/50% 55% 45% 50%;
+  opacity:0;animation:page-home-fall var(--d) linear var(--delay) infinite;
+}
+.page-home .sakura i:nth-child(3n){width:7px;height:7px;background:rgba(238,180,196,.7)}
+.page-home .sakura i:nth-child(4n){background:rgba(214,176,196,.6)}
+@keyframes page-home-fall{
+  0%   {opacity:0;transform:translate3d(0,0,0) rotate(0deg) scale(var(--sc))}
+  14%  {opacity:.7}
+  86%  {opacity:.45}
+  100% {opacity:0;transform:translate3d(var(--drift),104vh,0) rotate(400deg) scale(var(--sc))}
+}
+
+/* ---------------- 閸滃瞼绀勯懚鐘蹭粯 ---------------- */
+.page-home .washi-tape{
+  position:absolute;z-index:3;pointer-events:none;
+  width:88px;height:24px;opacity:.62;
+  background:
+    repeating-linear-gradient(45deg,rgba(255,255,255,.34) 0 4px,transparent 4px 11px),
+    linear-gradient(180deg,rgba(168,190,206,.34),rgba(146,172,192,.26));
+  box-shadow:0 1px 3px rgba(44,42,38,.1);
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 9%,#000 91%,transparent 100%);
+          mask-image:linear-gradient(90deg,transparent 0,#000 9%,#000 91%,transparent 100%);
+}
+.page-home .tape-sheet{
+  top:-11px;left:-22px;transform:rotate(-30deg);
+  background:
+    repeating-linear-gradient(45deg,rgba(255,255,255,.3) 0 4px,transparent 4px 11px),
+    linear-gradient(180deg,rgba(196,166,158,.3),rgba(178,146,138,.22));
+}
+.page-home .tape-about{
+  top:-10px;right:-20px;transform:rotate(26deg);
+}
+
+/* ---------------- 闂嬪倿鍎村▓鐓庡牎 ---------------- */
 .page-home .site-header{
   position:relative;z-index:5;
   background:transparent;border-bottom:0;box-shadow:none;backdrop-filter:none;
@@ -95,7 +132,7 @@
   border-bottom:1px solid var(--line);box-shadow:none;
 }
 .page-home .site-menu a{
-  display:block;text-align:center;padding:10px 8px 12px;
+  display:block;text-align:center;padding:10px 8px 12px;white-space:nowrap;
   font-family:var(--serif);font-size:15px;font-weight:500;letter-spacing:.08em;
   color:var(--sumi-2);border-bottom:2px solid transparent;transition:.18s;
 }
@@ -113,14 +150,26 @@
 .page-home .tool-btn:active{transform:translateY(0)}
 .page-home .tool-btn.off{opacity:.42;filter:grayscale(1)}
 
-/* ---------------- 主內容 ---------------- */
+/* ---------------- 娑撹鍙庣€?---------------- */
 .page-home .site-main{position:relative;z-index:2;padding:22px 20px 46px}
 .page-home .sheet{
-  max-width:1080px;margin:0 auto;
-  background:linear-gradient(180deg,rgba(251,247,238,.96),rgba(246,240,228,.94));
+  max-width:1080px;margin:0 auto;position:relative;
+  background:
+    radial-gradient(circle at 22% 12%, rgba(44,42,38,.05) 0 1px, transparent 1.4px),
+    radial-gradient(circle at 78% 32%, rgba(44,42,38,.04) 0 1px, transparent 1.4px),
+    radial-gradient(circle at 46% 78%, rgba(44,42,38,.045) 0 1px, transparent 1.4px),
+    radial-gradient(circle at 88% 88%, rgba(44,42,38,.035) 0 1px, transparent 1.4px),
+    linear-gradient(180deg,rgba(251,247,238,.96),rgba(246,240,228,.94));
+  background-size:190px 170px,230px 210px,260px 240px,200px 190px,100% 100%;
   border:1px solid var(--line);border-radius:12px;
   box-shadow:0 1px 0 rgba(255,255,255,.75) inset, 0 20px 44px -26px rgba(44,42,38,.5);
   padding:38px 0 46px;
+}
+/* 闁叉垹绐?*/
+.page-home .sheet::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:2px;border-radius:12px 12px 0 0;
+  background:linear-gradient(90deg,transparent,rgba(176,141,79,.5) 18%,rgba(176,141,79,.5) 82%,transparent);
+  opacity:.75;pointer-events:none;
 }
 .page-home .sheet-title{
   display:flex;align-items:center;gap:14px;flex-wrap:wrap;
@@ -136,12 +185,27 @@
   text-transform:uppercase;color:var(--sumi-3);
 }
 
-/* ---------------- 首屏 ---------------- */
+/* ---------------- 妫ｆ牕鐫?---------------- */
 .page-home .hero{
   display:flex;align-items:flex-start;gap:34px;
-  padding:6px 34px 34px;position:relative;
+  padding:6px 34px 34px;position:relative;isolation:isolate;
+  overflow:visible;background:none;color:var(--sumi);
 }
-.page-home .hero-copy{flex:1;min-width:0}
+/* 閸樼喓顭堥悽銊х閻ㄥ嫮娲垮▎鍕獢 */
+.page-home .hero::before{
+  content:"";position:absolute;inset:-4px -10px 6px 0;z-index:-1;pointer-events:none;
+  background-image:
+    repeating-linear-gradient(90deg,rgba(47,79,111,.075) 0 1px,transparent 1px 38px),
+    repeating-linear-gradient(0deg,rgba(47,79,111,.035) 0 1px,transparent 1px 30px);
+  -webkit-mask-image:radial-gradient(118% 132% at 8% 38%,#000 0%,rgba(0,0,0,.5) 46%,transparent 78%);
+          mask-image:radial-gradient(118% 132% at 8% 38%,#000 0%,rgba(0,0,0,.5) 46%,transparent 78%);
+}
+/* 婢с劍鐏?*/
+.page-home .hero-branch{
+  position:absolute;right:-38px;bottom:-26px;width:min(27vw,224px);
+  color:var(--sumi);opacity:.13;z-index:-1;pointer-events:none;
+}
+.page-home .hero-copy{flex:1;min-width:0;position:relative}
 .page-home .hero-eyebrow{
   font-size:11px;letter-spacing:.34em;text-transform:uppercase;
   color:var(--sumi-3);margin-bottom:16px;
@@ -149,6 +213,7 @@
 .page-home .hero-title{
   font-family:var(--serif);font-size:clamp(34px,5.2vw,50px);font-weight:600;
   letter-spacing:.12em;line-height:1.24;color:var(--sumi);margin-bottom:16px;
+  text-shadow:none;
 }
 .page-home .hero-lead{font-size:15.5px;line-height:2.05;color:var(--sumi-2);max-width:50ch}
 .page-home .hero-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
@@ -158,7 +223,7 @@
   border:1px solid var(--line);border-radius:999px;padding:5px 14px;
   background:rgba(255,255,255,.5);
 }
-.page-home .hero-mark{flex:none;display:flex;align-items:flex-start;gap:12px}
+.page-home .hero-mark{flex:none;display:flex;align-items:flex-start;gap:12px;position:relative}
 .page-home .tategaki{
   writing-mode:vertical-rl;font-family:var(--serif);
   font-size:18px;letter-spacing:.36em;line-height:2.1;color:var(--sumi);
@@ -171,8 +236,13 @@
   background:var(--shu);border-radius:3px;letter-spacing:0;
   box-shadow:0 0 0 2px rgba(251,247,238,.7) inset;
 }
+/* 绾垰濮炴禍鍡樿窗婢ь煉绱濋拑瀣躬閸楁壆娈戞稉瀣煙 */
+.page-home .hanko::after{
+  content:"";position:absolute;right:-5px;top:-5px;width:34px;height:34px;
+  border-radius:4px;background:rgba(44,42,38,.16);filter:blur(3px);z-index:-1;
+}
 
-/* ---------------- 首頁排行榜 / 學習紀錄 ---------------- */
+/* ---------------- 妫ｆ牠鐖滈幒鎺曨攽濮?/ 鐎涘摜绻忕槐鈧柗?---------------- */
 .page-home #lbHomeBtn{margin:32px 0 4px}
 .page-home .home-side{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 .page-home .lb-home-btn{
@@ -201,7 +271,7 @@
   margin-top:5px;line-height:1.8;
 }
 .page-home .lb-home-btn::after{
-  content:'→';flex:none;margin-left:auto;
+  content:'閳?;flex:none;margin-left:auto;
   font-size:22px;font-weight:400;color:var(--sumi-3);transition:transform .2s,color .2s;
 }
 .page-home .lb-home-btn:hover::after{transform:translateX(5px);color:var(--shu)}
@@ -222,7 +292,7 @@
 .page-home .lr-chip.is-streak b{color:var(--shu)}
 .page-home .lr-chip.is-empty{border-style:dashed;color:var(--sumi-3);font-weight:500}
 
-/* ---------------- 遊戲卡片 ---------------- */
+/* ---------------- 闁﹥鍩愰崡锛勫 ---------------- */
 .page-home .game-bars{display:flex;flex-direction:column;gap:18px}
 .page-home .pane{
   position:relative;display:grid;
@@ -290,7 +360,7 @@
 .page-home .pane.is-soon .pane-thumb{filter:grayscale(.75) opacity(.75)}
 .page-home .pane.is-soon .pane-tags{display:none}
 
-/* ---------------- 縮圖（水墨線描） ---------------- */
+/* ---------------- 缁侯喖婀掗敍鍫熸寜婢с劎绐旈幓蹇ョ礆 ---------------- */
 .page-home .pane-thumb{
   --tint:rgba(77,123,166,.09);
   position:relative;display:block;width:100%;max-width:200px;aspect-ratio:1;
@@ -314,7 +384,7 @@
 .page-home .thumb-listen{--tint:rgba(47,79,111,.10)}
 .page-home .thumb-verb{--tint:rgba(111,128,84,.10)}
 
-/* 縮圖：雲 + 助詞 */
+/* 缁侯喖婀掗敍姘舵锤 + 閸斺晞顭?*/
 .page-home .thumb-link .t-cloud{
   position:absolute;left:12%;right:12%;top:16%;height:19%;
   background:rgba(44,42,38,.09);border-radius:999px;filter:blur(1.5px);
@@ -339,7 +409,7 @@
   transform:rotate(-40deg);opacity:.7;
 }
 
-/* 縮圖：五十音 */
+/* 缁侯喖婀掗敍姘安閸椾線鐓?*/
 .page-home .thumb-kana .t-grid{
   position:absolute;inset:16% 14%;
   background:
@@ -354,7 +424,7 @@
 .page-home .thumb-kana .t-char-b{left:57%;top:48%;font-size:clamp(14px,2.2vw,23px)}
 .page-home .thumb-kana .t-char-c{left:27%;top:66%;font-size:clamp(14px,2.2vw,23px);color:var(--ai)}
 
-/* 縮圖：閃卡 */
+/* 缁侯喖婀掗敍姘舵澔閸?*/
 .page-home .thumb-cards .t-card{
   position:absolute;width:45%;height:55%;border-radius:5px;
   background:var(--washi-hi);border:1.5px solid var(--sumi);box-shadow:none;
@@ -363,7 +433,7 @@
 .page-home .thumb-cards .t-card-2{left:31%;top:26%;transform:rotate(2deg)}
 .page-home .thumb-cards .t-card-3{right:11%;top:20%;transform:rotate(8deg);border-color:var(--shu)}
 
-/* 縮圖：時鐘 */
+/* 缁侯喖婀掗敍姘闁?*/
 .page-home .thumb-clock .t-clock-face{
   position:absolute;left:50%;top:50%;width:62%;aspect-ratio:1;
   transform:translate(-50%,-50%);border-radius:50%;
@@ -376,7 +446,7 @@
 .page-home .thumb-clock .t-h1{width:3px;height:26%;margin-left:-1.5px;transform:rotate(60deg)}
 .page-home .thumb-clock .t-h2{width:2px;height:17%;margin-left:-1px;transform:rotate(-40deg);background:var(--shu)}
 
-/* 縮圖：問答 */
+/* 缁侯喖婀掗敍姘櫛缁?*/
 .page-home .thumb-quiz .t-sentence{
   position:absolute;left:16%;right:16%;top:20%;height:10%;border-radius:3px;
   background:var(--washi-hi);border:1px solid rgba(44,42,38,.22);
@@ -394,7 +464,7 @@
 .page-home .thumb-quiz .t-o3{left:52%}
 .page-home .thumb-quiz .t-o4{left:71%;border-color:var(--shu);background:rgba(168,59,50,.1)}
 
-/* 縮圖：限時 */
+/* 缁侯喖婀掗敍姘舵閺?*/
 .page-home .thumb-speed .t-bolt{
   position:absolute;left:50%;top:50%;width:32%;height:50%;
   transform:translate(-50%,-50%);background:var(--shu);
@@ -402,7 +472,7 @@
   filter:none;opacity:.85;
 }
 
-/* 縮圖：磁磚 */
+/* 缁侯喖婀掗敍姘鳖梿绾?*/
 .page-home .thumb-tiles .t-tile{
   position:absolute;width:25%;height:25%;border-radius:4px;
   background:var(--washi-hi);border:1.5px solid var(--sumi);box-shadow:none;
@@ -411,7 +481,7 @@
 .page-home .thumb-tiles .t-t2{right:17%;top:24%;border-color:var(--shu);background:rgba(168,59,50,.09)}
 .page-home .thumb-tiles .t-t3{left:37.5%;bottom:23%;border-color:var(--matcha);background:rgba(111,128,84,.09)}
 
-/* 縮圖：聽力 */
+/* 缁侯喖婀掗敍姘充迹閸?*/
 .page-home .thumb-listen .t-wave{
   position:absolute;left:50%;top:50%;width:24%;aspect-ratio:1;
   transform:translate(-50%,-50%);border-radius:50%;
@@ -419,7 +489,7 @@
   box-shadow:0 0 0 7px rgba(77,123,166,.13);
 }
 
-/* 縮圖：動詞活用 */
+/* 缁侯喖婀掗敍姘珚鐟偞妞块悽?*/
 .page-home .thumb-verb .t-vstem,
 .page-home .thumb-verb .t-vtail{
   position:absolute;top:50%;transform:translateY(-50%);
@@ -436,14 +506,15 @@
   border:6px solid transparent;border-left-color:var(--shu);border-right:0;
 }
 
-/* ---------------- 步驟卡 ---------------- */
+/* ---------------- 濮濄儵顭奸崡?---------------- */
 .page-home .step-grid{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;margin-top:0;
 }
 .page-home .step-card{
   position:relative;border-radius:10px;padding:26px 22px 22px;
   background:linear-gradient(170deg,rgba(255,255,255,.62),rgba(246,240,228,.4));
   border:1px solid var(--line);box-shadow:none;
+  backdrop-filter:none;-webkit-backdrop-filter:none;
 }
 .page-home .step-no{
   position:absolute;top:14px;right:18px;font-family:var(--serif);
@@ -456,19 +527,36 @@
 }
 .page-home .step-card p{font-size:13.5px;color:var(--sumi-2);line-height:1.95}
 
-/* ---------------- 關於 ---------------- */
+/* ---------------- 闂傛粍鏌?---------------- */
 .page-home .about{
-  position:relative;border-radius:10px;padding:28px 30px 28px 34px;
+  position:relative;border-radius:10px;padding:28px 30px 28px 34px;margin-top:0;
   background:linear-gradient(170deg,rgba(255,255,255,.55),rgba(246,240,228,.38));
   border:1px solid var(--line);box-shadow:none;
+  backdrop-filter:none;-webkit-backdrop-filter:none;
 }
 .page-home .about::before{
   content:"";position:absolute;left:0;top:18px;bottom:18px;width:3px;background:var(--ai);opacity:.45;
 }
 .page-home .about p{font-size:14.5px;color:var(--sumi-2);line-height:2.05;margin-bottom:13px}
 .page-home .about p:last-child{margin-bottom:0}
+/* 閽€鑺ヮ儥 */
+.page-home .about .about-sign{
+  display:flex;align-items:center;justify-content:flex-end;gap:10px;
+  margin:20px 0 0;
+}
+.page-home .about-sign-text{
+  writing-mode:vertical-rl;font-family:var(--serif);
+  font-size:12.5px;letter-spacing:.3em;color:var(--sumi-3);line-height:1.9;
+}
+.page-home .about-seal{
+  display:grid;place-items:center;width:30px;height:30px;flex:none;
+  font-family:var(--serif);font-size:15px;font-weight:600;color:#fbf7ee;
+  background:var(--shu);border-radius:3px;transform:rotate(-2deg);
+  box-shadow:0 0 0 2px rgba(251,247,238,.65) inset;
+  opacity:.85;
+}
 
-/* ---------------- 彈窗 ---------------- */
+/* ---------------- 瑜板牏鐛?---------------- */
 .page-home .modal-box{
   background:var(--washi-hi);border:1px solid var(--line);
   border-radius:12px;box-shadow:0 24px 50px -24px rgba(44,42,38,.6);
@@ -476,7 +564,7 @@
 .page-home .modal-box h3{font-family:var(--serif);font-weight:600;letter-spacing:.1em;color:var(--sumi)}
 .page-home .modal-box p{color:var(--sumi-2)}
 
-/* ---------------- 頁尾 ---------------- */
+/* ---------------- 闂嬩礁鐔?---------------- */
 .page-home .site-footer{
   position:relative;z-index:2;margin:0;padding:0 20px 30px;
   background:transparent;border-top:0;
@@ -503,13 +591,18 @@
   .page-home .logo-games{font-size:23px}
   .page-home .hero{gap:24px;padding:4px 24px 28px}
   .page-home .tategaki{font-size:16px}
+  .page-home .hero-branch{width:190px;right:-40px;bottom:-28px;opacity:.11}
 }
 @media (max-width:760px){
   .page-home .home-side{grid-template-columns:1fr;gap:14px}
+  .page-home .hero-branch{display:none}
 }
 @media (max-width:620px){
   .page-home .header-inner{flex-wrap:wrap;gap:10px;padding:0 14px}
   .page-home .site-menu{order:3;flex:1 0 100%}
+  .page-home .site-menu li{flex:0 1 auto;min-width:0}
+  .page-home .site-menu ul{justify-content:space-between}
+  .page-home .site-menu a{font-size:11.5px;letter-spacing:0;padding:9px 2px 11px}
   .page-home .header-tools{margin-left:auto}
   .page-home .site-main{padding:16px 12px 32px}
   .page-home .pane{grid-template-columns:1fr;gap:14px;text-align:center;padding:20px 16px 22px}
@@ -524,17 +617,23 @@
   .page-home .about{padding:22px 20px 22px 24px}
   .page-home .hero{flex-direction:column;gap:20px;padding:2px 20px 26px}
   .page-home .hero-mark{align-self:flex-end}
+  .page-home .tategaki{font-size:14px;letter-spacing:.26em;line-height:1.9;padding:12px 8px}
+  .page-home .hanko{width:28px;height:28px;font-size:14px}
   .page-home #lbHomeBtn{margin:24px 0 2px}
   .page-home .lb-home-btn{gap:14px;padding:16px 18px;border-radius:10px}
   .page-home .lb-home-ico{width:50px;height:50px}
   .page-home .lb-home-txt strong{font-size:18px}
   .page-home .lb-home-txt em{font-size:12.5px}
   .page-home .lb-home-btn::after{font-size:19px}
+  .page-home .washi-tape{width:76px;height:24px}
+  .page-home .tape-sheet{top:-10px;left:-14px}
+  .page-home .tape-about{top:-10px;right:-12px}
 }
 @media (max-width:560px){
   .page-home .sheet-title em{font-size:9.5px;letter-spacing:.2em}
 }
 @media (prefers-reduced-motion:reduce){
+  .page-home .sakura{display:none}
   .page-home .pane,
   .page-home .lb-home-btn,
   .page-home .pane:hover .pane-go,
