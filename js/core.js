@@ -189,6 +189,40 @@
     tick()   { this.tone(1200, 0.03, 'square', 0.05); }
   };
 
+  /* ---------------- 語音（Web Speech API，不需音檔） ---------------- */
+  const speech = JPQ.speech = {
+    ready: false,
+    voice: null,
+    init() {
+      if (typeof global.speechSynthesis === 'undefined') return;
+      const load = () => {
+        const vs = global.speechSynthesis.getVoices() || [];
+        this.voice = vs.find(v => /^ja[-_]JP/i.test(v.lang)) || null;
+        this.ready = true;
+      };
+      load();
+      if (global.speechSynthesis.onvoiceschanged !== undefined) {
+        global.speechSynthesis.onvoiceschanged = load;
+      }
+    },
+    available() { return typeof global.speechSynthesis !== 'undefined'; },
+    stop() {
+      if (!this.available()) return;
+      try { global.speechSynthesis.cancel(); } catch (e) {}
+    },
+    say(text) {
+      if (!this.available()) return;
+      try {
+        global.speechSynthesis.cancel();
+        const u = new global.SpeechSynthesisUtterance(text);
+        u.lang = 'ja-JP';
+        u.rate = .8;
+        if (this.voice) u.voice = this.voice;
+        global.speechSynthesis.speak(u);
+      } catch (e) { /* 沒有語音時靜默 */ }
+    }
+  };
+
   /* ---------------- 遊戲註冊表 ---------------- */
   JPQ.games = {};
   JPQ.registerGame = function (def) { JPQ.games[def.name] = def; };

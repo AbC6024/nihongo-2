@@ -1,7 +1,7 @@
 /* =========================================================
    遊戲目錄：整站有哪些遊戲
    status: 'live' 已上線 ／ 'soon' 開發中
-   thumb: 用於產生縮圖的樣式（'quiz' | 'speed' | 'tiles' | 'link' | 'kana' | 'cards' | 'clock' | 'listen'）
+    thumb: 用於產生縮圖的樣式（'quiz' | 'speed' | 'tiles' | 'link' | 'kana' | 'cards' | 'clock' | 'listen' | 'verb'）
    ========================================================= */
 window.JPQ = window.JPQ || {};
 
@@ -25,6 +25,16 @@ JPQ.CATALOG = [
     href: 'gojuon.html',
     desc: '先玩三種練習記熟五十音，再回頭查那張完整的五十音表。',
     detail: ['順序挑戰', '平片對照', '聽音選字', '完整五十音表']
+  },
+  {
+    slug: 'conjugation',
+    status: 'live',
+    thumb: 'verb',
+    title: '動詞活用',
+    titleEn: 'Verbs',
+    href: 'conjugation.html',
+    desc: '看動詞挑活用形，答錯會把變化過程一步步拆開講。五段・一段・サ変・カ変與可能受身使役全部涵蓋。',
+    detail: ['8 關闖關', '45 秒搶答', '活用表拼圖', '24 組配對']
   },
   {
     slug: 'vocab',

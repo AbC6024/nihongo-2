@@ -12,7 +12,10 @@ JPQ.LB_GAMES = {
   match:         { label: '助詞配對',   unit: '分',     desc: '三回合總分' },
   'kana-order':  { label: '五十音順序', unit: '連勝',   desc: '最高連勝' },
   'kana-convert':{ label: '平假名⇄片假名', unit: '連勝', desc: '最高連勝' },
-  'kana-listen': { label: '聽音選字',   unit: '連勝',   desc: '最高連勝' }
+  'kana-listen': { label: '聽音選字',   unit: '連勝',   desc: '最高連勝' },
+  'verb-quiz':    { label: '動詞・選擇題闖關', unit: '星星', desc: '八關總星星數' },
+  'verb-speed':   { label: '動詞・快速搶答', unit: '分',   desc: '45 秒內的分數' },
+  'verb-match':   { label: '動詞・活用配對', unit: '分',   desc: '三回合總分' }
 };
 
 JPQ.lb = {

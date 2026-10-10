@@ -4,35 +4,8 @@
 (function (global) {
   const JPQ = global.JPQ, U = JPQ.util;
 
-  /* ---------------- 語音（Web Speech API） ---------------- */
-  const speech = {
-    ready: false,
-    voice: null,
-    init() {
-      if (typeof global.speechSynthesis === 'undefined') return;
-      const load = () => {
-        const vs = global.speechSynthesis.getVoices() || [];
-        this.voice = vs.find(v => /^ja[-_]JP/i.test(v.lang)) || null;
-        this.ready = true;
-      };
-      load();
-      if (global.speechSynthesis.onvoiceschanged !== undefined) {
-        global.speechSynthesis.onvoiceschanged = load;
-      }
-    },
-    available() { return typeof global.speechSynthesis !== 'undefined'; },
-    say(text) {
-      if (!this.available()) return;
-      try {
-        global.speechSynthesis.cancel();
-        const u = new global.SpeechSynthesisUtterance(text);
-        u.lang = 'ja-JP';
-        u.rate = .8;
-        if (this.voice) u.voice = this.voice;
-        global.speechSynthesis.speak(u);
-      } catch (e) { /* 沒有語音時靜默 */ }
-    }
-  };
+  /* 語音改用 core.js 的 JPQ.speech（動詞遊戲也要用同一份） */
+  const speech = JPQ.speech;
 
   function clearKeys() {
     if (U.__kanaKey) { U.__kanaKey(); U.__kanaKey = null; }

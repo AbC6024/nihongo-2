@@ -916,6 +916,157 @@ rt{
   .gc-detail li{font-size:11px;padding:2px 8px}
 }
 
+/* =========================================================
+   動詞活用
+   ========================================================= */
+
+/* 題目：動詞 → 活用形 */
+.vb-word{color:#3a3270}
+.vb-word ruby{ruby-position:over}
+.vb-arrow{color:var(--brand-2);margin:0 .28em;font-weight:700}
+.vb-form{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.15}
+.vb-form em{display:block;font-size:11px;font-weight:600;color:var(--ink-3);letter-spacing:.06em;font-style:normal}
+.vb-zh{display:block;font-size:14px;font-weight:600;color:var(--ink-2);margin-top:8px}
+.vb-say{
+  border:1px solid var(--line);background:rgba(255,255,255,.8);border-radius:12px;
+  font-size:15px;padding:5px 10px;cursor:pointer;margin-left:8px;color:#5b5490;
+  transition:.2s;
+}
+.vb-say:hover{border-color:var(--brand-2);background:#fff}
+
+/* 答錯時把變化過程拆成一步一步 */
+.vb-answer{font-size:17px !important;font-weight:700;color:#3d3766 !important;margin:4px 0 8px !important}
+.vb-chain{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0 4px}
+.vb-chain i{color:var(--ink-3);font-style:normal;font-size:13px}
+.vb-step{
+  display:inline-flex;flex-direction:column;align-items:center;gap:1px;
+  padding:7px 13px;border-radius:13px;background:rgba(255,255,255,.92);
+  border:1px solid var(--line);min-width:64px;
+}
+.vb-step em{font-size:10.5px;font-style:normal;color:var(--ink-3);letter-spacing:.04em}
+.vb-step b{font-size:19px;color:#4a4478;font-weight:800}
+.vb-note{
+  margin:8px 0 0 !important;font-size:13.5px !important;color:#7a5c2e !important;
+  background:rgba(255,240,214,.7);border-radius:11px;padding:8px 11px;
+}
+.vb-tip{margin:6px 0 0 !important;font-size:13px !important;color:var(--ink-2) !important}
+
+/* 首頁那三張「只有兩條路」的說明卡 */
+.vb-intro{margin:26px 0 34px}
+.vb-h3{font-size:20px;font-weight:900;color:#2b3a8f;margin:30px 0 6px;letter-spacing:.01em}
+.vb-lede{color:var(--ink-2);font-size:14px;margin:0 0 14px}
+.vb-two-ways{display:grid;grid-template-columns:repeat(auto-fit,minmax(224px,1fr));gap:14px}
+.vb-way{
+  background:var(--card);border:1px solid rgba(255,255,255,.85);
+  border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+.vb-way strong{display:block;font-size:17px;color:#2b3a8f;margin-bottom:5px}
+.vb-way p{margin:0 0 9px;font-size:13.5px;color:var(--ink-2)}
+.vb-way b{color:#5b5490}
+.vb-way code{
+  display:block;font-family:inherit;font-size:15px;font-weight:800;color:#4a4478;
+  background:rgba(255,255,255,.8);border:1px solid var(--line);
+  border-radius:11px;padding:7px 11px;
+}
+
+/* 表格：速查表與拼圖共用 */
+.vb-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 22px;border-radius:var(--radius)}
+.vb-grid{
+  width:100%;border-collapse:separate;border-spacing:0;background:var(--card);
+  border:1px solid rgba(255,255,255,.85);border-radius:var(--radius);
+  overflow:hidden;box-shadow:var(--shadow);backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);min-width:520px;
+}
+.vb-grid caption{
+  caption-side:top;text-align:left;padding:15px 17px 4px;
+  font-size:13px;color:var(--ink-2);font-weight:600;
+}
+.vb-grid th,.vb-grid td{padding:9px 12px;text-align:center;border-top:1px solid var(--line)}
+.vb-grid thead th{
+  background:rgba(183,156,240,.16);font-size:12.5px;color:#4b3f86;
+  font-weight:800;letter-spacing:.02em;
+}
+.vb-grid thead th em{display:block;font-size:10.5px;font-style:normal;color:var(--ink-3);font-weight:600;margin-top:1px}
+.vb-grid tbody td{font-size:17px;font-weight:700;color:#4a4478;white-space:nowrap}
+.vb-grid th.vb-col{background:rgba(183,156,240,.1);font-size:14px;color:#4b3f86;white-space:nowrap}
+.vb-grid td.vb-ex{font-weight:800;color:#2b3a8f}
+.vb-grid td.vb-ex em{display:block;font-size:10.5px;font-style:normal;color:var(--ink-3);font-weight:600}
+.vb-grid td.vb-arrow-cell{color:var(--brand-2);font-size:15px}
+.vb-grid td.vb-rule{font-size:12.5px;font-weight:600;color:var(--ink-2);white-space:normal;text-align:left}
+.vb-grid td.vb-rule em{display:block;font-size:11.5px;font-style:normal;color:#8a7f6a;margin-top:3px}
+.vb-grid-one{min-width:0}
+.vb-grid-ompu{min-width:640px}
+.vb-grid-one th{background:rgba(183,156,240,.1);font-size:13.5px;color:#4b3f86;text-align:left;white-space:nowrap}
+.vb-grid-one th em{display:block;font-size:10.5px;font-style:normal;color:var(--ink-3);font-weight:600}
+
+/* 拼圖用的表 */
+.vb-table{width:100%;border-collapse:separate;border-spacing:0;margin:0 0 18px;border-radius:16px;overflow:hidden}
+.vb-table th,.vb-table td{padding:8px 11px;border-top:1px solid var(--line);text-align:center}
+.vb-table th{background:rgba(255,255,255,.5);font-size:13px;color:#4b3f86;text-align:left;white-space:nowrap}
+.vb-table th em{display:block;font-size:10.5px;font-style:normal;color:var(--ink-3);font-weight:600}
+.vb-row.active th,.vb-row.active td{background:rgba(183,156,240,.2)}
+.vb-row.done th,.vb-row.done td{background:rgba(214,246,232,.34)}
+.vb-row.miss th,.vb-row.miss td{background:rgba(255,228,232,.4)}
+.vb-head{font-size:19px;font-weight:800;color:#4a4478;white-space:nowrap}
+.vb-tail{font-size:19px;font-weight:800;color:#2b8f68;white-space:nowrap}
+.vb-slot{color:var(--ink-3)}
+.vb-slot-on{color:var(--brand-2)}
+.vb-full{font-size:14px;color:var(--ink-2);white-space:nowrap}
+
+/* 一段・サ変・カ変 的方塊 */
+.vb-otype{
+  background:var(--card);border:1px solid rgba(255,255,255,.85);
+  border-radius:var(--radius);padding:15px 17px;margin-bottom:14px;
+  box-shadow:var(--shadow);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-left:5px solid var(--c);
+}
+.vb-otype-head{display:flex;align-items:baseline;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.vb-otype-head strong{font-size:17px;color:#2b3a8f}
+.vb-otype-head span{font-size:15px;color:#4a4478;font-weight:700}
+.vb-otype-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:9px}
+.vb-otype-grid td{
+  background:rgba(255,255,255,.72);border:1px solid var(--line);
+  border-radius:13px;padding:9px 7px;text-align:center;
+}
+.vb-otype-grid em{display:block;font-style:normal;font-size:11px;color:var(--ink-3);margin-bottom:2px}
+.vb-otype-grid b{font-size:16px;color:#4a4478;font-weight:800}
+.vb-otype-note{margin:10px 0 0;font-size:13px;color:var(--ink-2)}
+
+/* 動詞一覽的按鈕群 */
+.vb-group{margin-bottom:16px}
+.vb-group h4{
+  display:flex;align-items:center;gap:8px;font-size:14px;
+  color:#4b3f86;margin:0 0 8px;font-weight:800;
+}
+.vb-dot{width:10px;height:10px;border-radius:50%;flex:none}
+.vb-chips{display:flex;flex-wrap:wrap;gap:8px}
+.vb-chip{
+  display:inline-flex;flex-direction:column;align-items:center;gap:0;
+  padding:7px 13px;border-radius:14px;cursor:pointer;font-family:inherit;
+  background:rgba(255,255,255,.85);border:2px solid var(--line);
+  font-size:17px;font-weight:800;color:#4a4478;transition:.18s;
+}
+.vb-chip em{font-style:normal;font-size:10.5px;font-weight:600;color:var(--ink-3);margin-top:1px}
+.vb-chip:hover{border-color:var(--c);transform:translateY(-2px)}
+.vb-chip.on{border-color:var(--c);background:rgba(255,255,255,.98);box-shadow:0 6px 16px rgba(122,132,196,.2)}
+
+.vb-detail{margin:18px 0 4px}
+.vb-detail-head{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:8px}
+.vb-detail-head strong{font-size:24px;color:#2b3a8f}
+.vb-detail-head .vb-tag{
+  font-size:11.5px;font-weight:700;color:#4b3f86;
+  background:rgba(183,156,240,.2);border-radius:999px;padding:3px 10px;
+}
+.btn.small{padding:7px 14px;font-size:13px}
+
+@media (max-width:600px){
+  .vb-two-ways{grid-template-columns:1fr}
+  .vb-chain{gap:5px}
+  .vb-step{padding:5px 9px;min-width:52px}
+  .vb-step b{font-size:16px}
+}
+
 /* 尊重系統的減少動態設定 */
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}

@@ -37,7 +37,12 @@ const THUMBS = {
     <span class="t-opt t-o3"></span><span class="t-opt t-o4"></span>`,
   speed: `<span class="t-bolt"></span>`,
   tiles: `<span class="t-tile t-t1"></span><span class="t-tile t-t2"></span><span class="t-tile t-t3"></span>`,
-  listen: `<span class="t-wave"></span>`
+  listen: `<span class="t-wave"></span>`,
+  /* 動詞：書 → ます 的變化箭頭 */
+  verb: `
+    <span class="t-vstem">書</span>
+    <span class="t-varrow"></span>
+    <span class="t-vtail">ます</span>`
 };
 
 JPQ.site = {
