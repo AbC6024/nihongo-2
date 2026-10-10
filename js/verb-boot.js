@@ -10,19 +10,9 @@
     const box = U.$('#heroStats');
     if (!box) return;
 
-    const verb = JPQ.verb;
-    /* 拼圖玩法零失誤才會記錄，所以這裡數的是「完全解鎖」的動詞 */
-    const mastered = verb.VERBS.filter(v => JPQ.store.record('verb-scramble-' + v.kana) > 0).length;
-
-    const cards = [
-      { n: verb.VERBS.length, l: '收錄動詞', e: 'verbs' },
-      { n: verb.FORMS.length, l: '活用形', e: 'forms' },
-      { n: verb.GODAN_ORDER.length, l: '五段的段', e: 'godan rows' },
-      { n: mastered, l: '完全解鎖', e: 'mastered' }
-    ];
-
-    box.innerHTML = cards.map(c =>
-      `<span class="stat-chip">${c.e} <b>${c.n}</b> ${c.l}</span>`).join('');
+    box.innerHTML = '<span class="stat-chip">一次 6 題</span><span class="stat-chip">不計時，慢慢想</span>';
+    const topics = U.$('#verbTopics');
+    if (topics) topics.innerHTML = JPQ.verbStudy.topicsHTML();
   }
 
   document.addEventListener('DOMContentLoaded', function () {

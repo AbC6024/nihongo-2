@@ -28,7 +28,7 @@ function loadData() {
   const sandbox = {};
   sandbox.window = sandbox;
   const context = vm.createContext(sandbox);
-  ['data.js', 'kana-data.js', 'verb-data.js', 'verb-levels.js'].forEach(file => {
+  ['data.js', 'kana-data.js', 'verb-data.js', 'verb-beginner.js', 'verb-levels.js'].forEach(file => {
     const source = fs.readFileSync(path.join(ROOT, 'js', file), 'utf8');
     new vm.Script(source, { filename: file }).runInContext(context);
   });
@@ -367,6 +367,23 @@ function validateVerbLevels() {
   const JPQ = loadData().JPQ;
   const verb = JPQ.verb;
 
+  assert.strictEqual(JPQ.VERB_LEVELS.length, 12, 'Beginner topics cover basic and later beginner forms');
+  assert.strictEqual(JPQ.VERB_LEVELS.filter(l => l.book === 1).length, 5);
+  JPQ.VERB_LEVELS.forEach(level => {
+    assert.strictEqual(level.forms.length, 1, 'Each practice must focus on just one form');
+    assert.strictEqual(level.count, 6, 'Each practice must contain six questions');
+    verb.VERBS.filter(v => verb.supports(v, level.forms[0])).forEach(v => {
+      const tip = JPQ.verbStudy.tip(v, level.forms[0]);
+      assert(!/undefined|未然|連用|連体|音便|五段|サ変|カ変/.test(tip), 'Learner explanations must use beginner language');
+      assert(tip.includes(verb.conjugate(v, level.forms[0])), 'The explanation must include the correct answer');
+    });
+  });
+  assert(JPQ.verbStudy.tip(verb.byKana('まつ'), 'te').includes('「ちます」換成「って」'));
+  assert(JPQ.verbStudy.tip(verb.byKana('かう'), 'nai').includes('「います」換成「わない」'));
+  const page = fs.readFileSync(path.join(ROOT, 'conjugation.html'), 'utf8');
+  ['verb-speed.js', 'verb-match.js', 'verb-scramble.js', '未然形', '連用形'].forEach(text =>
+    assert(!page.includes(text), `Beginner page still contains ${text}`));
+
   JPQ.VERB_LEVELS.forEach(level => {
     assert(level.no > 0 && level.title && level.sub, `Level ${level.no} is missing copy`);
     assert(level.count >= 6, `Level ${level.no} needs at least 6 questions`);
@@ -384,7 +401,7 @@ function validateVerbLevels() {
       const seen = new Set();
       qs.forEach(q => {
         assert(q.a, `Level ${level.no}: a question has no answer`);
-        assert.strictEqual(q.opts.length, 3, `Level ${level.no}: needs exactly 3 distractors`);
+        assert.strictEqual(q.opts.length, 2, `Level ${level.no}: needs exactly 2 distractors`);
         assert.strictEqual(new Set(q.opts).size, q.opts.length,
           `Level ${level.no}: duplicate options`);
         assert(q.opts.indexOf(q.a) === -1,
@@ -397,6 +414,8 @@ function validateVerbLevels() {
           `Level ${level.no}: asked a form this verb does not have`);
         assert.strictEqual(q.a, verb.conjugate(q.verb, q.key),
           `Level ${level.no}: answer does not match the engine`);
+        assert.strictEqual(q.from, verb.display(q.verb, q.key === 'masu' ? 'base' : 'masu'),
+          'Questions should start from the familiar masu form unless asking for masu');
 
         const sig = q.verb.kana + ':' + q.key;
         assert(!seen.has(sig), `Level ${level.no}: repeated ${sig}`);
@@ -409,7 +428,7 @@ function validateVerbLevels() {
   const pool = JPQ.verbGame.poolAll();
   assert(pool.length > 400, `The speed-run pool is too small (${pool.length})`);
   pool.forEach(q => {
-    assert(q.opts.length === 3 && q.opts.indexOf(q.a) === -1,
+    assert(q.opts.length === 2 && q.opts.indexOf(q.a) === -1,
       `Speed pool has a malformed question for ${q.verb.kana} ${q.key}`);
   });
 }
@@ -577,7 +596,7 @@ function validateVerbUI() {
     classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
     addEventListener() {}, removeEventListener() {}, appendChild() {},
     focus() {}, remove() {}, setAttribute() {}, getAttribute() { return null; },
-    querySelector() { return stubEl(); },
+    querySelector(sel) { return nodes[sel] || (nodes[sel] = stubEl()); },
     querySelectorAll() { return []; }
   });
 
@@ -600,7 +619,7 @@ function validateVerbUI() {
   sandbox.globalThis = sandbox;
 
   const context = vm.createContext(sandbox);
-  ['core.js', 'catalog.js', 'site.js', 'learn.js', 'verb-data.js', 'verb-levels.js',
+  ['core.js', 'catalog.js', 'site.js', 'learn.js', 'verb-data.js', 'verb-beginner.js', 'verb-levels.js',
    'verb-quiz.js', 'verb-speed.js', 'verb-scramble.js', 'verb-match.js',
    'verb-sheet.js', 'leaderboard.js', 'home.js'
   ].forEach(file => {
@@ -651,9 +670,9 @@ function validateVerbUI() {
 
   /* 速查表要畫得 出來，而且不能是空的 */
   JPQ.verbSheet.render();
-  const sheet = nodes['#verbSheet'].innerHTML;
-  assert(sheet.length > 4000, `Cheat sheet rendered only ${sheet.length} characters`);
-  ['五段活用表', '音便', '一段・サ変・カ変', '動詞一覽'].forEach(text =>
+  const sheet = nodes['#verbSheet'].innerHTML + nodes['#vbStudyExamples'].innerHTML;
+  assert(sheet.length > 1000, `Cheat sheet rendered only ${sheet.length} characters`);
+  ['想查哪一種變化', '第Ⅰ類', '第Ⅱ類', '第Ⅲ類', '看更多動詞'].forEach(text =>
     assert(sheet.includes(text), `Cheat sheet is missing the "${text}" section`));
   /* 表上每個動詞都要真的排得出來，否則會出現空白格 */
   assert(!/undefined|NaN|\[object/.test(sheet), 'Cheat sheet contains undefined/NaN text');

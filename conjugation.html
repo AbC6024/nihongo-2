@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>動詞活用大冒險 · 遊戲學日語</title>
-<meta name="description" content="用四種小遊戲學會日語動詞活用：選擇題闖關、快速搶答、活用表拼圖、活用配對。五段・一段・サ変・カ変與可能受身使役全部涵蓋。">
+<title>動詞變化練習 · 遊戲學日語</title>
+<meta name="description" content="適合大家的日本語初級Ⅰ、Ⅱ的動詞變化練習。一次選一種變化，每次6題，附簡單中文說明。">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/home.css">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%F0%9F%A7%A9%3C/text%3E%3C/svg%3E">
@@ -39,56 +39,33 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
             回遊戲總覽
           </a>
-          <p class="eyebrow">Japanese Verb Conjugation</p>
-          <h1>動詞活用大冒險</h1>
-          <p class="portal-lede">動詞活用不是拿來背的，是拿來看出規律的。<br>
-            這裡有四種玩法，選一個開始吧。</p>
+          <p class="eyebrow">大家的日本語 · 初級Ⅰ／Ⅱ</p>
+          <h1>動詞變化練習</h1>
+          <p class="portal-lede">先從熟悉的「ます形」開始，一次練一種變化。<br>
+            每次 6 題，選出答案後就能看簡單說明。</p>
           <div class="hero-stats" id="heroStats"></div>
         </div>
       </div>
     </div>
 
     <div class="wrap">
-      <div class="vb-intro">
-        <h3 class="vb-h3">整張活用表，其實只有兩條路</h3>
-        <div class="vb-two-ways">
-          <div class="vb-way">
-            <strong>未然形</strong>
-            <p>接 <b>ない／よう・おう／られる／せる</b></p>
-            <code>書か ＋ ない → 書かない</code>
-          </div>
-          <div class="vb-way">
-            <strong>連用形</strong>
-            <p>接 <b>て・た／ます／ません</b></p>
-            <code>書き ＋ ます → 書きます</code>
-          </div>
-          <div class="vb-way">
-            <strong>五段才要跳行</strong>
-            <p>看最後一個假名是哪個<b>段</b>，整列就推出來</p>
-            <code>書（か）＋ く段 → 未然 書か</code>
-          </div>
-        </div>
-      </div>
+      <h2 class="section-title">今天想練哪一種？</h2>
+      <p class="section-note">不用按順序闖關。選你正在學的內容就可以開始。</p>
+      <div id="verbTopics"></div>
 
-      <h2 class="section-title">選擇一款玩法 <small>Pick a game</small></h2>
-      <div class="game-bars" id="gameGrid"></div>
+      <details class="vb-reference">
+        <summary>忘記怎麼變？看簡單對照表</summary>
+        <p class="section-note">先選一種變化，再看第Ⅰ、Ⅱ、Ⅲ類的例子。</p>
+        <div id="verbSheet"></div>
+      </details>
 
-      <h2 class="section-title">動詞活用速查表 <small>Cheat sheet</small></h2>
-      <p class="section-note">五段活用表、音便表與每個動詞的完整變化，答錯的時候可以回來看這裡。</p>
-      <div id="verbSheet"></div>
-
-      <h2 class="section-title">排行榜 <small>Leaderboard</small></h2>
-      <p class="section-note">玩完之後可以在結算視窗按「🏆 登記排行榜」，填一個暱稱就能上榜。同一個暱稱只保留最高分。</p>
-      <div class="panel">
-        <div data-leaderboard="verb-quiz"></div>
-      </div>
     </div>
   </section>
 
   <section id="view-game" class="view hidden">
     <div class="wrap">
       <div class="hud">
-        <button class="icon-btn back" id="hudBack" type="button" title="回動詞活用大冒險">
+        <button class="icon-btn back" id="hudBack" type="button" title="回動詞變化練習">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
         </button>
         <div class="hud-title">
@@ -120,11 +97,9 @@
   <script src="js/learn.js"></script>
   <script src="js/site.js"></script>
   <script src="js/verb-data.js"></script>
+  <script src="js/verb-beginner.js"></script>
   <script src="js/verb-levels.js"></script>
   <script src="js/verb-quiz.js"></script>
-  <script src="js/verb-speed.js"></script>
-  <script src="js/verb-scramble.js"></script>
-  <script src="js/verb-match.js"></script>
   <script src="js/verb-sheet.js"></script>
   <script src="js/leaderboard.js"></script>
   <script src="js/home.js"></script>

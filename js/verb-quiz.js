@@ -1,8 +1,8 @@
 /* =========================================================
-   動詞活用 — 遊戲 1：選擇題闖關
+   動詞活用 — 遊戲 1：動詞變化練習
    ------------------------------------------------------------
    題目是引擎算出來的：顯示一個動詞 + 一個活用形，
-   從四個形狀很像的選項裡挑出正確答案。
+   從三個選項裡挑出正確答案。
    答錯時不是只秀答案，而是把「為什麼是這個」拆開講。
    ========================================================= */
 (function (global) {
@@ -11,7 +11,7 @@
   let state = null;
 
   /* 動詞遊戲的星星存檔要跟助詞遊戲分開，否則 LEVEL 1 會互相覆蓋 */
-  const sKey = no => 'verb' + no;
+  const sKey = no => 'verb-study-v2-' + no;
   const levelStars = no => JPQ.store.levelStars(sKey(no));
   const setLevelStars = (no, s) => JPQ.store.setLevelStars(sKey(no), s);
   function totalStars() {
@@ -23,36 +23,21 @@
     state = null;
     const maxStars = JPQ.VERB_LEVELS.length * 3;
 
-    const cards = JPQ.VERB_LEVELS.map(l => {
-      const stars = levelStars(l.no);
-      const locked = l.no > 1 && levelStars(l.no - 1) === 0;
-      return `<button class="level-btn" data-lv="${l.no}" ${locked ? 'disabled' : ''}>
-        ${locked ? '<span class="lv-lock">🔒</span>' : ''}
-        <span class="lv-no">LEVEL ${U.pad(l.no)}</span>
-        <strong>${l.title}</strong>
-        <small>${l.sub}<br>${l.count} 題</small>
-        <span class="stars">${U.stars(stars)}</span>
-      </button>`;
-    }).join('');
+    const cards = JPQ.verbStudy.topicsHTML();
 
     stage.innerHTML = `<div class="panel narrow">
-      <h2 class="center">選擇關卡</h2>
-      <p class="center section-note">每一關練一組活用形，全對可以拿三顆星 ⭐</p>
-      <div class="level-grid">${cards}</div>
+      <h2 class="center">選擇要練的變化</h2>
+      <p class="center section-note">每次 6 題，不計時。選你已經學過的內容。</p>
+      ${cards}
       <div class="btn-row">
         <button class="btn grey" data-go="#/">回主頁</button>
       </div>
     </div>`;
 
-    JPQ.hud.set('選擇題闖關', '已完成 ' + totalStars() + ' / ' + maxStars + ' ⭐');
+    JPQ.hud.set('動詞變化練習', '已完成 ' + totalStars() + ' / ' + maxStars + ' ⭐');
     JPQ.hud.progress(0);
     JPQ.hud.clearPills();
 
-    U.$$('.level-btn', stage).forEach(btn => btn.addEventListener('click', () => {
-      if (btn.disabled) return;
-      JPQ.sfx.click();
-      startLevel(Number(btn.dataset.lv), stage);
-    }));
     U.$('[data-go="#/"]', stage).addEventListener('click', () => JPQ.sfx.click());
   }
 
@@ -66,31 +51,31 @@
         html: '<p>這個組合目前生不出題目，請選別的關卡。</p>',
         actions: [
           { label: '選別的關卡', onClick: () => { JPQ.modal.close(); showLevels(stage); } },
-          { label: '回主頁', cls: 'grey', onClick: () => { JPQ.modal.close(); JPQ.go('#/'); } }
+          { label: '選其他變化', cls: 'grey', onClick: () => { JPQ.modal.close(); JPQ.go('#/'); } }
         ]
       });
       return;
     }
-    state = { no: no, i: 0, wrong: 0, qs: qs };
+    state = { no: no, i: 0, wrong: 0, qs: qs, answered: false };
     renderQuestion(stage, lv);
   }
 
   /* ---------- 出題 ---------- */
   function renderQuestion(stage, lv) {
     if (unkey) { unkey(); unkey = null; }
+    state.answered = false;
     const q = state.qs[state.i];
     state.q = q;
 
-    const form = JPQ.verb.form(q.key);
     const opts = U.shuffle(q.opts.concat([q.a]));
 
     stage.innerHTML = `<div class="panel">
       <div class="q-sentence">
         <span class="vb-word">${U.ruby(q.from)}</span>
         <span class="vb-arrow">→</span>
-        <span class="vb-form">${form.label}<em>${form.en}</em></span>
+        <span class="vb-form">${lv.title}</span>
       </div>
-      <div class="q-zh">${form.hint}</div>
+      <div class="q-zh">${q.zh} · 請選出${lv.title} <span class="vb-tag">${JPQ.verb.TYPE_NAME[q.verb.type]}</span></div>
       <div class="opt-grid">
         ${opts.map((o, i) => `<button class="opt" data-o="${o}">
           <span class="key">${i + 1}</span>${o}</button>`).join('')}
@@ -101,7 +86,7 @@
       </div>
     </div>`;
 
-    JPQ.hud.set('第 ' + lv.no + ' 關 · ' + lv.title, lv.sub);
+    JPQ.hud.set(lv.title + '練習', lv.sub);
     JPQ.hud.progress(state.i / state.qs.length);
     paint();
 
@@ -115,7 +100,7 @@
       if (n >= 1 && n <= opts.length) {
         const btn = U.$$('.opt', stage)[n - 1];
         if (btn && !btn.disabled) answer(btn, stage, lv);
-      } else if (e.key === 'Enter') {
+      } else if (e.key === 'Enter' && state.answered) {
         next(stage, lv);
       }
     });
@@ -130,6 +115,8 @@
 
   /* ---------- 判定 ---------- */
   function answer(btn, stage, lv) {
+    if (state.answered) return;
+    state.answered = true;
     U.$$('.opt', stage).forEach(b => b.disabled = true);
     const pick = btn.dataset.o;
     const ok = pick === state.q.a;
@@ -157,22 +144,15 @@
 
   /* 把「為什麼是這個答案」拆成可以看懂的步驟 */
   function feedback(q, ok) {
-    const form = JPQ.verb.form(q.key);
-    const ex = JPQ.verbGame.explain(q);
-    const parts = ex.parts && ex.parts.length
-      ? `<div class="vb-chain">${ex.parts.map(p =>
-          `<span class="vb-step"><em>${p.label}</em><b>${p.kana}</b></span>`).join('<i>→</i>')}</div>`
-      : '';
-    const note = (ex.note || q.verb.note)
-      ? `<p class="vb-note">${ex.note || q.verb.note}</p>`
-      : '';
-    return `<strong>${ok ? '答對了！' : '正確答案是「' + q.a + '」'}</strong>
-      <p class="vb-answer">${U.ruby(q.from)} → ${q.a}（${form.label}）</p>
-      ${parts}${note}
-      <p class="vb-tip">${form.hint}</p>`;
+    const meaning = JPQ.verbStudy.LESSONS.find(l => l.forms[0] === q.key);
+    return `<strong>${ok ? '答對了！' : '再記一次，正確答案是「' + q.a + '」'}</strong>
+      <p class="vb-answer">${U.ruby(q.from)} → ${q.a}</p>
+      <p class="vb-tip">${JPQ.verbStudy.tip(q.verb, q.key)}</p>
+      <p>${meaning.sub}</p>`;
   }
 
   function next(stage, lv) {
+    if (!state.answered) return;
     state.i++;
     if (state.i >= state.qs.length) finish(stage, lv);
     else renderQuestion(stage, lv);
@@ -193,7 +173,7 @@
 
     const isLast = lv.no >= JPQ.VERB_LEVELS.length;
     JPQ.modal.show({
-      title: '第 ' + lv.no + ' 關完成！',
+      title: lv.title + '練習完成！',
       html: `
         <div class="result-stars">${U.stars(stars)}</div>
         <div class="result-score">${state.qs.length - state.wrong}/${state.qs.length}</div>
@@ -205,17 +185,14 @@
           <div>總星星<b>${totalStars()}</b></div>
         </div>`,
       actions: [
-        { label: '🏆 登記排行榜', cls: 'gold', onClick: () => {
-            JPQ.modal.close();
-            JPQ.lb.offer('verb-quiz', totalStars(), '第 ' + lv.no + ' 關 · 共 ' + totalStars() + ' 星星');
-          } },
-        !isLast ? { label: '下一關 →', onClick: () => {
-            JPQ.modal.close(); state = null; showLevels(stage);
+
+        !isLast ? { label: '練下一種變化 →', onClick: () => {
+            JPQ.modal.close(); JPQ.go('#/play/verb-quiz/' + (lv.no + 1));
           } } : null,
         { label: '重玩本關', cls: 'ghost', onClick: () => {
             JPQ.modal.close(); startLevel(lv.no, stage);
           } },
-        { label: '回主頁', cls: 'grey', onClick: () => { JPQ.modal.close(); JPQ.go('#/'); } }
+        { label: '選其他變化', cls: 'grey', onClick: () => { JPQ.modal.close(); JPQ.go('#/'); } }
       ].filter(Boolean)
     });
   }
@@ -223,15 +200,15 @@
   /* ---------- 註冊 ---------- */
   JPQ.registerGame({
     name: 'verb-quiz',
-    title: '選擇題闖關',
-    sub: '八關從一段練到可能受身使役',
+    title: '動詞變化練習',
+    sub: '每次只練一種變化',
     card: {
       thumb: 'quiz',
       icon: '🎯',
       color: '#93a4f0',
-      title: '選擇題闖關',
-      desc: '看動詞挑活用形，答錯會把變化過程一步步拆開講。八關從一段動詞一路練到可能・受身・使役。',
-      tag: '8 關'
+      title: '動詞變化練習',
+      desc: '每次 6 題，選出答案，再看簡單中文說明。',
+      tag: '不計時'
     },
     best: () => {
       const s = totalStars();
@@ -239,7 +216,9 @@
     },
     mount(stage) {
       if (unkey) { unkey(); unkey = null; }
-      showLevels(stage);
+      const no = Number(location.hash.split('/')[3]);
+      if (JPQ.VERB_LEVELS.some(l => l.no === no)) startLevel(no, stage);
+      else showLevels(stage);
     },
     unmount() { if (unkey) { unkey(); unkey = null; } }
   });

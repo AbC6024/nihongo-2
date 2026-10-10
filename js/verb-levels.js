@@ -11,48 +11,7 @@
   /* ---------------- 關卡 ----------------
      每關指定：可以出哪些活用形、只能出哪些種類的動詞、抽幾題。
      forms 用 form key，寫 null 表示不限。                        */
-  const LEVELS = [
-    {
-      no: 1, title: '一段動詞', sub: '只有一列，接什麼就變什麼',
-      forms: ['base', 'te', 'ta', 'tai', 'masu', 'masen', 'mashita'],
-      types: ['ichidan'], count: 8
-    },
-    {
-      no: 2, title: '五段動詞・う／す', sub: '買う・話す：連用形變 い／し，て形為 買って／話して',
-      forms: ['base', 'te', 'ta', 'nai', 'masu', 'masen', 'mashita'],
-      types: ['godan'], cols: ['う', 'す'], count: 8
-    },
-    {
-      no: 3, title: '五段・音便一', sub: 'ぐ・ぬ・ぶ・む段 → で・だ',
-      forms: ['te', 'ta', 'masu', 'masen', 'mashita', 'nai'],
-      types: ['godan'], cols: ['ぐ', 'ぬ', 'ぶ', 'む'], count: 10
-    },
-    {
-      no: 4, title: '五段・音便二', sub: 'く段 き→い，る段 り→っ，つ段 っ',
-      forms: ['te', 'ta', 'masu', 'nai'],
-      types: ['godan'], cols: ['く', 'る', 'つ'], count: 10
-    },
-    {
-      no: 5, title: '命令・禁止・条件', sub: '叫人做、叫別人不要、如果…',
-      forms: ['meirei', 'kinshi', 'kate', 'te'],
-      types: ['godan', 'ichidan'], count: 10
-    },
-    {
-      no: 6, title: '意志・推量', sub: '要…吧？我們…吧',
-      forms: ['you', 'darou', 'nai', 'tai'],
-      types: ['godan', 'ichidan'], count: 8
-    },
-    {
-      no: 7, title: 'する・来る', sub: '規則最不規則的兩個',
-      forms: ['te', 'ta', 'nai', 'you', 'masu', 'masen', 'meirei', 'kate', 'darou'],
-      types: ['suru', 'kuru'], count: 10
-    },
-    {
-      no: 8, title: '可能・受身・使役', sub: '做得到／被做／讓人做',
-      forms: ['dekita', 'dekitaimasu', 'ukerare', 'ukeraremasen', 'saseru', 'sasenai', 'te'],
-      types: ['godan', 'ichidan', 'suru', 'kuru'], count: 12
-    }
-  ];
+  const LEVELS = JPQ.verbStudy.LESSONS;
 
   /* ---------------- 出題 ----------------
      選動詞 → 選活用形 → 組出正確答案與三個干擾選項。
@@ -106,8 +65,9 @@
       verb: v,
       key: key,
       a: answer,
-      opts: pool.slice(0, 3),
-      from: verb.display(v, 'base'),   /* 題目上顯示的動詞（漢字＋注音） */
+      opts: pool.slice(0, 2),
+      from: verb.display(v, key === 'masu' ? 'base' : 'masu'),
+      fromKey: key === 'masu' ? 'base' : 'masu',   /* 題目上顯示的動詞（漢字＋注音） */
       zh: v.zh
     };
   }

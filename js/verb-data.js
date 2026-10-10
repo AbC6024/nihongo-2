@@ -185,19 +185,19 @@
     { key:'ta',    label:'た形',     en:'Ta-form',      group:'te',   hint:'連用形 + た；與て形同一條規則' },
     { key:'tai',   label:'連体形',   en:'Adnominal',    group:'base', hint:'修飾名詞用；現代日語動詞的連体形與辞書形相同' },
 
-    { key:'masu',      label:'ます',         en:'Polite',        group:'masu', hint:'連用形 + ます' },
+    { key:'masu',      label:'ます形',         en:'Polite',        group:'masu', hint:'連用形 + ます' },
     { key:'masen',     label:'ません',       en:'Polite neg',    group:'masu', hint:'連用形 + ません' },
     { key:'mashita',   label:'ました',       en:'Polite past',   group:'masu', hint:'連用形 + ました' },
     { key:'masendeshita', label:'ませんでした', en:'Polite past neg', group:'masu', hint:'連用形 + ませんでした' },
     { key:'mashimashou', label:'ましょう',    en:"Let's",         group:'masu', hint:'連用形 + ましょう' },
     { key:'masenka',   label:'ませんか',     en:'Question',      group:'masu', hint:'連用形 + ませんか' },
 
-    { key:'nai',    label:'ない',       en:'Negative',     group:'sent', hint:'未然形 + ない' },
+    { key:'nai',    label:'ない形',       en:'Negative',     group:'sent', hint:'未然形 + ない' },
     { key:'darou',  label:'だろう',     en:'Presumptive',  group:'sent', hint:'辞書形 + だろう' },
-    { key:'you',    label:'意志形',     en:'Volitional',   group:'sent', hint:'五段：詞尾變お段 + う；一段：去る + よう；する→しよう；来る→こよう' },
+    { key:'you',    label:'意向形',     en:'Volitional',   group:'sent', hint:'五段：詞尾變お段 + う；一段：去る + よう；する→しよう；来る→こよう' },
     { key:'meirei', label:'命令形',     en:'Imperative',   group:'sent', hint:'直接叫人做：書け／食べろ' },
     { key:'kinshi', label:'禁止形',     en:'Prohibition',  group:'sent', hint:'辞書形 + な：するな' },
-    { key:'kate',   label:'条件形・ば', en:'Conditional',  group:'sent', hint:'書けば／食べれば' },
+    { key:'kate',   label:'條件形（ば形）', en:'Conditional',  group:'sent', hint:'書けば／食べれば' },
 
     { key:'dekita',        label:'可能形',       en:'Potential',      group:'applied', hint:'能…：書ける／食べられる' },
     { key:'dekitaimasu',  label:'可能形・ます', en:'Potential form', group:'applied', hint:'書けます' },
@@ -337,7 +337,7 @@
 
     FORMS: FORMS,
     VERBS: VERBS,
-    TYPE_NAME: { godan:'五段', ichidan:'一段', suru:'サ変', kuru:'カ変' },
+    TYPE_NAME: { godan:'第Ⅰ類', ichidan:'第Ⅱ類', suru:'第Ⅲ類', kuru:'第Ⅲ類' },
 
     /* ---------------- 查表用的資料 ----------------
        速查表上那幾張表也是從同一組規則生出來的，
@@ -444,6 +444,7 @@
       if (!kana) return '';
       if (v.displayFix && v.displayFix[key]) return v.displayFix[key];
       if (!v.ruby) return kana;
+      if (v.type === 'kuru' && v.ruby === '来') return '来[' + kana[0] + ']' + kana.slice(1);
       return v.ruby + kana.slice(coverLen(v));
     },
 

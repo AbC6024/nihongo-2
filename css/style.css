@@ -1072,3 +1072,12 @@ rt{
   *,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
   .petal-field{display:none}
 }
+/* 初級動詞練習：題目選擇與可展開的對照表。 */
+#verbTopics .level-btn, #stage a.level-btn { text-decoration:none; color:inherit; display:flex; flex-direction:column; gap:8px; }
+.vb-topic-example { font-size:15px; color:#51418a; line-height:1.6; }
+.vb-reference { margin:24px 0; border:1px solid #ded9f0; border-radius:18px; padding:18px 22px; background:rgba(255,255,255,.8); }
+.vb-reference > summary { cursor:pointer; font-weight:700; font-size:18px; color:#4b4180; }
+.vb-reference[open] > summary { margin-bottom:18px; }
+.vb-study-select { display:block; margin:12px 0 20px; padding:12px 16px; width:100%; max-width:340px; font:inherit; background:#fff; border:1px solid #b9b0d5; border-radius:12px; color:#362d5d; }
+.vb-simple-tips { line-height:1.9; font-size:16px; }
+.vb-simple-tips p { margin:12px 0; }
