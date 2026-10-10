@@ -427,6 +427,35 @@ function validateVerbLevels() {
   /* 快速搶答的總題庫 */
   const pool = JPQ.verbGame.poolAll();
   assert(pool.length > 400, `The speed-run pool is too small (${pool.length})`);
+  const question = (kana, key) => pool.find(q => q.verb.kana === kana && q.key === key);
+  [
+    ['のむ', 'te', ['のんて', 'のみて']],
+    ['かく', 'te', ['かいで', 'かきて']],
+    ['たべる', 'te', ['たべって', 'たべいて']],
+    ['のむ', 'ta', ['のんた', 'のみた']],
+    ['かう', 'nai', ['かいない', 'かうない']]
+  ].forEach(([kana, key, expected]) => {
+    assert.deepStrictEqual(Array.from(question(kana, key).opts), expected,
+      `${kana} ${key}: use plausible mistakes instead of unrelated conjugations`);
+  });
+  const endings = { te:/[てで]$/, ta:/[ただ]$/, masu:/ます$/, nai:/ない$/, base:/[うくぐすつぬぶむる]$/,
+    dekita:/る$/, you:/う$/, kinshi:/な$/, kate:/ば$/, ukerare:/れる$/, saseru:/せる$/ };
+  JPQ.VERB_LEVELS.forEach(level => {
+    const key = level.forms[0];
+    verb.VERBS.filter(v => verb.supports(v, key)).forEach(v => {
+      const q = question(v.kana, key);
+      assert(q, `${v.kana} ${key}: every supported beginner question must have distractors`);
+      const prefix = v.type === 'suru' || v.type === 'kuru' ? v.kana.slice(0, -2) : v.kana.slice(0, -1);
+      q.opts.forEach(o => {
+        assert(o.startsWith(prefix), `${v.kana} ${key}: distractors must use this verb`);
+        if (endings[key]) assert(endings[key].test(o), `${v.kana} ${key}: don't reveal the answer by its ending`);
+        assert(o !== verb.conjugate(v, 'masu'), 'Do not offer the unchanged prompt as a distractor');
+      });
+      if (v.type === 'ichidan' && key === 'dekita') assert(!q.opts.includes(v.kana.slice(0, -1) + 'れる'));
+      if (v.type === 'ichidan' && key === 'meirei') assert(!q.opts.includes(v.kana.slice(0, -1) + 'よ'));
+      if (v.type === 'suru' && key === 'meirei') assert(!q.opts.includes(v.kana.slice(0, -2) + 'せよ'));
+    });
+  });
   pool.forEach(q => {
     assert(q.opts.length === 2 && q.opts.indexOf(q.a) === -1,
       `Speed pool has a malformed question for ${q.verb.kana} ${q.key}`);
