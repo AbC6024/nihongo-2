@@ -740,12 +740,53 @@ function validateVerbUI() {
   });
 }
 
+function validateLearningRecords() {
+  const sandbox = { document:{addEventListener(){}}, addEventListener(){},
+    localStorage:{getItem(){return null;},setItem(){}}, console };
+  sandbox.window = sandbox;
+  const context = vm.createContext(sandbox);
+  ['core.js','learn.js'].forEach(file => new vm.Script(
+    fs.readFileSync(path.join(ROOT,'js',file),'utf8'),{filename:file}).runInContext(context));
+  const JPQ = context.JPQ;
+  assert(JPQ.learn.bodyHTML().includes('從一小步開始'));
+  const now = Date.now();
+  JPQ.store.data = { levels:{'verb-study-v2-2':3}, records:{speed:100}, stats:{
+    runs:[{game:'quiz',at:now-3000,total:10,right:8},
+      {game:'verb-quiz',at:now-2000,total:6,right:3},
+      {game:'kana-listen',at:now-1000,total:4,right:4},
+      {game:'verb-quiz',at:now,total:6,right:6}],
+    acc:{'は':{correct:8,total:10},'形:te':{correct:1,total:6},'形:nai':{correct:3,total:3}},days:[]
+  }};
+  const all = JPQ.learn.summary();
+  assert.strictEqual(all.total,26);
+  assert.strictEqual(all.right,21);
+  assert.strictEqual(all.rate,81,'Calculate weighted accuracy instead of averaging session rates');
+  assert.strictEqual(JPQ.learn.summary('verbs').total,12);
+  assert.strictEqual(JPQ.learn.summary('verbs').rate,75);
+  assert.strictEqual(JPQ.learn.summary('particles').total,10);
+  assert.strictEqual(JPQ.learn.summary('kana').rate,100);
+  assert.strictEqual(JPQ.learn.summary('verbs').recent.length,2);
+  assert.strictEqual(all.recent[0].at,now,'Recent results should be newest first');
+  const verbs = JPQ.learn.bodyHTML('verbs');
+  assert(verbs.includes('て形') && verbs.includes('ない形'));
+  assert(verbs.includes('再累積幾題'),'Small samples must not be called mastered');
+  assert(verbs.includes('conjugation.html#/play/verb-quiz/2'));
+  assert(!verbs.includes('主題 · 答對'),'Verb filter must not show particle performance');
+  ['all','particles','verbs','kana'].forEach(scope =>
+    assert(!/undefined|NaN/.test(JPQ.learn.bodyHTML(scope))));
+  JPQ.stats.reset();
+  assert.strictEqual(JPQ.store.data.levels['verb-study-v2-2'],3);
+  assert.strictEqual(JPQ.store.data.records.speed,100);
+  assert(JPQ.learn.bodyHTML().includes('從一小步開始'));
+}
+
 async function main() {
   compileJavaScript();
   validateLearningData();
   validateVerbData();
   validateVerbLevels();
   validateVerbUI();
+  validateLearningRecords();
   await validateServer();
   console.log('Smoke tests passed.');
 }

@@ -196,7 +196,7 @@
           </span>
           <span class="lb-home-txt">
             <strong>學習紀錄</strong>
-            <em>${U.strip ? '' : ''}看看自己的答題表現和哪個助詞還不熟</em>
+            <em>看看助詞、動詞與五十音的練習表現</em>
             <span class="lr-home-chips" id="lrHomeSummary"></span>
           </span>
         </button>

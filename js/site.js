@@ -70,6 +70,9 @@ JPQ.site = {
         </ul>
       </nav>
       <div class="header-tools">
+        <button id="learnBtn" class="tool-btn records" type="button" title="學習紀錄" aria-label="學習紀錄">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v16h16M8 15v-4M12 15V7M16 15v-6"/></svg><span>學習紀錄</span>
+        </button>
         <button id="soundBtn" class="tool-btn" type="button" title="音效開關" aria-label="音效開關" aria-pressed="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3l4.5-3.5v12L7 14.5H4z"/><path d="M15.5 9.2a4 4 0 0 1 0 5.6"/><path d="M18 6.7a7.5 7.5 0 0 1 0 10.6"/></svg>
         </button>
@@ -110,6 +113,8 @@ JPQ.site = {
   },
 
   wireTools: function () {
+    const learnBtn = document.getElementById('learnBtn');
+    if (learnBtn) learnBtn.addEventListener('click', () => { JPQ.sfx.click(); if (JPQ.learn) JPQ.learn.open(); });
     const sBtn = document.getElementById('soundBtn');
     if (sBtn) {
       const saved = JPQ.store.load().sound;

@@ -262,6 +262,7 @@
   const modal = JPQ.modal = {
     show(opts) {
       const box = U.$('#modal');
+      if (box.classList.contains('hidden')) this.returnFocus = document.activeElement;
       U.$('#modalTitle').textContent = opts.title || '';
       U.$('#modalBody').innerHTML = opts.html || '';
       const act = U.$('#modalActions');
@@ -275,9 +276,15 @@
         act.appendChild(b);
       });
       box.classList.toggle('wide', !!opts.wide);
+      box.classList.toggle('learning', !!opts.learning);
       box.classList.remove('hidden');
+      document.body.classList.add('modal-open');
     },
-    close() { U.$('#modal').classList.add('hidden'); }
+    close() {
+      U.$('#modal').classList.add('hidden');
+      document.body.classList.remove('modal-open');
+      if (this.returnFocus && this.returnFocus.isConnected) this.returnFocus.focus({preventScroll:true});
+    }
   };
   document.addEventListener('click', e => {
     if (e.target && e.target.id === 'modal') JPQ.modal.close();
