@@ -17,14 +17,15 @@
         const source = key === 'masu' ? 'base' : 'masu';
         const samples = ['かく', 'たべる', 'する', 'くる'].map(k => verb.byKana(k));
         const row = v => `<tr><th>${verb.TYPE_NAME[v.type]}</th>
-          <td>${U.ruby(verb.display(v, source))}<em>${v.zh}</em></td>
+          <td>${v.zh}</td>
+          <td>${U.ruby(verb.display(v, source))}</td>
           <td>${U.ruby(verb.display(v, key))}</td></tr>`;
         U.$('#vbStudyExamples', box).innerHTML = `<div class="vb-scroll"><table class="vb-grid">
-          <thead><tr><th>動詞分類</th><th>${source === 'masu' ? 'ます形' : '辞書形'}</th><th>${lesson.title}</th></tr></thead>
+          <thead><tr><th>動詞分類</th><th>中文意思</th><th>${source === 'masu' ? 'ます形' : '辞書形'}</th><th>${lesson.title}</th></tr></thead>
           <tbody>${samples.map(row).join('')}</tbody></table></div>
           <div class="vb-simple-tips">${samples.map(v => `<p>${study.tip(v, key)}</p>`).join('')}</div>
           <details class="vb-reference"><summary>看更多動詞的${lesson.title}</summary>
-            <div class="vb-scroll"><table class="vb-grid"><thead><tr><th>分類</th><th>原來的說法</th><th>${lesson.title}</th></tr></thead>
+            <div class="vb-scroll"><table class="vb-grid"><thead><tr><th>分類</th><th>中文意思</th><th>原來的說法</th><th>${lesson.title}</th></tr></thead>
             <tbody>${verb.VERBS.filter(v => verb.supports(v, key)).map(row).join('')}</tbody></table></div>
           </details>`;
       };
