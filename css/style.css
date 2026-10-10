@@ -353,6 +353,8 @@ a{color:inherit;text-decoration:none}
   backdrop-filter:blur(8px);box-shadow:var(--glow);
 }
 .opt small{font-size:11px;font-weight:600;color:var(--ink-3);letter-spacing:.05em}
+.vb-options{grid-template-columns:repeat(3,minmax(0,1fr))}
+.vb-option-text{display:block;white-space:nowrap}
 .opt .key{
   position:absolute;top:7px;left:10px;font-size:10px;font-weight:800;
   color:var(--ink-3);opacity:.7;
@@ -884,6 +886,7 @@ rt{
 @media (max-width:560px){
   .wrap{padding:0 14px}
   .opt-grid{grid-template-columns:repeat(2,1fr)}
+  .vb-options{grid-template-columns:1fr}
   .opt{min-height:72px;font-size:27px;border-radius:16px}
   .panel{padding:22px 17px;border-radius:20px}
   .match-wrap{grid-template-columns:1fr;gap:8px}

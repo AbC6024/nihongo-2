@@ -76,9 +76,9 @@
         <span class="vb-form">${lv.title}</span>
       </div>
       <div class="q-zh">${q.zh} · 請選出${lv.title} <span class="vb-tag">${JPQ.verb.TYPE_NAME[q.verb.type]}</span></div>
-      <div class="opt-grid">
+      <div class="opt-grid vb-options">
         ${opts.map((o, i) => `<button class="opt" data-o="${o}">
-          <span class="key">${i + 1}</span>${U.ruby(JPQ.verb.displayKana(q.verb, o))}</button>`).join('')}
+          <span class="key">${i + 1}</span><span class="vb-option-text">${U.ruby(JPQ.verb.displayKana(q.verb, o))}</span></button>`).join('')}
       </div>
       <div class="fb" id="fb"></div>
       <div class="btn-row" id="nextRow" style="display:none">
