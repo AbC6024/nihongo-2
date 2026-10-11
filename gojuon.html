@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>五十音圖 · 遊戲學日語</title>
-<meta name="description" content="用遊戲練五十音：五十音順序、平假名片假名對照、聽音選字，附完整五十音表。">
+<meta name="description" content="用遊戲練五十音：看字選音、看音選字、聽音辨識、配對記憶，每款都能切換平假名、片假名與 N5 單字，附完整五十音表。">
 <link rel="canonical" href="https://nihongo-2.onrender.com/gojuon.html">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="zh_TW">
 <meta property="og:site_name" content="遊戲學日語">
 <meta property="og:title" content="日語五十音練習遊戲 · 五十音圖">
-<meta property="og:description" content="免費練習日語五十音、平假名與片假名，包含順序挑戰、平片對照、聽音選字及完整五十音表。">
+<meta property="og:description" content="免費練習日語五十音、平假名與片假名，包含看字選音、看音選字、聽音辨識、配對記憶及完整五十音表。">
 <meta property="og:url" content="https://nihongo-2.onrender.com/gojuon.html">
 <meta name="twitter:card" content="summary">
 <script type="application/ld+json">
@@ -64,13 +64,14 @@
           </a>
           <p class="eyebrow">Kana Quest</p>
           <h1>五十音圖</h1>
-          <p class="portal-lede">日語的假名只有幾十個，記熟之後看單字會順很多。<br>先玩三種練習，再回頭看下面那張完整的五十音表。</p>
+          <p class="portal-lede">日語的假名只有幾十個，記熟之後看單字會順很多。<br>先玩四種練習，每一款都能切換平假名、片假名或 N5 單字。</p>
         </div>
       </div>
     </div>
 
     <div class="wrap">
       <h2 class="section-title">選擇一款玩法 <small>Pick a game</small></h2>
+      <p class="section-note">每款玩法都能切換字集（平假名／片假名／單字）與題數，鍵盤按 1 ~ 4 可以快速作答。切換設定會重新開始。</p>
       <div class="game-bars" id="gameGrid"></div>
 
       <h2 class="section-title">五十音表 <small>Gojuon chart</small></h2>
@@ -79,12 +80,12 @@
 
       <h2 class="section-title">排行榜 <small>Leaderboard</small></h2>
       <h3 class="lb-sub">我的最佳成績</h3>
-      <p class="section-note">這三種玩法是無限題，玩到滿意就可以按「🏆 登記」把成績放進排行榜。</p>
-      <div data-mybest="kana-order,kana-convert,kana-listen"></div>
+      <p class="section-note">玩到滿意就可以按「🏆 登記」把成績放進排行榜。</p>
+      <div data-mybest="kana-read,kana-write,kana-listen,kana-match"></div>
 
       <div class="panel" style="margin-top:26px">
         <h3 class="lb-sub">全站排行榜</h3>
-        <div data-leaderboard="kana-order"></div>
+        <div data-leaderboard="kana-read"></div>
       </div>
     </div>
   </section>
@@ -123,7 +124,8 @@
   <script src="js/catalog.js"></script>
   <script src="js/learn.js"></script>
   <script src="js/site.js"></script>
-  <script src="js/kana-data.js"></script>
+<script src="js/kana-data.js"></script>
+<script src="js/vocab-data.js"></script>
 <script src="js/gojuon.js"></script>
 <script src="js/leaderboard.js"></script>
 <script src="js/home.js"></script>

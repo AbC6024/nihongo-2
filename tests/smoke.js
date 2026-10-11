@@ -28,7 +28,7 @@ function loadData() {
   const sandbox = {};
   sandbox.window = sandbox;
   const context = vm.createContext(sandbox);
-  ['data.js', 'kana-data.js', 'verb-data.js', 'verb-beginner.js', 'verb-levels.js'].forEach(file => {
+  ['data.js', 'kana-data.js', 'vocab-data.js', 'verb-data.js', 'verb-beginner.js', 'verb-levels.js'].forEach(file => {
     const source = fs.readFileSync(path.join(ROOT, 'js', file), 'utf8');
     new vm.Script(source, { filename: file }).runInContext(context);
   });
@@ -52,6 +52,22 @@ function validateLearningData() {
   assert.strictEqual(JPQ.KANA.find(row => row.row === 'や行').cells[2][0], 'ゆ');
   assert.strictEqual(JPQ.KANA.find(row => row.row === 'や行').cells[4][0], 'よ');
   assert.strictEqual(JPQ.KANA.find(row => row.row === 'わ行').cells[4][0], 'を');
+
+  ['hiragana', 'katakana', 'vocabulary'].forEach(key => {
+    const pool = JPQ.kanaPool[key];
+    const items = pool.items;
+    assert(items.length > 3, `字集 ${key} 至少要有 4 個選項`);
+    assert.strictEqual(new Set(items.map(it => it.roman)).size, items.length,
+      `字集 ${key} 的讀音不能重複，否則會出現兩個一樣的選項`);
+    items.forEach(item => {
+      ['char', 'roman', 'tag', 'speak'].forEach(field =>
+        assert(item[field], `字集 ${key} 的項目缺少 ${field}`));
+    });
+  });
+  assert.strictEqual(JPQ.kanaPool.hiragana.items[1].char, 'い');
+  assert.strictEqual(JPQ.kanaPool.katakana.items[1].char, 'イ');
+  assert.strictEqual(JPQ.kanaPool.vocabulary.items.length, JPQ.VOCAB.length);
+  JPQ.VOCAB.forEach(word => assert(word.zh, `單字 ${word.char} 缺少中文解釋`));
 
   const learningSource = fs.readFileSync(path.join(ROOT, 'js', 'data.js'), 'utf8');
   [
@@ -493,6 +509,55 @@ function validateSeoAssets() {
   pages.forEach(([, url]) => assert(sitemap.includes(`<loc>${url}</loc>`), `Sitemap is missing ${url}`));
 }
 
+/* 用最小 DOM stub 載入遊戲檔，確認每款玩法都帶齊首頁卡片與 HUD 需要的欄位 */
+function validateGameRegistration() {
+  const noop = () => {};
+  const element = () => new Proxy({
+    dataset: {}, style: {}, children: [], innerHTML: '', textContent: '',
+    classList: { add: noop, remove: noop, toggle: noop, contains: () => false },
+    addEventListener: noop, appendChild: noop,
+    querySelector: () => null, querySelectorAll: () => []
+  }, {
+    get: (target, key) => (key in target ? target[key] : noop),
+    set: (target, key, value) => { target[key] = value; return true; }
+  });
+
+  const sandbox = {
+    console, setTimeout, clearTimeout, requestAnimationFrame: noop,
+    addEventListener: noop,
+    document: {
+      addEventListener: noop, getElementById: element, querySelector: element,
+      querySelectorAll: () => [], createElement: element, body: element()
+    }
+  };
+  sandbox.window = sandbox;
+  const context = vm.createContext(sandbox);
+
+  ['core.js', 'kana-data.js', 'vocab-data.js', 'gojuon.js'].forEach(file => {
+    const source = fs.readFileSync(path.join(ROOT, 'js', file), 'utf8');
+    new vm.Script(source, { filename: file }).runInContext(context);
+  });
+
+  const games = context.JPQ.games;
+  const names = Object.keys(games);
+  ['kana-read', 'kana-write', 'kana-listen', 'kana-match'].forEach(name =>
+    assert(games[name], `玩法 ${name} 沒有註冊`));
+
+  names.forEach(name => {
+    const game = games[name];
+    assert(game.title, `${name} 缺少 title（HUD 與卡片都會用到）`);
+    assert(typeof game.mount === 'function', `${name} 缺少 mount`);
+    assert(typeof game.unmount === 'function', `${name} 缺少 unmount`);
+    ['title', 'tag', 'desc', 'thumb'].forEach(field =>
+      assert(game.card && game.card[field], `${name} 的卡片缺少 ${field}`));
+  });
+
+  /* 排行榜分頁必須認得每一款玩法 */
+  const leaderboard = fs.readFileSync(path.join(ROOT, 'js', 'leaderboard.js'), 'utf8');
+  names.forEach(name =>
+    assert(leaderboard.includes(`'${name}'`), `排行榜設定缺少 ${name}`));
+}
+
 function freePort() {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
@@ -787,6 +852,7 @@ async function main() {
   validateVerbLevels();
   validateVerbUI();
   validateLearningRecords();
+  validateGameRegistration();
   await validateServer();
   console.log('Smoke tests passed.');
 }

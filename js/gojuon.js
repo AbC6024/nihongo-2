@@ -1,340 +1,483 @@
 /* =========================================================
-   五十音圖 — 三種玩法
+   五十音特訓 — 四種玩法
+   看字選音 / 看音選字 / 聽音辨識 / 配對記憶
+   每種玩法都能切換字集：平假名 / 片假名 / 單字
    ========================================================= */
 (function (global) {
   const JPQ = global.JPQ, U = JPQ.util;
 
-  /* 語音改用 core.js 的 JPQ.speech（動詞遊戲也要用同一份） */
+/* 語音改用 core.js 的 JPQ.speech（動詞遊戲也要用同一份） */
   const speech = JPQ.speech;
 
-  function clearKeys() {
-    if (U.__kanaKey) { U.__kanaKey(); U.__kanaKey = null; }
+  /* ---------------- 共用介面狀態（在四款玩法之間保留） ---------------- */
+  const ui = { pool: 'katakana', quizRounds: 10, matchPairs: 5 };
+
+  const POOL_KEYS = ['katakana', 'hiragana', 'vocabulary'];
+
+  const ROUND_SETS = {
+    quiz: [{ v: 10, label: '10 題' }, { v: 20, label: '20 題' }, { v: 0, label: '全部' }],
+    match: [{ v: 4, label: '4 組' }, { v: 5, label: '5 組' },
+            { v: 6, label: '6 組' }, { v: 8, label: '8 組' }]
+  };
+
+  const pool = () => JPQ.kanaPool[ui.pool];
+
+  /* 0 代表「整組出完」，實際題數看字集大小 */
+  const quizTotal = () => ui.quizRounds || pool().items.length;
+
+  const esc = text => U.escapeHTML(text);
+
+  /* 答完之後顯示的那一行說明 */
+  function detail(item) {
+    return item.zh
+      ? `${esc(item.zh)}（${esc(item.speak)}）　·　${esc(item.tag)}`
+      : `${esc(item.char)}（${esc(item.roman)}）　·　${esc(item.tag)}`;
+  }
+
+  /* ---------------- 字集／題數切換器 ---------------- */
+  function barHTML(kind) {
+    const cur = kind === 'match' ? ui.matchPairs : ui.quizRounds;
+    return `<div class="drill-bar">
+      <div class="drill-field">
+        <span class="drill-lab">字集</span>
+        <div class="drill-seg">
+          ${POOL_KEYS.map(k => `<button type="button" data-pool="${k}"${ui.pool === k ? ' class="on"' : ''}>${JPQ.kanaPool[k].label}</button>`).join('')}
+        </div>
+      </div>
+      <div class="drill-field">
+        <span class="drill-lab">${kind === 'match' ? '每關' : '題數'}</span>
+        <div class="drill-seg">
+          ${ROUND_SETS[kind].map(o => `<button type="button" data-round="${o.v}"${cur === o.v ? ' class="on"' : ''}>${o.label}</button>`).join('')}
+        </div>
+      </div>
+      <span class="drill-note">切換設定會重新開始</span>
+    </div>`;
+  }
+
+  function wireBar(stage, kind, restart) {
+    U.$$('[data-pool]', stage).forEach(b => b.addEventListener('click', () => {
+      if (ui.pool === b.dataset.pool) return;
+      JPQ.sfx.click();
+      ui.pool = b.dataset.pool;
+      restart(stage);
+    }));
+    U.$$('[data-round]', stage).forEach(b => b.addEventListener('click', () => {
+      const v = Number(b.dataset.round);
+      if ((kind === 'match' ? ui.matchPairs : ui.quizRounds) === v) return;
+      JPQ.sfx.click();
+      if (kind === 'match') ui.matchPairs = v; else ui.quizRounds = v;
+      restart(stage);
+    }));
+  }
+
+  /* ---------------- 出一題（1 個正解 + 3 個干擾項） ---------------- */
+  function question(keyFn, distractCount) {
+    const items = pool().items;
+    const q = U.pick(items);
+    const others = U.shuffle(items.filter(x => keyFn(x) !== keyFn(q)));
+    const opts = others.slice(0, Math.min(distractCount, others.length)).concat([q]);
+    return { q: q, opts: U.shuffle(opts) };
+  }
+
+  /* 語音的小播放鈕，瀏覽器沒有語音功能時就不顯示 */
+  function speakBtn() {
+    if (!speech.available()) return '';
+    return `<div class="center" style="margin-bottom:16px">
+      <button class="btn ghost" id="speakBtn" type="button">🔊 聽發音</button>
+    </div>`;
+  }
+
+  /* 結算畫面（兩種引擎共用） */
+  function resultHTML(opt) {
+    return `<div class="panel narrow center">
+      <h2>${opt.title}　完成！</h2>
+      <div class="result-score">${opt.score}</div>
+      <p class="section-note">${esc(opt.subtitle)}</p>
+      <div class="result-row">
+        ${opt.rows.map(r => `<div>${esc(r[0])}<b>${esc(String(r[1]))}</b></div>`).join('')}
+      </div>
+      ${opt.best ? '<p class="q-hint" style="margin-top:16px">🏆 刷新個人最佳！</p>' : ''}
+      <div class="btn-row">
+        <button class="btn gold" id="rankBtn">🏆 登記排行榜</button>
+        <button class="btn" id="againBtn">再玩一次</button>
+        <button class="btn grey" id="backBtn">回列表</button>
+      </div>
+    </div>`;
+  }
+
+  function wireResult(stage, def, score, detailText, again) {
+    const rank = U.$('#rankBtn', stage);
+    if (rank) rank.addEventListener('click', () => JPQ.lb.offer(def.name, score, detailText));
+    U.$('#againBtn', stage).addEventListener('click', again);
+    U.$('#backBtn', stage).addEventListener('click', () => { JPQ.sfx.click(); JPQ.go('#/'); });
   }
 
   /* =======================================================
-     玩法 A：五十音順序
+     共用測驗引擎：看字選音 / 看音選字 / 聽音辨識
      ======================================================= */
-  function orderGame() {
-    let st = null;
+  function quizGame(def) {
+    let st = null, stopKeys = null, alive = false;
+
+    function sync() {
+      if (!st || st.synced || !st.total) return;
+      st.synced = true;
+      JPQ.stats.run(def.name, st.total, st.right);
+    }
 
     function newRound(stage) {
-      /* all 依五十音圖順序排列，所以任何連續片段都是合法的順序題 */
-      const all = JPQ.kana.list();
-      const size = Math.min(U.pick([4, 5, 6]), all.length);
-      const start = Math.floor(Math.random() * (all.length - size + 1));
-      const target = all.slice(start, start + size);
-
       st = {
-        target: target, pool: U.shuffle(target.slice()), placed: [],
-        hintUsed: false,
-        total: (st ? st.total : 0), right: (st ? st.right : 0),
-        streak: (st ? st.streak : 0), best: (st ? st.best : 0)
+        total: 0, right: 0, streak: 0, best: 0, score: 0,
+        q: null, opts: [], locked: false, synced: false
       };
       draw(stage);
     }
 
     function draw(stage) {
-      const answered = st.target.length;
+      const r = question(def.key, 3);
+      st.q = r.q; st.opts = r.opts; st.locked = false;
+      const view = def.ask(st.q);
+
       stage.innerHTML = `<div class="panel">
-        <div class="q-zh" style="text-align:left">依照五十音的順序，點出正確的排列。</div>
-        <div class="q-sentence" style="font-size:18px;letter-spacing:.14em" id="answerSlot">
-          <span style="color:#a8adC4">${'？'.repeat(answered)}</span>
+        ${barHTML('quiz')}
+        ${def.player || ''}
+        <div class="q-zh">${view.zh}</div>
+        <div class="q-sentence"><span class="kana-big ${view.cls || ''}">${esc(view.main)}</span></div>
+        ${view.note ? `<div class="q-hint">${esc(view.note)}</div>` : ''}
+        ${def.speak === false ? '' : speakBtn()}
+        <div class="opt-grid">
+          ${st.opts.map((o, i) => `<button class="opt ${def.optCls || ''}" type="button" data-i="${i}">
+            <span class="key">${i + 1}</span>${esc(def.label(o))}</button>`).join('')}
         </div>
-        <div class="kanapool" id="kanapool"></div>
-        <div class="scr-tools">
-          <button class="btn ghost" id="hintBtn">💡 提示（每題一次）</button>
-          <button class="btn" id="checkBtn">檢查答案</button>
-        </div>
+        <div class="fb"></div>
       </div>`;
 
-      U.$('#kanapool', stage).innerHTML = st.pool.map((k, i) =>
-        `<button class="kana-tile" data-pool="${i}"><b>${k.hira}</b><em>${k.romaji}</em></button>`).join('');
+      wireBar(stage, 'quiz', newRound);
 
-      paint(stage);
-      const hb = U.$('#hintBtn', stage);
-      if (hb && st.hintUsed) { hb.disabled = true; hb.textContent = '已用過提示'; }
-      U.$$('#kanapool .kana-tile', stage).forEach(b => b.addEventListener('click', () => {
-        const i = Number(b.dataset.pool);
-        st.placed.push(st.pool.splice(i, 1)[0]);
-        JPQ.sfx.click();
-        draw(stage);
-      }));
-      U.$('#hintBtn', stage).addEventListener('click', () => {
-        if (st.hintUsed) return;
-        const next = st.target.find((t, i) =>
-          !st.placed.some(p => p.hira === t.hira) && st.pool.some(x => x.hira === t.hira));
-        if (!next) return;
-        st.placed.push(st.pool.splice(st.pool.findIndex(x => x.hira === next.hira), 1)[0]);
-        st.hintUsed = true;
-        JPQ.sfx.match();
-        draw(stage);
-        const btn = U.$('#hintBtn', stage);
-        if (btn) { btn.disabled = true; btn.textContent = '已用過提示'; }
+      const say = () => speech.say(st.q.speak);
+      const sb = U.$('#speakBtn', stage);
+      if (sb) sb.addEventListener('click', () => { JPQ.sfx.click(); say(); });
+      const pb = U.$('#playBtn', stage);
+      if (pb) pb.addEventListener('click', () => { JPQ.sfx.click(); say(); });
+
+      paint();
+
+      U.$$('.opt', stage).forEach(b =>
+        b.addEventListener('click', () => answer(b, stage)));
+
+      if (stopKeys) stopKeys();
+      stopKeys = JPQ.onKey(e => {
+        const n = parseInt(e.key, 10);
+        const b = U.$$('.opt', stage)[n - 1];
+        if (b && !b.disabled) answer(b, stage);
       });
-      U.$('#checkBtn', stage).addEventListener('click', () => check(stage));
+
+      /* 自動播放：離開玩法之後就不要在背景說話了 */
+      if (def.autoPlay) setTimeout(() => { if (alive) say(); }, 350);
     }
 
-    function paint(stage) {
-      const slot = U.$('#answerSlot', stage);
-      if (st.placed.length) {
-        slot.innerHTML = st.placed.map(p => `<b>${p.hira}</b>`).join('<span style="color:#c9cee4">・</span>');
+    function answer(btn, stage) {
+      if (st.locked) return;
+      st.locked = true;
+
+      const ok = st.opts[Number(btn.dataset.i)] === st.q;
+      U.$$('.opt', stage).forEach(b => { b.disabled = true; });
+      st.total++;
+
+      if (ok) {
+        const gained = 10 + st.streak * 2;
+        st.score += gained;
+        st.streak++;
+        st.right++;
+        st.best = Math.max(st.best, st.streak);
+        JPQ.store.setRecord(def.name + '-best', st.score);
+        JPQ.sfx.correct();
+        btn.classList.add('correct');
       } else {
-        slot.innerHTML = `<span style="color:#a8adC4">${'？'.repeat(st.target.length)}</span>`;
+        st.streak = 0;
+        JPQ.sfx.wrong();
+        btn.classList.add('wrong');
       }
-      U.$('#checkBtn', stage).disabled = st.placed.length !== st.target.length;
+
+      U.$$('.opt', stage).forEach(b => {
+        if (b === btn) return;
+        if (st.opts[Number(b.dataset.i)] === st.q) b.classList.add('correct');
+        else b.classList.add('dim');
+      });
+
+      speech.say(st.q.speak);
+      paint();
+
+      const done = st.total >= quizTotal();
+      const fb = U.$('.fb', stage);
+      fb.className = 'fb show ' + (ok ? 'ok' : 'no');
+      fb.innerHTML = `<strong>${ok
+        ? '答對了！' + (st.streak > 1 ? '　連擊 ' + st.streak : '')
+        : '答案是「' + esc(def.label(st.q)) + '」'}</strong>
+        <p>${detail(st.q)}</p>
+        <div class="btn-row">
+          <button class="btn ghost" id="replayBtn">再聽一次</button>
+          <button class="btn" id="nextBtn">${done ? '看成績 →' : '下一題 →'}</button>
+        </div>`;
+
+      U.$('#replayBtn', fb).addEventListener('click', () => speech.say(st.q.speak));
+      U.$('#nextBtn', fb).addEventListener('click', () => done ? finish(stage) : draw(stage));
+    }
+
+    function paint() {
+      JPQ.hud.progress(quizTotal() ? st.total / quizTotal() : 0);
       JPQ.hud.pills([
-        { label: '第', value: st.total + ' 題' },
-        { label: '答對', value: st.right },
+        { label: '得分', value: st.score },
+        { label: '答對', value: st.right + ' / ' + st.total },
         { label: '連勝', value: st.streak, cls: st.streak >= 3 ? 'combo' : '' }
       ]);
     }
 
-    function check(stage) {
-      if (st.placed.length !== st.target.length) return;
-      const ok = st.placed.every((p, i) => p.hira === st.target[i].hira);
-      const slot = U.$('#answerSlot', stage);
-      st.total++;
-      if (ok) {
-        st.right++; st.streak++;
-        st.best = Math.max(st.best, st.streak);
-        JPQ.store.setRecord('kana-order-best', st.best);
-        slot.classList.add('good');
-        JPQ.sfx.correct();
-      } else {
-        st.streak = 0;
-        slot.classList.add('shake');
-        JPQ.sfx.wrong();
-      }
-      U.$$('.scr-tools .btn', stage).forEach(b => b.disabled = true);
-      slot.insertAdjacentHTML('afterend', `
-        <div class="fb ${ok ? 'ok' : 'no'} show">
-          <strong>${ok ? '正確！' : '正確順序是：' + st.target.map(t => t.hira).join(' → ')}</strong>
-          <p>${ok ? '羅馬字：' + st.target.map(t => t.romaji).join(' / ') : '這一段的羅馬字：' + st.target.map(t => t.romaji).join(' / ')}</p>
-        </div>
-        <div class="btn-row"><button class="btn" id="nextBtn">下一題 →</button></div>`);
-      paint(stage);
-      U.$('#nextBtn', stage).addEventListener('click', () => newRound(stage));
+    function finish(stage) {
+      sync();
+      const rate = st.total ? Math.round(st.right / st.total * 100) : 0;
+      const isBest = st.score > 0 && st.score >= JPQ.store.record(def.name + '-best');
+
+      stage.innerHTML = resultHTML({
+        title: def.title,
+        score: st.score,
+        subtitle: `${pool().label}　·　${quizTotal()} 題`,
+        rows: [['答對', st.right], ['正確率', rate + '%'], ['最高連擊', st.best]],
+        best: isBest
+      });
+
+      if (isBest) JPQ.sfx.levelup();
+      wireResult(stage, def, st.score,
+        `${pool().label}　答對 ${st.right}/${st.total}`, () => newRound(stage));
     }
 
-    /* 這款是無限題，每答一題就跟學習統計同步一次 */
-    function syncStats() { JPQ.stats.run('kana-order', st.total, st.right); }
-
     return {
-      name: 'kana-order',
+      name: def.name,
+      title: def.title,
+      sub: def.sub,
       mount: function (stage) {
-        clearKeys();
+        if (stopKeys) { stopKeys(); stopKeys = null; }
+        alive = true;
         speech.init();
-        JPQ.hud.set('五十音順序', '排回正確順序');
-        JPQ.hud.progress(0);
-        JPQ.hud.pills([{ label: '第', value: '0 題' }, { label: '答對', value: 0 }]);
+        JPQ.hud.set(def.title, def.sub);
         newRound(stage);
       },
-      unmount: function () { syncStats(); if (global.speechSynthesis) global.speechSynthesis.cancel(); }
+      unmount: function () {
+        alive = false;
+        sync();
+        if (stopKeys) { stopKeys(); stopKeys = null; }
+        speech.stop();
+      }
     };
   }
 
-  /* =======================================================
-     玩法 B：平假名 ⇄ 片假名
-     ======================================================= */
-  function convertGame() {
-    let st = null, reverse = false;
+  /* ---------------- 玩法一：看字選音 ---------------- */
+  const readGame = quizGame({
+    name: 'kana-read',
+    title: '看字選音',
+    sub: '看到字，選讀音',
+    key: it => it.roman,
+    label: it => it.roman,
+    optCls: 'romaji',
+    ask: it => ({
+      zh: it.zh ? '看到這個單字，選出正確的讀音' : '看到這個假名，選出正確的讀音',
+      main: it.char,
+      note: it.zh ? `${it.zh}　·　${it.tag}` : `出現在「${it.tag}」`
+    })
+  });
 
-    function draw(stage) {
-      const all = JPQ.kana.list();
-      const q = U.pick(all);
-      const distract = U.shuffle(all.filter(k => k.hira !== q.hira)).slice(0, 3);
-      const opts = U.shuffle(distract.concat([q]));
-      reverse = Math.random() < .5;
+  /* ---------------- 玩法二：看音選字 ---------------- */
+  const writeGame = quizGame({
+    name: 'kana-write',
+    title: '看音選字',
+    sub: '看到讀音，選對應的字',
+    key: it => it.char,
+    label: it => it.char,
+    ask: it => ({
+      zh: it.zh ? '看到讀音，選出對應的單字' : '看到讀音，選出對應的假名',
+      main: it.roman,
+      cls: 'romaji',
+      note: it.zh ? `分類：${it.tag}` : `出現在「${it.tag}」`
+    })
+  });
+
+  /* ---------------- 玩法三：聽音辨識 ---------------- */
+  const listenGame = quizGame({
+    name: 'kana-listen',
+    title: '聽音辨識',
+    sub: '聽發音，選出對應的字',
+    key: it => it.char,
+    label: it => it.char,
+    speak: false,
+    autoPlay: true,
+    player: `<div class="center" style="margin:6px 0 22px">
+      <button class="btn drill-play" id="playBtn" type="button">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3l4.5-3.5v12L7 14.5H4z"/><path d="M15.5 9.2a4 4 0 0 1 0 5.6"/><path d="M18 6.7a7.5 7.5 0 0 1 0 10.6"/></svg>
+        播放
+      </button>
+      <p class="q-hint" style="margin-top:12px">聽不出來就按「再聽一次」，或直接猜一個</p>
+    </div>`,
+    ask: () => ({ zh: '聽聽看是哪一個字', main: '？', cls: 'is-blank' })
+  });
+
+  /* =======================================================
+     玩法四：配對記憶（左邊的字配上右邊的讀音）
+     ======================================================= */
+  function matchGame() {
+    const name = 'kana-match';
+    let st = null;
+
+    function sync() {
+      if (!st || st.synced || !st.judged) return;
+      st.synced = true;
+      JPQ.stats.run(name, st.judged, st.hit);
+    }
+
+    function newBoard(stage) {
+      const items = pool().items;
+      const count = Math.min(ui.matchPairs, items.length);
+      const chosen = U.shuffle(items).slice(0, count);
+
       st = {
-        q: q, opts: opts,
-        total: (st ? st.total : 0), right: (st ? st.right : 0),
-        streak: (st ? st.streak : 0), best: (st ? st.best : 0)
+        left: U.shuffle(chosen), right: U.shuffle(chosen),
+        count: count, matched: 0, selL: -1, selR: -1,
+        score: 0, streak: 0, best: 0,
+        judged: 0, hit: 0, locked: false, synced: false
       };
 
       stage.innerHTML = `<div class="panel">
-        <div class="q-zh">${reverse ? '這個片假名，平假名怎麼寫？' : '這個平假名，片假名怎麼寫？'}</div>
-        <div class="q-sentence"><span style="font-size:clamp(46px,10vw,86px)">${reverse ? q.kata : q.hira}</span></div>
-        <div class="q-zh" style="margin-bottom:18px">${reverse ? '？' : q.romaji}</div>
-        <div class="opt-grid" id="opts">
-          ${opts.map((o, i) => `<button class="opt" data-o="${reverse ? o.hira : o.kata}">
-            <span class="key">${i + 1}</span>${reverse ? o.hira : o.kata}</button>`).join('')}
+        ${barHTML('match')}
+        <div class="q-zh">先點左邊的字，再點右邊的讀音</div>
+        <div class="match-wrap">
+          ${st.left.map((it, i) => `<button class="mtile" type="button" data-side="L" data-i="${i}" style="grid-row:${i + 1}"><span class="ptext">${esc(it.char)}</span></button>`).join('')}
+          <span class="mid-label" style="grid-row:1">↔</span>
+          ${st.right.map((it, i) => `<button class="mtile" type="button" data-side="R" data-i="${i}" style="grid-row:${i + 1}"><span class="ptext">${esc(it.roman)}</span></button>`).join('')}
         </div>
-        <div class="fb" id="fb"></div>
+        <div class="fb"></div>
+        <p class="q-hint" style="margin-top:16px">配對失敗不會扣分，慢慢想　·　點左邊的字會念出來</p>
       </div>`;
 
-      paint(stage);
-      U.$$('#opts .opt', stage).forEach(b => b.addEventListener('click', () => answer(b, stage)));
-      clearKeys();
-      U.__kanaKey = JPQ.onKey(e => {
-        const n = parseInt(e.key, 10);
-        const b = U.$$('#opts .opt', stage)[n - 1];
-        if (b && !b.disabled) answer(b, stage);
-      });
+      wireBar(stage, 'match', newBoard);
+      paint();
+
+      U.$$('.mtile', stage).forEach(b =>
+        b.addEventListener('click', () => select(b, stage)));
     }
 
-    function answer(btn, stage) {
-      U.$$('#opts .opt', stage).forEach(b => b.disabled = true);
-      const want = reverse ? st.q.hira : st.q.kata;
-      const ok = btn.dataset.o === want;
-      st.total++;
-      if (ok) {
-        st.right++;
-        st.streak++;
-        st.best = Math.max(st.best, st.streak);
-        JPQ.store.setRecord('kana-convert-best', st.best);
-        JPQ.sfx.correct(); btn.classList.add('correct');
-      } else {
-        st.streak = 0;
-        JPQ.sfx.wrong(); btn.classList.add('wrong');
-      }
-
-      U.$$('#opts .opt', stage).forEach(b => {
-        if (b.dataset.o === want && b !== btn) b.classList.add('correct');
-        else if (b !== btn) b.classList.add('dim');
-      });
-      speech.say(st.q.hira);
-      const fb = U.$('#fb', stage);
-      fb.className = 'fb show ' + (ok ? 'ok' : 'no');
-      fb.innerHTML = `<strong>${ok ? '答對了！' : '正確答案是「' + want + '」'}</strong>
-        <p>${st.q.hira}（${st.q.romaji}）＝ ${st.q.kata}　·　出現在「${st.q.row}」</p>
-        <div class="btn-row"><button class="btn" id="nextBtn">下一題 →</button></div>`;
-      U.$('#nextBtn', stage).addEventListener('click', () => draw(stage));
-      paint(stage);
+    function tile(stage, side, i) {
+      return U.$(`.mtile[data-side="${side}"][data-i="${i}"]`, stage);
     }
 
-    function paint() {
-      JPQ.hud.progress(st ? st.right / Math.max(1, st.total) : 0);
-        JPQ.hud.pills([{ label: '題數', value: st ? st.total : 0 }, { label: '答對', value: st ? st.right : 0 }]);
-    }
+    function select(btn, stage) {
+      if (st.locked || btn.disabled) return;
+      const side = btn.dataset.side;
+      const i = Number(btn.dataset.i);
+      const slot = side === 'L' ? 'selL' : 'selR';
 
-    return {
-      name: 'kana-convert',
-      mount: function (stage) {
-        clearKeys();
-        speech.init();
-        st = { total: 0, right: 0, streak: 0, best: 0 };
-        JPQ.hud.set('平假名 ⇄ 片假名', '看字選另一種寫法');
-        draw(stage);
-      },
-      unmount: function () {
-        clearKeys();
-        if (st && st.total) JPQ.stats.run('kana-convert', st.total, st.right);
-        if (global.speechSynthesis) global.speechSynthesis.cancel();
-      }
-    };
-  }
-
-  /* =======================================================
-     玩法 C：聽音選字
-     ======================================================= */
-  function listenGame() {
-    let st = null;
-
-    function draw(stage) {
-      if (!speech.available()) {
-        stage.innerHTML = `<div class="panel narrow center">
-          <h2>聽音選字</h2>
-          <p class="section-note" style="margin-top:12px">
-            這個瀏覽器沒有語音功能（Web Speech API），所以這個玩法不能用。<br>
-            請改用 Chrome 或 Edge，並確認系統有安裝日語語音套件。
-          </p>
-          <div class="btn-row"><button class="btn grey" id="backBtn">回列表</button></div>
-        </div>`;
-        U.$('#backBtn', stage).addEventListener('click', () => { JPQ.sfx.click(); JPQ.go('#/'); });
+      /* 再點一次同一張就取消選取 */
+      if (st[slot] === i) {
+        st[slot] = -1;
+        btn.classList.remove('sel');
         return;
       }
 
-      const all = JPQ.kana.list();
-      const q = U.pick(all);
-      const opts = U.shuffle(U.shuffle(all.filter(k => k.romaji !== q.romaji)).slice(0, 3).concat([q]));
-      st = {
-        q: q, opts: opts,
-        total: (st ? st.total : 0), right: (st ? st.right : 0),
-        streak: (st ? st.streak : 0), best: (st ? st.best : 0)
-      };
+      if (st[slot] >= 0) {
+        const old = tile(stage, side, st[slot]);
+        if (old) old.classList.remove('sel');
+      }
+      st[slot] = i;
+      btn.classList.add('sel');
+      if (side === 'L') speech.say(st.left[i].speak);
 
-      stage.innerHTML = `<div class="panel">
-        <div class="q-zh">聽聽看是哪一個假名</div>
-        <div class="center" style="margin:6px 0 22px">
-          <button class="btn" id="playBtn" style="font-size:19px;padding:16px 34px">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px"><path d="M4 9.5h3l4.5-3.5v12L7 14.5H4z"/><path d="M15.5 9.2a4 4 0 0 1 0 5.6"/><path d="M18 6.7a7.5 7.5 0 0 1 0 10.6"/></svg>
-            播放
-          </button>
-          <p class="q-hint" style="margin-top:12px">聽不出來可以按「看答案」</p>
-        </div>
-        <div class="opt-grid" id="opts">
-          ${opts.map((o, i) => `<button class="opt" data-o="${o.romaji}">
-            <span class="key">${i + 1}</span>${o.hira}</button>`).join('')}
-        </div>
-        <div class="fb" id="fb"></div>
-      </div>`;
-
-      paint();
-      U.$('#playBtn', stage).addEventListener('click', () => { JPQ.sfx.click(); speech.say(st.q.hira); });
-      U.$$('#opts .opt', stage).forEach(b => b.addEventListener('click', () => answer(b, stage)));
-      clearKeys();
-      U.__kanaKey = JPQ.onKey(e => {
-        const n = parseInt(e.key, 10);
-        const b = U.$$('#opts .opt', stage)[n - 1];
-        if (b && !b.disabled) answer(b, stage);
-      });
-      setTimeout(() => speech.say(st.q.hira), 350);
+      if (st.selL >= 0 && st.selR >= 0) judge(stage);
     }
 
-    function answer(btn, stage) {
-      U.$$('#opts .opt', stage).forEach(b => b.disabled = true);
-      const ok = btn.dataset.o === st.q.romaji;
-      st.total++;
-      if (ok) {
-        st.right++;
+    function judge(stage) {
+      const li = st.selL, ri = st.selR;
+      const leftBtn = tile(stage, 'L', li);
+      const rightBtn = tile(stage, 'R', ri);
+      const fb = U.$('.fb', stage);
+      const board = st;
+      st.judged++;
+
+      if (st.left[li].char === st.right[ri].char) {
+        st.hit++;
+        st.matched++;
+        const gained = 10 + st.streak * 2;
+        st.score += gained;
         st.streak++;
         st.best = Math.max(st.best, st.streak);
-        JPQ.store.setRecord('kana-listen-best', st.best);
-        JPQ.sfx.correct(); btn.classList.add('correct');
+        JPQ.store.setRecord(name + '-best', st.score);
+        JPQ.sfx.match();
+        [leftBtn, rightBtn].forEach(b => {
+          b.classList.remove('sel');
+          b.classList.add('hit');
+          b.disabled = true;
+        });
+        st.selL = st.selR = -1;
+        fb.className = 'fb show ok';
+        fb.innerHTML = `<strong>配對成功！</strong><p>${detail(st.left[li])}</p>`;
+        paint();
+        if (st.matched >= st.count) {
+          setTimeout(() => { if (st === board) finish(stage); }, 800);
+        }
       } else {
         st.streak = 0;
-        JPQ.sfx.wrong(); btn.classList.add('wrong');
+        st.locked = true;
+        JPQ.sfx.wrong();
+        leftBtn.classList.add('miss');
+        rightBtn.classList.add('miss');
+        fb.className = 'fb show no';
+        fb.innerHTML = `<strong>不是這個配對</strong>
+          <p>${esc(st.left[li].char)} 讀作 ${esc(st.left[li].roman)}</p>`;
+        paint();
+        setTimeout(() => {
+          /* 這 900 毫秒內玩家可能已經重開或切換玩法 */
+          if (st !== board) return;
+          [leftBtn, rightBtn].forEach(b => b && b.classList.remove('miss', 'sel'));
+          st.selL = st.selR = -1;
+          st.locked = false;
+        }, 900);
       }
-      U.$$('#opts .opt', stage).forEach(b => {
-        if (b.dataset.o === st.q.romaji && b !== btn) b.classList.add('correct');
-        else if (b !== btn) b.classList.add('dim');
-      });
-      const fb = U.$('#fb', stage);
-      fb.className = 'fb show ' + (ok ? 'ok' : 'no');
-      fb.innerHTML = `<strong>${ok ? '答對了！' : '答案是「' + st.q.hira + '」'}</strong>
-        <p>${st.q.hira}（${st.q.romaji}）／${st.q.kata}　·　出現在「${st.q.row}」</p>
-        <div class="btn-row">
-          <button class="btn ghost" id="replayBtn">再聽一次</button>
-          <button class="btn" id="nextBtn">下一題 →</button>
-        </div>`;
-      U.$('#replayBtn', stage).addEventListener('click', () => speech.say(st.q.hira));
-      U.$('#nextBtn', stage).addEventListener('click', () => draw(stage));
-      paint();
     }
 
     function paint() {
-      JPQ.hud.progress(st ? st.right / Math.max(1, st.total) : 0);
+      JPQ.hud.progress(st.count ? st.matched / st.count : 0);
       JPQ.hud.pills([
-        { label: '題數', value: st ? st.total : 0 },
-        { label: '答對', value: st ? st.right : 0 },
-        { label: '連勝', value: st ? st.streak : 0, cls: (st && st.streak >= 3) ? 'combo' : '' }
+        { label: '得分', value: st.score },
+        { label: '配對', value: st.matched + ' / ' + st.count },
+        { label: '連勝', value: st.streak, cls: st.streak >= 3 ? 'combo' : '' }
       ]);
     }
 
+    function finish(stage) {
+      sync();
+      const rate = st.judged ? Math.round(st.hit / st.judged * 100) : 0;
+      const isBest = st.score > 0 && st.score >= JPQ.store.record(name + '-best');
+      const def = { name: name };
+
+      stage.innerHTML = resultHTML({
+        title: '配對記憶',
+        score: st.score,
+        subtitle: `${pool().label}　·　${st.count} 組`,
+        rows: [['配對成功', st.hit], ['成功率', rate + '%'], ['最高連勝', st.best]],
+        best: isBest
+      });
+
+      if (isBest) JPQ.sfx.levelup();
+      wireResult(stage, def, st.score,
+        `${pool().label}　配對 ${st.hit}/${st.count}`, () => newBoard(stage));
+    }
+
     return {
-      name: 'kana-listen',
+      name: name,
+      title: '配對記憶',
+      sub: '左邊的字配上右邊的讀音',
       mount: function (stage) {
-        clearKeys();
         speech.init();
-        st = { total: 0, right: 0, streak: 0, best: 0 };
-        JPQ.hud.set('聽音選字', '聽發音選假名');
-        draw(stage);
+        JPQ.hud.set('配對記憶', '左邊的字配上右邊的讀音');
+        newBoard(stage);
       },
-      unmount: function () {
-        clearKeys();
-        if (st && st.total) JPQ.stats.run('kana-listen', st.total, st.right);
-        if (global.speechSynthesis) global.speechSynthesis.cancel();
-      }
+      unmount: function () { sync(); speech.stop(); }
     };
   }
 
@@ -350,19 +493,22 @@
       },
       best: function () {
         const v = JPQ.store.record(def.name + '-best');
-        return v ? `最佳 <b>${v}</b> 次` : '';
+        return v ? `最佳 <b>${v}</b> 分` : '';
       },
       mount: def.mount,
       unmount: def.unmount
     });
   }
 
-  reg({ ...orderGame(), title: '五十音順序', sub: '排回正確順序',
-        icon: '🔢', color: '#f5a9c0', thumb: 'quiz', tag: '無限題', desc: '把打亂的假名點回五十音的正確順序。' });
+  reg({ ...readGame, icon: '👀', color: '#f5a9c0', thumb: 'quiz',
+        tag: '三種字集', desc: '看到平假名、片假名或單字，選出它的讀音。' });
 
-  reg({ ...convertGame(), title: '平假名 ⇄ 片假名', sub: '看字選另一種寫法',
-        icon: '🔁', color: '#7fc4f0', thumb: 'tiles', tag: '雙向題', desc: '看到平假名選片假名，也會反過來出題。' });
+  reg({ ...writeGame, icon: '🔤', color: '#7fc4f0', thumb: 'tiles',
+        tag: '三種字集', desc: '看到羅馬拼音，選出對應的假名或單字。' });
 
-  reg({ ...listenGame(), title: '聽音選字', sub: '聽發音選假名',
-        icon: '🔊', color: '#8fd6b8', thumb: 'listen', tag: '需要語音', desc: '播放假名的發音，從四個選項中選出對應的假名。' });
+  reg({ ...listenGame, icon: '👂', color: '#8fd6b8', thumb: 'listen',
+        tag: '需要語音', desc: '播放日文發音，從四個選項中選出對應的字。' });
+
+  reg({ ...matchGame(), icon: '🧩', color: '#c4a8f2', thumb: 'cards',
+        tag: '記憶練習', desc: '左右兩欄配對，全部配對成功就過關。' });
 })(window);

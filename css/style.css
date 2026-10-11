@@ -724,6 +724,36 @@ rt{
 .lb-warn p{margin:0}
 
 /* ---------------- 五十音 ---------------- */
+/* 字集／題數切換器 */
+.drill-bar{
+  display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;
+  padding:13px 16px;margin-bottom:22px;border-radius:16px;
+  background:rgba(255,255,255,.62);border:1.5px solid var(--line);
+}
+.drill-field{display:flex;align-items:center;gap:9px}
+.drill-lab{font-size:12px;font-weight:800;color:var(--ink-3);letter-spacing:.1em;flex:none}
+.drill-seg{display:flex;gap:5px;background:rgba(240,242,250,.9);border-radius:12px;padding:4px;min-width:0}
+.drill-seg button{
+  border:0;background:transparent;border-radius:9px;padding:7px 14px;
+  font-size:13.5px;font-weight:700;color:var(--ink-2);transition:.18s;white-space:nowrap;
+}
+.drill-seg button:hover{color:#5b5390;background:rgba(255,255,255,.7)}
+.drill-seg button.on{
+  background:linear-gradient(140deg,#9fb0f2,#c4a8f2);color:#fff;
+  box-shadow:0 5px 12px rgba(150,140,220,.3);
+}
+.drill-note{margin-left:auto;font-size:12px;color:var(--ink-3)}
+
+/* 題目上的大字 */
+.kana-big{
+  display:inline-block;font-size:clamp(48px,11vw,92px);font-weight:700;
+  color:#3d3766;line-height:1.25;letter-spacing:.02em;
+}
+.kana-big.romaji{font-size:clamp(34px,7.4vw,58px);letter-spacing:.06em;color:#4a4478}
+.kana-big.is-blank{color:var(--ink-3)}
+.opt.romaji{font-size:clamp(19px,3.6vw,25px);letter-spacing:.04em}
+.drill-play{font-size:19px;padding:16px 34px}
+
 .kanapool{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;min-height:70px;margin-bottom:4px}
 .kana-tile{
   background:rgba(255,255,255,.95);border:2px solid var(--line);border-radius:14px;
@@ -917,6 +947,13 @@ rt{
   .about{padding:20px 17px}
   .step-card{padding:20px 17px 17px}
   .gc-detail li{font-size:11px;padding:2px 8px}
+  .drill-bar{gap:10px 14px;padding:11px 12px}
+  .drill-note{display:none}
+  .drill-field{flex:1 1 100%}
+  .drill-lab{flex:none}
+  .drill-seg{flex:1;min-width:0}
+  .drill-seg button{flex:1;min-width:0;padding:7px 4px;font-size:12.5px;text-align:center}
+  .opt.romaji{font-size:19px}
 }
 
 /* =========================================================

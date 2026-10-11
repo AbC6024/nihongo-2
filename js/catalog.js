@@ -23,8 +23,8 @@ JPQ.CATALOG = [
     title: '五十音圖',
     titleEn: 'Kana Quest',
     href: 'gojuon.html',
-    desc: '先玩三種練習記熟五十音，再回頭查那張完整的五十音表。',
-    detail: ['順序挑戰', '平片對照', '聽音選字', '完整五十音表']
+    desc: '看字選音、看音選字、聽音辨識、配對記憶，四種玩法都能切換平假名、片假名與 N5 單字。',
+    detail: ['四種玩法', '三種字集', '記憶配對', '完整五十音表']
   },
   {
     slug: 'conjugation',

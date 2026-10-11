@@ -10,9 +10,10 @@ JPQ.LB_GAMES = {
   speed:         { label: '快速搶答',   unit: '分',     desc: '45 秒內的分數' },
   scramble:      { label: '句子重排',   unit: '句',     desc: '排對的句子數' },
   match:         { label: '助詞配對',   unit: '分',     desc: '三回合總分' },
-  'kana-order':  { label: '五十音順序', unit: '連勝',   desc: '最高連勝' },
-  'kana-convert':{ label: '平假名⇄片假名', unit: '連勝', desc: '最高連勝' },
-  'kana-listen': { label: '聽音選字',   unit: '連勝',   desc: '最高連勝' },
+'kana-read':   { label: '看字選音',   unit: '分',     desc: '單局最高得分' },
+  'kana-write':  { label: '看音選字',   unit: '分',     desc: '單局最高得分' },
+  'kana-listen': { label: '聽音辨識',   unit: '分',     desc: '單局最高得分' },
+  'kana-match':  { label: '配對記憶',   unit: '分',     desc: '單關最高得分' },
   'verb-quiz':    { label: '動詞・選擇題闖關', unit: '星星', desc: '八關總星星數' },
   'verb-speed':   { label: '動詞・快速搶答', unit: '分',   desc: '45 秒內的分數' },
   'verb-match':   { label: '動詞・活用配對', unit: '分',   desc: '三回合總分' }

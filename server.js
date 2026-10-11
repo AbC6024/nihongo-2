@@ -41,7 +41,7 @@ const MAX_TOTAL = 400;            /* 全部最多幾筆 */
 const NAME_MAX = 16;              /* 暱稱最長幾字 */
 const ALLOWED_GAMES = new Set([
   'quiz', 'speed', 'scramble', 'match',
-  'kana-order', 'kana-convert', 'kana-listen',
+  'kana-read', 'kana-write', 'kana-listen', 'kana-match',
   'verb-quiz', 'verb-speed', 'verb-match'
 ]);
 

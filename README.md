@@ -4,7 +4,7 @@
 
 - **助詞大冒險**（`particles.html`）— は・が・の・を・に・で・と・も 八大主題助詞，四種玩法
 - **動詞變化練習**（`conjugation.html`）— 初級Ⅰ、Ⅱ程度，每次只練一種變化，6 題、不計時、3 選 1
-- **五十音圖**（`gojuon.html`）— 五十音順序、平假名⇄片假名、聽音選字
+- **五十音圖**（`gojuon.html`）— 看字選音、看音選字、聽音辨識、配對記憶，每款都能切換字集
 
 ## 本機執行
 
@@ -157,6 +157,7 @@ js/leaderboard.js     排行榜客戶端
 js/core.js            共用核心（路由 / 進度 / 音效 / 語音）
 js/data.js            助詞題庫（可加注音：東京[とうきょう]）
 js/kana-data.js       五十音資料
+js/vocab-data.js      題庫字集（平假名／片假名／單字）
 js/{quiz,speed,scramble,match,gojuon}.js   遊戲邏輯
 js/verb-data.js       動詞活用規則引擎 + 動詞資料
 js/verb-levels.js     動詞玩法的關卡與出題
@@ -207,6 +208,19 @@ js/verb-boot.js       動詞專頁啟動
 
 改規則之後跑 `npm test`，測試裡的答案全部寫死不從引擎推，
 所以規則寫錯會立刻被抓出來。
+
+## 五十音的玩法與字集
+
+`gojuon.html` 的四款玩法共用 `js/vocab-data.js` 的三個字集：
+
+| 字集 | 來源 | 題目數 |
+|---|---|---|
+| 平假名 | `JPQ.kana.list()` 展開 | 46 |
+| 片假名 | 同上換成片假名 | 46 |
+| 單字 | `JPQ.VOCAB` | 16 |
+
+要看字集切換器請到 `js/gojuon.js` 的 `ui` 物件；
+要看單字資料請改 `js/vocab-data.js`（欄位：`char` `roman` `zh` `tag` `speak`）。
 
 ## 加新遊戲
 

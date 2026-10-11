@@ -1,7 +1,7 @@
 {
   "name": "nihongo-2",
   "version": "1.0.0",
-  "description": "遊戲學日語：用一款款小遊戲練日語（助詞大冒險、五十音圖）",
+  "description": "遊戲學日語：用一款款小遊戲練日語（助詞大冒險、五十音特訓）",
   "private": true,
   "main": "server.js",
   "scripts": {
