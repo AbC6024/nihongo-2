@@ -256,6 +256,18 @@ function sendJSON(res, code, obj) {
 }
 
 async function handleAPI(req, res, urlPath) {
+  /* 靜態前端位於另一個網域，瀏覽器送出排行榜成績前會先做 CORS 預檢。 */
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Max-Age': '86400'
+    });
+    res.end();
+    return;
+  }
+
   /* ---- GET /api/health（平台健康檢查用） ---- */
   if (req.method === 'GET' && urlPath === '/api/health') {
     let writable = false;

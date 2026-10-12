@@ -7,7 +7,7 @@ const net = require('net');
 const os = require('os');
 const path = require('path');
 const vm = require('vm');
-const { spawn } = require('child_process');
+const { execFileSync, spawn } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 
@@ -487,10 +487,12 @@ function validateVerbLevels() {
 }
 
 function validateSeoAssets() {
+  const publicOrigin = 'https://nihongo-2-static.onrender.com';
   const pages = [
-    ['index.html', 'https://nihongo-2.onrender.com/'],
-    ['particles.html', 'https://nihongo-2.onrender.com/particles.html'],
-    ['gojuon.html', 'https://nihongo-2.onrender.com/gojuon.html']
+    ['index.html', `${publicOrigin}/`],
+    ['particles.html', `${publicOrigin}/particles.html`],
+    ['gojuon.html', `${publicOrigin}/gojuon.html`],
+    ['conjugation.html', `${publicOrigin}/conjugation.html`]
   ];
 
   pages.forEach(([file, canonical]) => {
@@ -503,7 +505,7 @@ function validateSeoAssets() {
   });
 
   const robots = fs.readFileSync(path.join(ROOT, 'robots.txt'), 'utf8');
-  assert(robots.includes('Sitemap: https://nihongo-2.onrender.com/sitemap.xml'));
+  assert(robots.includes(`Sitemap: ${publicOrigin}/sitemap.xml`));
 
   const sitemap = fs.readFileSync(path.join(ROOT, 'sitemap.xml'), 'utf8');
   pages.forEach(([, url]) => assert(sitemap.includes(`<loc>${url}</loc>`), `Sitemap is missing ${url}`));
@@ -558,6 +560,18 @@ function validateGameRegistration() {
     assert(leaderboard.includes(`'${name}'`), `排行榜設定缺少 ${name}`));
 }
 
+function validateStaticBuild() {
+  execFileSync(process.execPath, [path.join(ROOT, 'scripts', 'build-static.mjs')], {
+    cwd: ROOT, stdio: 'ignore'
+  });
+  ['index.html', 'particles.html', 'gojuon.html', 'conjugation.html',
+    'robots.txt', 'sitemap.xml', 'google9c5c7b9e4d268263.html',
+    path.join('css', 'style.css'), path.join('js', 'leaderboard.js')]
+    .forEach(file => assert(fs.existsSync(path.join(ROOT, 'dist', file)), `Static build is missing ${file}`));
+  ['server.js', 'render.yaml', 'package.json', 'tests']
+    .forEach(file => assert(!fs.existsSync(path.join(ROOT, 'dist', file)), `Static build exposed private file ${file}`));
+}
+
 function freePort() {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
@@ -578,7 +592,7 @@ function request(port, pathname, options = {}) {
       let body = '';
       res.setEncoding('utf8');
       res.on('data', chunk => { body += chunk; });
-      res.on('end', () => resolve({ status: res.statusCode, body }));
+      res.on('end', () => resolve({ status: res.statusCode, body, headers: res.headers }));
     });
     req.once('error', reject);
     if (options.body) req.write(options.body);
@@ -615,13 +629,25 @@ async function validateServer() {
   try {
     await waitForServer(port, child);
 
+    let result = await request(port, '/api/leaderboard', {
+      method: 'OPTIONS',
+      headers: {
+        Origin: 'https://nihongo-2-static.onrender.com',
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'content-type'
+      }
+    });
+    assert.strictEqual(result.status, 204, 'Cross-origin leaderboard preflight must succeed');
+    assert.strictEqual(result.headers['access-control-allow-origin'], '*');
+    assert(result.headers['access-control-allow-methods'].includes('POST'));
+
     const post = payload => request(port, '/api/leaderboard', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
 
-    let result = await post({ game: 'speed', name: 'Alice', score: 100, detail: 'high score' });
+    result = await post({ game: 'speed', name: 'Alice', score: 100, detail: 'high score' });
     assert.strictEqual(result.status, 200);
     assert.strictEqual(JSON.parse(result.body).improved, true);
 
@@ -853,6 +879,8 @@ async function main() {
   validateVerbUI();
   validateLearningRecords();
   validateGameRegistration();
+  validateSeoAssets();
+  validateStaticBuild();
   await validateServer();
   console.log('Smoke tests passed.');
 }

@@ -4,6 +4,15 @@
    ========================================================= */
 window.JPQ = window.JPQ || {};
 
+/* 靜態網站與排行榜 API 分開部署。
+   本機開發及舊站仍走同源；新靜態站改連原本的 Render Web Service。 */
+const LEADERBOARD_API = (
+  location.hostname &&
+  location.hostname !== 'localhost' &&
+  location.hostname !== '127.0.0.1' &&
+  location.hostname !== 'nihongo-2.onrender.com'
+) ? 'https://nihongo-2.onrender.com/api/leaderboard' : 'api/leaderboard';
+
 /* 各遊戲的排行榜設定 */
 JPQ.LB_GAMES = {
   quiz:          { label: '選擇題闖關', unit: '星星',   desc: '六關總星星數' },
@@ -28,7 +37,7 @@ JPQ.lb = {
   /* ---------- API ---------- */
   probe: async function () {
     try {
-      const r = await fetch('api/leaderboard', { cache: 'no-store' });
+      const r = await fetch(LEADERBOARD_API, { cache: 'no-store' });
       const j = await r.json();
       this.ok = !!j.ok;
       this.ephemeral = !!j.ephemeral;
@@ -39,7 +48,7 @@ JPQ.lb = {
 
   refresh: async function () {
     try {
-      const r = await fetch('api/leaderboard', { cache: 'no-store' });
+      const r = await fetch(LEADERBOARD_API, { cache: 'no-store' });
       const j = await r.json();
       this.ok = !!j.ok;
       this.ephemeral = !!j.ephemeral;
@@ -50,7 +59,7 @@ JPQ.lb = {
 
   submit: async function (game, name, score, detail) {
     if (this.ok === false) return { ok: false, offline: true };
-    const res = await fetch('api/leaderboard', {
+    const res = await fetch(LEADERBOARD_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ game: game, name: name, score: score, detail: detail || '' })

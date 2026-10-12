@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://nihongo-2.onrender.com/sitemap.xml
+Sitemap: https://nihongo-2-static.onrender.com/sitemap.xml

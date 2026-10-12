@@ -12,6 +12,21 @@
 #
 # 沒有設定的話，成績會存在容器本機的 data/ 資料夾，重啟後清空。
 services:
+  # 永不休眠的免費靜態前端：Googlebot 會直接讀到網站自己的 robots.txt。
+  - type: web
+    name: nihongo-2-static
+    runtime: static
+    buildCommand: npm run build:static
+    staticPublishPath: ./dist
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+
+  # 原本的免費 Web Service 只負責排行榜 API；休眠不影響頁面與 Google 收錄。
   - type: web
     name: nihongo-2
     runtime: node
