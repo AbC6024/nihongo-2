@@ -27,7 +27,7 @@
 
     stage.innerHTML = `<div class="panel narrow">
       <h2 class="center">選擇關卡</h2>
-      <p class="center section-note">每一關有 6～8 題，全對可以拿三顆星 ⭐</p>
+      <p class="center section-note">每一關有 6～10 題，全對可以拿三顆星 ⭐</p>
       <div class="level-grid">${cards}</div>
       <div class="btn-row">
         <button class="btn grey" data-go="#/">回主頁</button>
