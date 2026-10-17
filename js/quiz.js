@@ -48,14 +48,15 @@
   /* ---------- 開始一關 ---------- */
   function startLevel(no, stage) {
     const lv = JPQ.LEVELS.find(l => l.no === no);
-    state = { no: no, i: 0, wrong: 0, q: null };
+    /* 題目順序每次都重新洗牌，重玩不會完全一樣 */
+    state = { no: no, i: 0, wrong: 0, q: null, order: U.shuffle(lv.qs.map((_, i) => i)) };
     renderQuestion(stage, lv);
   }
 
   /* ---------- 出題 ---------- */
   function renderQuestion(stage, lv) {
     if (unkey) { unkey(); unkey = null; }
-    const q = lv.qs[state.i];
+    const q = lv.qs[state.order[state.i]];
     state.q = q;
     const opts = U.shuffle(q.opts);
 
@@ -72,7 +73,8 @@
       </div>
     </div>`;
 
-    JPQ.hud.set('第 ' + lv.no + ' 關 · ' + lv.title, lv.sub);
+    /* 不在標題顯示助詞名稱（例如「に」），否則看標題就能猜到答案 */
+    JPQ.hud.set('第 ' + lv.no + ' 關', lv.sub);
     JPQ.hud.progress(state.i / lv.qs.length);
     JPQ.hud.pills([
       { label: '進度', value: (state.i + 1) + '/' + lv.qs.length },
