@@ -71,9 +71,8 @@
   }
 
   /* ---------------- 出一題（1 個正解 + 3 個干擾項） ---------------- */
-  function question(keyFn, distractCount) {
+  function question(q, keyFn, distractCount) {
     const items = pool().items;
-    const q = U.pick(items);
     const others = U.shuffle(items.filter(x => keyFn(x) !== keyFn(q)));
     const opts = others.slice(0, Math.min(distractCount, others.length)).concat([q]);
     return { q: q, opts: U.shuffle(opts) };
@@ -116,7 +115,7 @@
      共用測驗引擎：看字選音 / 看音選字 / 聽音辨識
      ======================================================= */
   function quizGame(def) {
-    let st = null, stopKeys = null, alive = false;
+    let st = null, stopKeys = null, alive = false, autoplay = null;
 
     function sync() {
       if (!st || st.synced || !st.total) return;
@@ -125,15 +124,21 @@
     }
 
     function newRound(stage) {
+      sync();
+      speech.stop();
+      clearTimeout(autoplay);
       st = {
         total: 0, right: 0, streak: 0, best: 0, score: 0,
-        q: null, opts: [], locked: false, synced: false
+        q: null, opts: [], locked: false, synced: false,
+        queue: U.shuffle(pool().items)
       };
       draw(stage);
     }
 
     function draw(stage) {
-      const r = question(def.key, 3);
+      clearTimeout(autoplay);
+      if (!st.queue.length) st.queue = U.shuffle(pool().items);
+      const r = question(st.queue.pop(), def.key, 3);
       st.q = r.q; st.opts = r.opts; st.locked = false;
       const view = def.ask(st.q);
 
@@ -172,7 +177,7 @@
       });
 
       /* 自動播放：離開玩法之後就不要在背景說話了 */
-      if (def.autoPlay) setTimeout(() => { if (alive) say(); }, 350);
+      if (def.autoPlay) autoplay = setTimeout(() => { if (alive) say(); }, 350);
     }
 
     function answer(btn, stage) {
@@ -233,6 +238,8 @@
     }
 
     function finish(stage) {
+      clearTimeout(autoplay);
+      if (stopKeys) { stopKeys(); stopKeys = null; }
       sync();
       const rate = st.total ? Math.round(st.right / st.total * 100) : 0;
       const isBest = st.score > 0 && st.score >= JPQ.store.record(def.name + '-best');
@@ -263,6 +270,7 @@
       },
       unmount: function () {
         alive = false;
+        clearTimeout(autoplay);
         sync();
         if (stopKeys) { stopKeys(); stopKeys = null; }
         speech.stop();
@@ -333,6 +341,8 @@
     }
 
     function newBoard(stage) {
+      sync();
+      speech.stop();
       const items = pool().items;
       const count = Math.min(ui.matchPairs, items.length);
       const chosen = U.shuffle(items).slice(0, count);
@@ -477,7 +487,7 @@
         JPQ.hud.set('配對記憶', '左邊的字配上右邊的讀音');
         newBoard(stage);
       },
-      unmount: function () { sync(); speech.stop(); }
+      unmount: function () { sync(); st = null; speech.stop(); }
     };
   }
 

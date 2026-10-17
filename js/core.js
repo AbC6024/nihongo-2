@@ -140,7 +140,8 @@
     },
     totalStars() {
       const d = this.load();
-      return Object.keys(d.levels).reduce((s, k) => s + (d.levels[k] || 0), 0);
+      return Object.keys(d.levels).filter(k => /^[1-9]\d*$/.test(k))
+        .reduce((s, k) => s + (d.levels[k] || 0), 0);
     },
     record(key) { return this.load().records[key] || 0; },
     setRecord(key, val) {
@@ -367,6 +368,8 @@
       game.classList.remove('hidden');
       mountGame(parts[1]);
     } else {
+      if (JPQ.current && JPQ.current.unmount) JPQ.current.unmount();
+      JPQ.current = null;
       game.classList.add('hidden');
       home.classList.remove('hidden');
       window.scrollTo(0, 0);
@@ -389,8 +392,15 @@
 
   /* 每次切換遊戲時清掉按鍵監聽，避免重複觸發 */
   JPQ.onKey = function (handler) {
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
+    const guarded = e => {
+      const modal = U.$('#modal');
+      if (e.repeat || e.isComposing || e.ctrlKey || e.altKey || e.metaKey) return;
+      if (modal && !modal.classList.contains('hidden')) return;
+      if (e.target && (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))) return;
+      handler(e);
+    };
+    document.addEventListener('keydown', guarded);
+    return () => document.removeEventListener('keydown', guarded);
   };
 
 })(window);

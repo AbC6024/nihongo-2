@@ -3,7 +3,7 @@
    ========================================================= */
 (function (global) {
   const JPQ = global.JPQ, U = JPQ.util;
-  let unkey = null, timer = null, playing = false;
+  let unkey = null, timer = null, pending = null, playing = false;
 
   const TIME = 45;
 
@@ -41,6 +41,7 @@
 
   /* ---------- 對戰 ---------- */
   function begin(stage) {
+    stop();
     const qs = pool();
     const st = { i: 0, score: 0, combo: 0, best: 0, right: 0, left: TIME, cur: null, opts: [] };
     stage.innerHTML = `<div class="panel">
@@ -96,7 +97,10 @@
       JPQ.stats.answer(st.cur.a, ok);
       paint();
       st.i++;
-      setTimeout(() => { if (playing) { if (st.left <= 0) finish(); else redraw(); } }, ok ? 190 : 520);
+      pending = setTimeout(() => {
+        pending = null;
+        if (playing) { if (st.left <= 0) finish(); else redraw(); }
+      }, ok ? 190 : 520);
     }
 
     function end() {
@@ -151,6 +155,7 @@ actions: [
 
   function stop() {
     playing = false;
+    if (pending !== null) { clearTimeout(pending); pending = null; }
     if (timer) { clearInterval(timer); timer = null; }
     if (unkey) { unkey(); unkey = null; }
   }

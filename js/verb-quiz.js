@@ -101,6 +101,7 @@
         const btn = U.$$('.opt', stage)[n - 1];
         if (btn && !btn.disabled) answer(btn, stage, lv);
       } else if (e.key === 'Enter' && state.answered) {
+        e.preventDefault();
         next(stage, lv);
       }
     });

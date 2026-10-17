@@ -43,6 +43,7 @@ function draw(stage) {
     st.cur = st.list[st.i];
     st.placed = [];
     st.hintUsed = false;
+    st.answered = false;
     st.pool = U.shuffle(st.cur.ans.map((t, i) => ({ t: t, i: i })));
 
     stage.innerHTML = `<div class="panel">
@@ -62,8 +63,8 @@ function draw(stage) {
     paint(stage);
     if (unkey) { unkey(); unkey = null; }
     unkey = JPQ.onKey(e => {
-      if (e.key === 'Enter') check(stage);
-      if (e.key === 'Backspace' || e.key === 'Delete') { pop(stage); }
+      if (e.key === 'Enter' && !st.answered) { e.preventDefault(); check(stage); }
+      if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); pop(stage); }
     });
 
 U.$('#checkBtn', stage).addEventListener('click', () => check(stage));
@@ -79,6 +80,7 @@ function paintTokens(stage) {
       `<button class="tok plain" data-pool="${p.i}" data-t="${U.strip(p.t)}">${U.ruby(p.t)}</button>`).join('');
 
     U.$$('[data-pool]', stage).forEach(b => b.addEventListener('click', () => {
+      if (st.answered) return;
       const idx = Number(b.dataset.pool);
       if (b.dataset.slot !== undefined) {           // 從答案列移回選字池
         const item = st.placed.splice(Number(b.dataset.slot), 1)[0];
@@ -98,7 +100,7 @@ function paintTokens(stage) {
 
   /* 提示：每一題只能用一次，避免一直按就把整句送完 */
   function hint(stage) {
-    if (st.hintUsed) return;
+    if (st.answered || st.hintUsed) return;
     const i = st.cur.ans.findIndex((t, k) =>
       !st.placed.some(p => p.i === k) && st.pool.some(x => x.i === k));
     if (i < 0) return;
@@ -114,29 +116,25 @@ function paintTokens(stage) {
   }
 
   function pop(stage) {
-    if (!st.placed.length) return;
+    if (st.answered || !st.placed.length) return;
     st.pool.push(st.placed.pop());
     paintTokens(stage);
   }
 
   /* 這句答案裡出現了哪些助詞？用來累加各助詞的答題表現 */
-  const PARTICLE_RE = /(は|が|を|に|で|と|も|の)/g;
   function recordParticles(ok) {
     if (!st.cur) return;
-    const seen = {};
-    String(st.cur.ans.join('')).replace(PARTICLE_RE, m => {
-      if (!seen[m]) { seen[m] = true; JPQ.stats.answer(m, ok); }
-      return m;
-    });
+    (st.cur.particles || []).forEach(particle => JPQ.stats.answer(particle, ok));
   }
 
 function check(stage) {
-    if (st.placed.length !== st.cur.ans.length) return;
+    if (st.answered || st.placed.length !== st.cur.ans.length) return;
     const mine = st.placed.map(p => U.strip(p.t));
     const slot = U.$('#slot', stage);
     const ok = mine.join('|') === st.cur.ans.map(U.strip).join('|');
 
     if (ok) {
+      st.answered = true;
       st.right++; st.combo++; st.best = Math.max(st.best, st.combo);
       slot.classList.add('good');
       JPQ.sfx.correct();
@@ -149,7 +147,9 @@ function check(stage) {
           <p>${st.cur.note || ''}</p>
         </div>
         <div class="btn-row"><button class="btn" id="nextBtn">${st.i + 1 >= st.list.length ? '看成績 →' : '下一句 →'}</button></div>`);
-      U.$('#nextBtn', stage).addEventListener('click', () => { st.i++; draw(stage); });
+      const nextBtn = U.$('#nextBtn', stage);
+      nextBtn.addEventListener('click', () => { st.i++; draw(stage); });
+      nextBtn.focus();
       paint(stage);
     } else {
       st.combo = 0; st.wrong = (st.wrong || 0) + 1;
@@ -178,8 +178,9 @@ function check(stage) {
   }
 
   function finish(stage) {
+    if (unkey) { unkey(); unkey = null; }
     JPQ.store.setRecord('scramble', st.right);
-    JPQ.stats.run('scramble', st.list.length, st.right);
+    JPQ.stats.run('scramble', st.right + (st.wrong || 0), st.right);
     JPQ.hud.progress(1);
     JPQ.hud.pills([{ label: '答對', value: st.right }]);
     JPQ.sfx.levelup();

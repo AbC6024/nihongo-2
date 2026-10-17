@@ -38,6 +38,13 @@ function loadData() {
 function validateLearningData() {
   const JPQ = loadData().JPQ;
   const questions = JPQ.LEVELS.flatMap(level => level.qs).concat(JPQ.SPEED_EXTRA);
+  JPQ.SCRAMBLE.forEach((question, index) => {
+    assert(Array.isArray(question.particles) && question.particles.length,
+      `Scramble ${index + 1} needs explicit particles for learning statistics`);
+    assert.strictEqual(new Set(question.particles).size, question.particles.length);
+    question.particles.forEach(k => assert(JPQ.PARTICLES.some(p => p.k === k),
+      `Scramble ${index + 1} has an unknown particle ${k}`));
+  });
   questions.forEach((question, index) => {
     assert.strictEqual((question.q.match(/__/g) || []).length, 1,
       `Question ${index + 1} must contain exactly one blank`);

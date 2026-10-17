@@ -35,21 +35,24 @@ JPQ.lb = {
   names: {},              /* 記住每台裝置上次輸入的暱稱 */
 
   /* ---------- API ---------- */
-  probe: async function () {
+  request: async function (options) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
     try {
-      const r = await fetch(LEADERBOARD_API, { cache: 'no-store' });
-      const j = await r.json();
-      this.ok = !!j.ok;
-      this.ephemeral = !!j.ephemeral;
-      if (j.ok) { this.boards = j.boards || {}; }
-    } catch (e) { this.ok = false; }
-    return this.ok;
+      const res = await fetch(LEADERBOARD_API, { ...options, signal: controller.signal });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || '排行榜暫時無法連線，請稍後再試');
+      return data;
+    } finally { clearTimeout(timeout); }
+  },
+
+  probe: async function () {
+    return this.refresh();
   },
 
   refresh: async function () {
     try {
-      const r = await fetch(LEADERBOARD_API, { cache: 'no-store' });
-      const j = await r.json();
+      const j = await this.request({ cache: 'no-store' });
       this.ok = !!j.ok;
       this.ephemeral = !!j.ephemeral;
       if (this.ok) this.boards = j.boards || {};
@@ -58,14 +61,13 @@ JPQ.lb = {
   },
 
   submit: async function (game, name, score, detail) {
-    if (this.ok === false) return { ok: false, offline: true };
-    const res = await fetch(LEADERBOARD_API, {
+    const j = await this.request({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ game: game, name: name, score: score, detail: detail || '' })
     });
-    const j = await res.json();
     if (j.ok) {
+      this.ok = true;
       this.boards = j.boards || this.boards;
       this.rememberName(game, name);          /* 記住這次用的暱稱，下次不用再打 */
     }
@@ -89,9 +91,14 @@ JPQ.lb = {
     if (this.ok === false) {
       el.innerHTML = `<div class="lb-off">
         <p><b>排行榜目前開不起來</b></p>
-        <p>需要在專案資料夾執行 <code>node server.js</code>，再用 <code>http://localhost:8000</code> 開啟才會有排行榜。<br>
-        直接雙擊 index.html 用檔案方式開啟時沒有伺服器，成績就只能存在這台電腦。</p>
+        <p>排行榜服務可能正在啟動，請稍後重試。你的個人進度仍會保存在瀏覽器。</p>
+        <button class="btn ghost" data-retry>重新連線</button>
       </div>`;
+      U.$('[data-retry]', el).addEventListener('click', async () => {
+        el.innerHTML = '<p class="lb-loading">重新連線中…</p>';
+        await this.refresh();
+        this.renderPanel(el);
+      });
       return;
     }
 
@@ -135,18 +142,10 @@ JPQ.lb = {
   offer: function (game, score, detail) {
     const U = JPQ.util;
     const esc = U.escapeHTML;
-    if (this.ok === false) {
-      JPQ.modal.show({
-        title: '排行榜開不起來',
-        html: '<p>要先在專案資料夾執行 <b>node server.js</b>，<br>並用 http://localhost:8000 開啟網站。</p>',
-        actions: [{ label: '知道了', onClick: () => JPQ.modal.close() }]
-      });
-      return;
-    }
-
     const meta = JPQ.LB_GAMES[game] || { label: '遊戲', unit: '' };
     const mine = (this.boards[game] || []).find(e => e.name === this.rememberedName(game));
 
+    let sending = false;
     JPQ.modal.show({
       title: '登記排行榜',
       html: `
@@ -159,10 +158,12 @@ JPQ.lb = {
       actions: [
         { label: '放棄', cls: 'grey', onClick: () => JPQ.modal.close() },
         { label: '送出成績', onClick: () => {
+            if (sending) return;
             const input = document.getElementById('lbName');
             const name = (input ? input.value : '').trim().slice(0, 16);
             const msg = document.querySelector('.lb-msg');
             if (!name) { if (msg) { msg.textContent = '請先輸入暱稱'; msg.style.color = '#cc3f55'; } return; }
+            sending = true;
             if (msg) { msg.textContent = '送出中…'; msg.style.color = '#8b91ad'; }
             this.submit(game, name, score, detail).then(j => {
               JPQ.modal.close();
@@ -184,8 +185,10 @@ JPQ.lb = {
                 ]
               });
               this.refresh().then(() => this.paintAll());
-            }).catch(err => {
-              if (msg) { msg.textContent = '連線失敗：' + err.message; msg.style.color = '#cc3f55'; }
+            }).catch(() => {
+              if (msg) { msg.textContent = '暫時無法送出，請稍後再試'; msg.style.color = '#cc3f55'; }
+            }).finally(() => {
+              sending = false;
             });
           } }
       ]
@@ -200,8 +203,16 @@ JPQ.lb = {
     if (this.ok === false) {
       JPQ.modal.show({
         title: '排行榜開不起來',
-        html: '<p>要先在專案資料夾執行 <b>node server.js</b>，<br>並用 http://localhost:8000 開啟網站。</p>',
-        actions: [{ label: '知道了', onClick: () => JPQ.modal.close() }]
+        html: '<p>排行榜服務可能正在啟動，請稍後重試。你的個人進度仍會保存在瀏覽器。</p>',
+        actions: [
+          { label: '重新連線', onClick: async () => {
+            JPQ.modal.close();
+            await this.refresh();
+            this.paintAll();
+            this.openBoard(game);
+          } },
+          { label: '關閉', cls: 'grey', onClick: () => JPQ.modal.close() }
+        ]
       });
       return;
     }

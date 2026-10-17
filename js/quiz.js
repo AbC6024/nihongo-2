@@ -93,6 +93,7 @@
         const btn = U.$$('.opt', stage)[n - 1];
         if (btn && !btn.disabled) answer(btn, stage, lv, q);
       } else if (e.key === 'Enter' && !U.$('#nextRow').style.display.includes('none')) {
+        e.preventDefault();
         next(stage, lv);
       }
     });

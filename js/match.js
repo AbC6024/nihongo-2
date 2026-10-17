@@ -33,7 +33,7 @@
   }
 
   function begin(stage) {
-    st = { r: 0, mistakes: 0, score: 0, time: ROUND_TIME, sel: null, done: 0 };
+    st = { r: 0, mistakes: 0, missed: 0, score: 0, time: ROUND_TIME, sel: null, done: 0 };
     round(stage);
   }
 
@@ -42,6 +42,7 @@
     st.sel = null;
     st.time = ROUND_TIME;
     st.roundWrong = 0;
+    st.roundDone = 0;
     const left = U.shuffle(data.pairs);
     const right = U.shuffle(data.pairs);
 
@@ -72,7 +73,7 @@
   }
 
   function pick(stage, btn) {
-    if (btn.disabled) return;
+    if (!timer || btn.disabled) return;
     const side = btn.dataset.side, k = btn.dataset.k;
 
     if (!st.sel) {
@@ -97,12 +98,13 @@
       btn.classList.add('hit');
       prev.disabled = btn.disabled = true;
       st.done++;
+      st.roundDone++;
       st.score += 10;
       JPQ.sfx.match();
       JPQ.stats.answer(k, true);
       paint(stage);
       if (st.done % 4 === 0) JPQ.fx.burst(window.innerWidth / 2, 240, 50);
-      if (st.done % 8 === 0) endRound(stage, false);
+      if (st.roundDone === JPQ.MATCH[st.r].pairs.length) endRound(stage, false);
     } else {
       st.mistakes++;
       st.roundWrong++;
@@ -129,6 +131,7 @@
 
   function endRound(stage, timeout) {
     stop();
+    if (timeout) st.missed += JPQ.MATCH[st.r].pairs.length - st.roundDone;
     const last = st.r >= JPQ.MATCH.length - 1;
     const next = () => { JPQ.modal.close(); if (last) finish(stage); else { st.r++; round(stage); } };
     if (last) return next();
@@ -144,8 +147,9 @@
 
   function finish(stage) {
     JPQ.store.setRecord('match', st.score);
-    JPQ.stats.run('match', st.done + st.mistakes, st.done);
-    const stars = st.mistakes === 0 ? 3 : (st.mistakes <= 3 ? 2 : 1);
+    JPQ.stats.run('match', st.done + st.mistakes + st.missed, st.done);
+    const errors = st.mistakes + st.missed;
+    const stars = errors === 0 ? 3 : (errors <= 3 ? 2 : 1);
     JPQ.hud.progress(1);
     JPQ.hud.pills([{ label: '分數', value: st.score }]);
     JPQ.sfx.levelup();
@@ -154,10 +158,11 @@
       title: '配對完成！',
       html: `<div class="result-stars">${U.stars(stars)}</div>
         <div class="result-score">${st.score}</div>
-        <p>${stars === 3 ? '零失誤，厲害！🎉' : (stars === 2 ? '只錯幾題，再來一次更好' : '把速查表再看一遍就會更順')}</p>
+        <p>${stars === 3 ? '零失誤，厲害！🎉' : (stars === 2 ? '差一點就全部完成，再來一次更好' : '把速查表再看一遍就會更順')}</p>
         <div class="result-row">
           <div>配對成功<b>${st.done}</b></div>
           <div>配錯<b>${st.mistakes}</b></div>
+          <div>未完成<b>${st.missed}</b></div>
           <div>最高分<b>${JPQ.store.record('match')}</b></div>
         </div>`,
 actions: [

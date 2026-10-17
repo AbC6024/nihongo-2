@@ -976,14 +976,15 @@ rt{
   .vb-options{grid-template-columns:1fr}
   .opt{min-height:72px;font-size:27px;border-radius:16px}
   .panel{padding:22px 17px;border-radius:20px}
-  .match-wrap{grid-template-columns:1fr;gap:8px}
+  .match-wrap{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .mid-label{display:none}
-  .mtile[data-side="L"],.mtile[data-side="R"]{grid-column:1}
-  .mtile{font-size:15px;padding:11px}
+  .mtile[data-side="L"]{grid-column:1}
+  .mtile[data-side="R"]{grid-column:2}
+  .mtile{font-size:15px;padding:11px;min-width:0;overflow-wrap:anywhere;gap:6px}
   .result-score{font-size:48px}
   .brand-text small{display:none}
   .brand-text{font-size:15.5px}
-  .site-header .header-inner{height:60px}
+  .site-header .header-inner{height:auto;min-height:60px}
   .icon-btn{width:35px;height:35px;border-radius:12px}
   .icon-btn svg{width:17px;height:17px}
   .modal-box{padding:26px 20px;border-radius:22px}
