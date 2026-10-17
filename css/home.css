@@ -1,27 +1,10 @@
 /* =========================================================
-   妫ｆ牠鐖滅亸鍫㈡暏閿涙艾鎷扮槐?鑴?濞搭喕绗樼换顏呰窗瑜?   閿涘牆鍙忛柈銊╂鐎规艾婀?.page-home閿涘矁鍨?style.css 閸掑棝鏋婇敍灞藉従娴犳牠鐖滈棃顫瑝閸欐濂栭棅鍖＄礆
+   首頁專用：和紙背景裝飾 + 首屏 + 首頁小元素
+   色票、殼層、玩法卡都在 style.css（全站共用）
    ========================================================= */
 
-/* ---------------- 閼硅尪鍨忕€?---------------- */
-.page-home{
-  --washi:#f4eee0;
-  --washi-hi:#fbf7ee;
-  --washi-lo:#e8dfcc;
-  --sumi:#2c2a26;
-  --sumi-2:#5d574d;
-  --sumi-3:#918877;
-  --line:rgba(44,42,38,.17);
-  --line-2:rgba(44,42,38,.09);
-  --ai:#2f4f6f;
-  --ai-2:#4d7ba6;
-  --shu:#a83b32;
-  --matcha:#6f8054;
-  --serif:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP","Songti SC","PMingLiU","MingLiU",serif;
-  color:var(--sumi);
-  background:var(--washi);
-}
-
-/* ---------------- 缁辨瑥绨?---------------- */
+/* ---------------- 底：和紙 ---------------- */
+.page-home{background-color:var(--bg)}
 .page-home .washi-bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
 .page-home .washi-bg::before{
   content:"";position:absolute;inset:0;
@@ -40,19 +23,19 @@
   filter:blur(8px);
 }
 
-/* 闂堟帗鎹ｅ▔?*/
+/* 青海波 */
 .page-home .seigaiha{
   position:absolute;left:0;right:0;bottom:-2px;height:40vh;min-height:260px;
   background-image:
-    radial-gradient(circle at 50% 100%,  transparent 0 31%, var(--ai) 32% 33.5%, transparent 34.5%),
-    radial-gradient(circle at 0% 100%,    transparent 0 31%, var(--ai) 32% 33.5%, transparent 34.5%),
-    radial-gradient(circle at 100% 100%, transparent 0 31%, var(--ai) 32% 33.5%, transparent 34.5%);
+    radial-gradient(circle at 50% 100%,  transparent 0 31%, var(--brand) 32% 33.5%, transparent 34.5%),
+    radial-gradient(circle at 0% 100%,    transparent 0 31%, var(--brand) 32% 33.5%, transparent 34.5%),
+    radial-gradient(circle at 100% 100%, transparent 0 31%, var(--brand) 32% 33.5%, transparent 34.5%);
   background-size:130px 65px;
   opacity:.11;
   -webkit-mask-image:linear-gradient(to top, #000 0%, rgba(0,0,0,.5) 40%, transparent 100%);
           mask-image:linear-gradient(to top, #000 0%, rgba(0,0,0,.5) 40%, transparent 100%);
 }
-/* 閸愬棛娴?*/
+/* 円相 */
 .page-home .enso{
   position:absolute;top:-9vh;right:-10vw;width:46vw;height:46vw;
   max-width:640px;max-height:640px;min-width:260px;min-height:260px;
@@ -62,7 +45,7 @@
           mask-image:conic-gradient(from 196deg, #000 0 76%, rgba(0,0,0,.35) 80%, transparent 84%);
 }
 
-/* 濡楁粌鎯為梿?*/
+/* 桜吹雪 */
 .page-home .sakura{position:absolute;inset:0;overflow:hidden;opacity:.5}
 .page-home .sakura i{
   position:absolute;top:-6vh;left:var(--x);
@@ -79,7 +62,7 @@
   100% {opacity:0;transform:translate3d(var(--drift),104vh,0) rotate(400deg) scale(var(--sc))}
 }
 
-/* ---------------- 閸滃瞼绀勯懚鐘蹭粯 ---------------- */
+/* 和紙膠帶 */
 .page-home .washi-tape{
   position:absolute;z-index:3;pointer-events:none;
   width:88px;height:24px;opacity:.62;
@@ -96,61 +79,17 @@
     repeating-linear-gradient(45deg,rgba(255,255,255,.3) 0 4px,transparent 4px 11px),
     linear-gradient(180deg,rgba(196,166,158,.3),rgba(178,146,138,.22));
 }
-.page-home .tape-about{
-  top:-10px;right:-20px;transform:rotate(26deg);
-}
+.page-home .tape-about{top:-10px;right:-20px;transform:rotate(26deg)}
 
-/* ---------------- 闂嬪倿鍎村▓鐓庡牎 ---------------- */
+/* ---------------- 首頁殼層 ---------------- */
 .page-home .site-header{
   position:relative;z-index:5;
   background:transparent;border-bottom:0;box-shadow:none;backdrop-filter:none;
 }
 .page-home .header-inner{
-  display:flex;align-items:center;gap:18px;
-  max-width:1080px;margin:20px auto 0;padding:0 20px;
+  display:flex;align-items:center;gap:18px;justify-content:space-between;
+  max-width:1080px;margin:20px auto 0;padding:0 20px;height:auto;
 }
-.page-home .site-logo{
-  display:flex;flex-direction:column;align-items:center;line-height:1;
-  padding:9px 20px 10px;border-radius:5px;
-  background:rgba(251,247,238,.7);border:1px solid var(--line);
-  box-shadow:none;transform:none;transition:.22s;
-}
-.page-home .site-logo:hover{border-color:var(--ai);transform:translateY(-2px)}
-.page-home .logo-games{
-  font-family:var(--serif);font-size:27px;font-weight:600;letter-spacing:.16em;
-  color:var(--sumi);text-shadow:none;padding-left:.16em;
-}
-.page-home .logo-sub{
-  font-size:9.5px;font-weight:600;color:var(--sumi-3);
-  letter-spacing:.3em;text-transform:uppercase;margin-top:5px;padding-left:.3em;
-}
-
-.page-home .site-menu{flex:1}
-.page-home .site-menu ul{
-  display:flex;list-style:none;margin:0;padding:0;
-  background:transparent;border-radius:0;overflow:visible;
-  border-bottom:1px solid var(--line);box-shadow:none;
-}
-.page-home .site-menu a{
-  display:block;text-align:center;padding:10px 8px 12px;white-space:nowrap;
-  font-family:var(--serif);font-size:15px;font-weight:500;letter-spacing:.08em;
-  color:var(--sumi-2);border-bottom:2px solid transparent;transition:.18s;
-}
-.page-home .site-menu a:hover{background:transparent;color:var(--sumi)}
-.page-home .site-menu a.on{background:transparent;color:var(--shu);border-bottom-color:var(--shu);font-weight:600}
-
-.page-home .header-tools{display:flex;gap:8px}
-.page-home .tool-btn{
-  width:38px;height:38px;border-radius:50%;border:1px solid var(--line);
-  background:rgba(251,247,238,.7);cursor:pointer;
-  display:grid;place-items:center;box-shadow:none;transition:.2s;
-}
-.page-home .tool-btn svg{width:17px;height:17px;color:var(--sumi-2)}
-.page-home .tool-btn:hover{border-color:var(--ai);color:var(--ai);transform:translateY(-2px)}
-.page-home .tool-btn:active{transform:translateY(0)}
-.page-home .tool-btn.off{opacity:.42;filter:grayscale(1)}
-
-/* ---------------- 娑撹鍙庣€?---------------- */
 .page-home .site-main{position:relative;z-index:2;padding:22px 20px 46px}
 .page-home .sheet{
   max-width:1080px;margin:0 auto;position:relative;
@@ -165,7 +104,7 @@
   box-shadow:0 1px 0 rgba(255,255,255,.75) inset, 0 20px 44px -26px rgba(44,42,38,.5);
   padding:38px 0 46px;
 }
-/* 闁叉垹绐?*/
+/* 金線 */
 .page-home .sheet::before{
   content:"";position:absolute;left:0;right:0;top:0;height:2px;border-radius:12px 12px 0 0;
   background:linear-gradient(90deg,transparent,rgba(176,141,79,.5) 18%,rgba(176,141,79,.5) 82%,transparent);
@@ -174,7 +113,7 @@
 .page-home .sheet-title{
   display:flex;align-items:center;gap:14px;flex-wrap:wrap;
   font-family:var(--serif);font-size:25px;font-weight:600;letter-spacing:.14em;
-  color:var(--sumi);margin:38px 0 20px;padding-top:6px;text-shadow:none;
+  color:var(--ink);margin:38px 0 20px;padding-top:6px;
 }
 .page-home .sheet-title::before{
   content:"";flex:none;width:24px;height:2px;background:var(--shu);
@@ -182,16 +121,16 @@
 .page-home .sheet-title:first-child{margin-top:0}
 .page-home .sheet-title em{
   font-style:normal;font-size:10.5px;font-weight:600;letter-spacing:.28em;
-  text-transform:uppercase;color:var(--sumi-3);
+  text-transform:uppercase;color:var(--ink-3);
 }
 
-/* ---------------- 妫ｆ牕鐫?---------------- */
+/* ---------------- 首屏 ---------------- */
 .page-home .hero{
   display:flex;align-items:flex-start;gap:34px;
   padding:6px 34px 34px;position:relative;isolation:isolate;
-  overflow:visible;background:none;color:var(--sumi);
+  overflow:visible;background:none;color:var(--ink);
 }
-/* 閸樼喓顭堥悽銊х閻ㄥ嫮娲垮▎鍕獢 */
+/* 原稿用紙的直欄線 */
 .page-home .hero::before{
   content:"";position:absolute;inset:-4px -10px 6px 0;z-index:-1;pointer-events:none;
   background-image:
@@ -200,33 +139,27 @@
   -webkit-mask-image:radial-gradient(118% 132% at 8% 38%,#000 0%,rgba(0,0,0,.5) 46%,transparent 78%);
           mask-image:radial-gradient(118% 132% at 8% 38%,#000 0%,rgba(0,0,0,.5) 46%,transparent 78%);
 }
-/* 婢с劍鐏?*/
+/* 墨枝 */
 .page-home .hero-branch{
   position:absolute;right:-38px;bottom:-26px;width:min(27vw,224px);
-  color:var(--sumi);opacity:.13;z-index:-1;pointer-events:none;
+  color:var(--ink);opacity:.13;z-index:-1;pointer-events:none;
 }
 .page-home .hero-copy{flex:1;min-width:0;position:relative}
 .page-home .hero-eyebrow{
   font-size:11px;letter-spacing:.34em;text-transform:uppercase;
-  color:var(--sumi-3);margin-bottom:16px;
+  color:var(--ink-3);margin-bottom:16px;
 }
 .page-home .hero-title{
   font-family:var(--serif);font-size:clamp(34px,5.2vw,50px);font-weight:600;
-  letter-spacing:.12em;line-height:1.24;color:var(--sumi);margin-bottom:16px;
+  letter-spacing:.12em;line-height:1.24;color:var(--ink);margin-bottom:16px;
   text-shadow:none;
 }
-.page-home .hero-lead{font-size:15.5px;line-height:2.05;color:var(--sumi-2);max-width:50ch}
+.page-home .hero-lead{font-size:15.5px;line-height:2.05;color:var(--ink-2);max-width:50ch}
 .page-home .hero-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
-.page-home .stat-chip{
-  display:inline-flex;align-items:center;gap:5px;
-  font-size:12.5px;color:var(--sumi-2);letter-spacing:.04em;
-  border:1px solid var(--line);border-radius:999px;padding:5px 14px;
-  background:rgba(255,255,255,.5);
-}
 .page-home .hero-mark{flex:none;display:flex;align-items:flex-start;gap:12px;position:relative}
 .page-home .tategaki{
   writing-mode:vertical-rl;font-family:var(--serif);
-  font-size:18px;letter-spacing:.36em;line-height:2.1;color:var(--sumi);
+  font-size:18px;letter-spacing:.36em;line-height:2.1;color:var(--ink);
   padding:16px 11px;background:rgba(255,255,255,.42);
   border-left:1px solid var(--line);border-right:1px solid var(--line);
 }
@@ -236,13 +169,13 @@
   background:var(--shu);border-radius:3px;letter-spacing:0;
   box-shadow:0 0 0 2px rgba(251,247,238,.7) inset;
 }
-/* 绾垰濮炴禍鍡樿窗婢ь煉绱濋拑瀣躬閸楁壆娈戞稉瀣煙 */
+/* 硯加了淡墨，蓋在印的下方 */
 .page-home .hanko::after{
   content:"";position:absolute;right:-5px;top:-5px;width:34px;height:34px;
   border-radius:4px;background:rgba(44,42,38,.16);filter:blur(3px);z-index:-1;
 }
 
-/* ---------------- 妫ｆ牠鐖滈幒鎺曨攽濮?/ 鐎涘摜绻忕槐鈧柗?---------------- */
+/* ---------------- 首頁排行榜 / 學習紀錄 ---------------- */
 .page-home #lbHomeBtn{margin:32px 0 4px}
 .page-home .home-side{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 .page-home .lb-home-btn{
@@ -250,12 +183,11 @@
   padding:20px 22px;border-radius:10px;cursor:pointer;
   background:linear-gradient(150deg,rgba(255,255,255,.72),rgba(246,240,228,.5));
   border:1px solid var(--line);
-  box-shadow:none;
   font-family:inherit;font-align:left;color:inherit;
   transition:transform .2s,border-color .2s,box-shadow .2s;
 }
 .page-home .lb-home-btn:hover{
-  transform:translateY(-3px);border-color:var(--ai);
+  transform:translateY(-3px);border-color:var(--brand);
   box-shadow:0 16px 30px -22px rgba(44,42,38,.6);
 }
 .page-home .lb-home-btn:active{transform:translateY(0)}
@@ -264,15 +196,15 @@
 .page-home .lb-home-txt{display:block;min-width:0}
 .page-home .lb-home-txt strong{
   display:block;font-family:var(--serif);font-size:21px;font-weight:600;
-  color:var(--sumi);letter-spacing:.12em;
+  color:var(--ink);letter-spacing:.12em;
 }
 .page-home .lb-home-txt em{
-  display:block;font-style:normal;font-size:13.5px;color:var(--sumi-2);
+  display:block;font-style:normal;font-size:13.5px;color:var(--ink-2);
   margin-top:5px;line-height:1.8;
 }
 .page-home .lb-home-btn::after{
-  content:'閳?;flex:none;margin-left:auto;
-  font-size:22px;font-weight:400;color:var(--sumi-3);transition:transform .2s,color .2s;
+  content:'→';flex:none;margin-left:auto;
+  font-size:22px;color:var(--ink-3);transition:transform .2s,color .2s;
 }
 .page-home .lb-home-btn:hover::after{transform:translateX(5px);color:var(--shu)}
 
@@ -285,268 +217,25 @@
   display:inline-flex;align-items:baseline;gap:4px;
   padding:4px 11px;border-radius:999px;background:transparent;
   border:1px solid var(--line);
-  font-size:11.5px;font-weight:600;color:var(--sumi-2);letter-spacing:.04em;
+  font-size:11.5px;font-weight:600;color:var(--ink-2);letter-spacing:.04em;
 }
-.page-home .lr-chip b{font-size:13px;color:var(--sumi);font-weight:700}
+.page-home .lr-chip b{font-size:13px;color:var(--ink);font-weight:700}
 .page-home .lr-chip.is-streak{border-color:rgba(168,59,50,.45);color:var(--shu)}
 .page-home .lr-chip.is-streak b{color:var(--shu)}
-.page-home .lr-chip.is-empty{border-style:dashed;color:var(--sumi-3);font-weight:500}
+.page-home .lr-chip.is-empty{border-style:dashed;color:var(--ink-3);font-weight:500}
 
-/* ---------------- 闁﹥鍩愰崡锛勫 ---------------- */
-.page-home .game-bars{display:flex;flex-direction:column;gap:18px}
-.page-home .pane{
-  position:relative;display:grid;
-  grid-template-columns:200px minmax(0,1fr) auto;
-  gap:22px;align-items:center;
-  background:linear-gradient(170deg,rgba(255,255,255,.78),rgba(246,240,228,.62));
-  border:1px solid var(--line);border-radius:12px;
-  padding:20px 26px 20px 20px;
-  box-shadow:none;
-  transition:transform .24s cubic-bezier(.22,1,.36,1),border-color .24s,box-shadow .24s;
-  text-decoration:none;
-}
-.page-home .pane::before{
-  content:"";position:absolute;left:0;top:22px;bottom:22px;width:2px;
-  background:linear-gradient(180deg,transparent,var(--shu),transparent);
-  opacity:.45;transition:opacity .24s,top .24s,bottom .24s;
-}
-.page-home .pane:hover{
-  transform:translateY(-3px);border-color:rgba(77,123,166,.6);
-  box-shadow:0 20px 34px -26px rgba(44,42,38,.65);
-}
-.page-home .pane:hover::before{opacity:.9;top:14px;bottom:14px}
-.page-home .pane-title{
-  grid-column:1 / -1;display:flex;flex-direction:column;align-items:center;gap:4px;
-  font-family:var(--serif);font-size:24px;font-weight:600;color:var(--sumi);
-  letter-spacing:.14em;line-height:1.2;text-shadow:none;
-}
-.page-home .pane-title em{
-  font-style:normal;font-size:10.5px;font-weight:600;letter-spacing:.28em;
-  text-transform:uppercase;color:var(--sumi-3);
-}
-.page-home .pane-body{display:flex;flex-direction:column;gap:11px;min-width:0}
-.page-home .pane-par{font-size:15px;line-height:1.95;color:var(--sumi-2)}
-.page-home .pane-tags{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:7px}
-.page-home .pane-tags li{
-  font-size:11.5px;font-weight:600;color:var(--sumi-2);letter-spacing:.04em;
-  background:transparent;border:1px solid var(--line-2);
-  padding:4px 12px;border-radius:999px;white-space:nowrap;
-}
-.page-home .pane-go{
-  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;
-  font-family:var(--serif);font-size:14.5px;font-weight:600;letter-spacing:.12em;color:var(--sumi);
-  background:transparent;border:1px solid var(--line);border-radius:999px;
-  padding:9px 19px;box-shadow:none;transition:.22s;
-}
-.page-home .pane:hover .pane-go{
-  background:var(--ai);border-color:var(--ai);color:#fbf7ee;transform:translateX(3px);
-}
-.page-home .pane-go-off{color:var(--sumi-3)}
-.page-home .pane.is-soon:hover .pane-go-off{
-  transform:none;background:transparent;border-color:var(--line);color:var(--sumi-3);
-}
-.page-home .pane-note{
-  position:absolute;top:14px;right:16px;
-  font-family:var(--serif);font-size:10.5px;font-weight:600;letter-spacing:.14em;color:#fbf7ee;
-  background:var(--shu);padding:4px 12px;border-radius:3px;
-}
-.page-home .pane.is-soon{
-  background:linear-gradient(170deg,rgba(255,255,255,.5),rgba(240,236,226,.4));
-  box-shadow:none;
-}
-.page-home .pane.is-soon::before{opacity:.15}
-.page-home .pane.is-soon .pane-title{color:var(--sumi-3)}
-.page-home .pane.is-soon .pane-par{color:var(--sumi-3)}
-.page-home .pane.is-soon .pane-thumb{filter:grayscale(.75) opacity(.75)}
-.page-home .pane.is-soon .pane-tags{display:none}
-
-/* ---------------- 缁侯喖婀掗敍鍫熸寜婢с劎绐旈幓蹇ョ礆 ---------------- */
-.page-home .pane-thumb{
-  --tint:rgba(77,123,166,.09);
-  position:relative;display:block;width:100%;max-width:200px;aspect-ratio:1;
-  border-radius:8px;overflow:hidden;
-  border:1px solid var(--line);
-  background-color:var(--washi-hi);
-  background-image:
-    linear-gradient(160deg,rgba(255,255,255,.7),rgba(255,255,255,0)),
-    repeating-linear-gradient(45deg,rgba(44,42,38,.028) 0 5px,transparent 5px 11px);
-}
-.page-home .pane-thumb::before{
-  content:"";position:absolute;inset:0;background:var(--tint);pointer-events:none;
-}
-.page-home .thumb-link{--tint:rgba(77,123,166,.11)}
-.page-home .thumb-kana{--tint:rgba(168,59,50,.09)}
-.page-home .thumb-cards{--tint:rgba(111,128,84,.11)}
-.page-home .thumb-clock{--tint:rgba(47,79,111,.10)}
-.page-home .thumb-quiz{--tint:rgba(44,42,38,.05)}
-.page-home .thumb-speed{--tint:rgba(168,59,50,.09)}
-.page-home .thumb-tiles{--tint:rgba(77,123,166,.10)}
-.page-home .thumb-listen{--tint:rgba(47,79,111,.10)}
-.page-home .thumb-verb{--tint:rgba(111,128,84,.10)}
-
-/* 缁侯喖婀掗敍姘舵锤 + 閸斺晞顭?*/
-.page-home .thumb-link .t-cloud{
-  position:absolute;left:12%;right:12%;top:16%;height:19%;
-  background:rgba(44,42,38,.09);border-radius:999px;filter:blur(1.5px);
-}
-.page-home .thumb-link .t-cloud::after{
-  content:"";position:absolute;left:18%;top:-52%;width:32%;height:115%;
-  background:inherit;border-radius:50%;filter:blur(2px);
-}
-.page-home .thumb-link .t-pair{
-  position:absolute;width:33%;height:33%;border-radius:50%;
-  display:grid;place-items:center;
-  font-family:var(--serif);font-size:clamp(15px,2.4vw,25px);font-weight:600;
-  background:var(--washi-hi);color:var(--sumi);
-  border:1.5px solid var(--sumi);box-shadow:none;
-}
-.page-home .thumb-link .t-pair-a{left:13%;bottom:16%;border-color:var(--ai);color:var(--ai)}
-.page-home .thumb-link .t-pair-b{right:13%;bottom:16%;border-color:var(--shu);color:var(--shu)}
-.page-home .thumb-link .t-link{
-  position:absolute;left:45%;bottom:23%;width:11%;height:11%;
-  border:2px solid var(--sumi);border-radius:50%;
-  border-right-color:transparent;border-bottom-color:transparent;
-  transform:rotate(-40deg);opacity:.7;
-}
-
-/* 缁侯喖婀掗敍姘安閸椾線鐓?*/
-.page-home .thumb-kana .t-grid{
-  position:absolute;inset:16% 14%;
-  background:
-    linear-gradient(rgba(44,42,38,.16) 1px,transparent 1px) 0 0/33.4% 25%,
-    linear-gradient(90deg,rgba(44,42,38,.16) 1px,transparent 1px) 0 0/50% 33.4%;
-  border:1px solid rgba(44,42,38,.22);border-radius:3px;
-}
-.page-home .thumb-kana .t-char{
-  position:absolute;font-family:var(--serif);font-weight:600;color:var(--sumi);line-height:1;
-}
-.page-home .thumb-kana .t-char-a{left:19%;top:24%;font-size:clamp(14px,2.2vw,23px);color:var(--shu)}
-.page-home .thumb-kana .t-char-b{left:57%;top:48%;font-size:clamp(14px,2.2vw,23px)}
-.page-home .thumb-kana .t-char-c{left:27%;top:66%;font-size:clamp(14px,2.2vw,23px);color:var(--ai)}
-
-/* 缁侯喖婀掗敍姘舵澔閸?*/
-.page-home .thumb-cards .t-card{
-  position:absolute;width:45%;height:55%;border-radius:5px;
-  background:var(--washi-hi);border:1.5px solid var(--sumi);box-shadow:none;
-}
-.page-home .thumb-cards .t-card-1{left:12%;top:20%;transform:rotate(-7deg);border-color:var(--ai)}
-.page-home .thumb-cards .t-card-2{left:31%;top:26%;transform:rotate(2deg)}
-.page-home .thumb-cards .t-card-3{right:11%;top:20%;transform:rotate(8deg);border-color:var(--shu)}
-
-/* 缁侯喖婀掗敍姘闁?*/
-.page-home .thumb-clock .t-clock-face{
-  position:absolute;left:50%;top:50%;width:62%;aspect-ratio:1;
-  transform:translate(-50%,-50%);border-radius:50%;
-  background:var(--washi-hi);border:1.5px solid var(--sumi);box-shadow:none;
-}
-.page-home .thumb-clock .t-hand{
-  position:absolute;left:50%;bottom:50%;transform-origin:bottom center;
-  background:var(--sumi);border-radius:2px;
-}
-.page-home .thumb-clock .t-h1{width:3px;height:26%;margin-left:-1.5px;transform:rotate(60deg)}
-.page-home .thumb-clock .t-h2{width:2px;height:17%;margin-left:-1px;transform:rotate(-40deg);background:var(--shu)}
-
-/* 缁侯喖婀掗敍姘櫛缁?*/
-.page-home .thumb-quiz .t-sentence{
-  position:absolute;left:16%;right:16%;top:20%;height:10%;border-radius:3px;
-  background:var(--washi-hi);border:1px solid rgba(44,42,38,.22);
-}
-.page-home .thumb-quiz .t-gap{
-  position:absolute;left:33%;top:23%;width:19%;height:5%;
-  border-bottom:2px solid var(--shu);
-}
-.page-home .thumb-quiz .t-opt{
-  position:absolute;width:15%;height:15%;border-radius:3px;top:45%;
-  background:var(--washi-hi);border:1px solid rgba(44,42,38,.3);
-}
-.page-home .thumb-quiz .t-o1{left:14%}
-.page-home .thumb-quiz .t-o2{left:33%;border-color:var(--ai);background:rgba(77,123,166,.12)}
-.page-home .thumb-quiz .t-o3{left:52%}
-.page-home .thumb-quiz .t-o4{left:71%;border-color:var(--shu);background:rgba(168,59,50,.1)}
-
-/* 缁侯喖婀掗敍姘舵閺?*/
-.page-home .thumb-speed .t-bolt{
-  position:absolute;left:50%;top:50%;width:32%;height:50%;
-  transform:translate(-50%,-50%);background:var(--shu);
-  clip-path:polygon(55% 0, 18% 55%, 46% 55%, 40% 100%, 82% 42%, 52% 42%);
-  filter:none;opacity:.85;
-}
-
-/* 缁侯喖婀掗敍姘鳖梿绾?*/
-.page-home .thumb-tiles .t-tile{
-  position:absolute;width:25%;height:25%;border-radius:4px;
-  background:var(--washi-hi);border:1.5px solid var(--sumi);box-shadow:none;
-}
-.page-home .thumb-tiles .t-t1{left:17%;top:24%;border-color:var(--ai)}
-.page-home .thumb-tiles .t-t2{right:17%;top:24%;border-color:var(--shu);background:rgba(168,59,50,.09)}
-.page-home .thumb-tiles .t-t3{left:37.5%;bottom:23%;border-color:var(--matcha);background:rgba(111,128,84,.09)}
-
-/* 缁侯喖婀掗敍姘充迹閸?*/
-.page-home .thumb-listen .t-wave{
-  position:absolute;left:50%;top:50%;width:24%;aspect-ratio:1;
-  transform:translate(-50%,-50%);border-radius:50%;
-  background:var(--washi-hi);border:2px solid var(--ai);
-  box-shadow:0 0 0 7px rgba(77,123,166,.13);
-}
-
-/* 缁侯喖婀掗敍姘珚鐟偞妞块悽?*/
-.page-home .thumb-verb .t-vstem,
-.page-home .thumb-verb .t-vtail{
-  position:absolute;top:50%;transform:translateY(-50%);
-  font-family:var(--serif);font-weight:600;color:var(--sumi);line-height:1;
-}
-.page-home .thumb-verb .t-vstem{left:11%;font-size:clamp(20px,3.4vw,29px)}
-.page-home .thumb-verb .t-vtail{right:11%;font-size:clamp(13px,2.1vw,19px);color:var(--ai)}
-.page-home .thumb-verb .t-varrow{
-  position:absolute;left:50%;top:50%;width:20%;height:2px;
-  transform:translate(-50%,-50%);background:var(--shu);border-radius:2px;opacity:.8;
-}
-.page-home .thumb-verb .t-varrow::after{
-  content:"";position:absolute;right:-3px;top:50%;transform:translateY(-50%);
-  border:6px solid transparent;border-left-color:var(--shu);border-right:0;
-}
-
-/* ---------------- 濮濄儵顭奸崡?---------------- */
-.page-home .step-grid{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;margin-top:0;
-}
-.page-home .step-card{
-  position:relative;border-radius:10px;padding:26px 22px 22px;
-  background:linear-gradient(170deg,rgba(255,255,255,.62),rgba(246,240,228,.4));
-  border:1px solid var(--line);box-shadow:none;
-  backdrop-filter:none;-webkit-backdrop-filter:none;
-}
-.page-home .step-no{
-  position:absolute;top:14px;right:18px;font-family:var(--serif);
-  font-size:30px;font-weight:600;color:rgba(168,59,50,.24);line-height:1;
-}
-.page-home .step-icon{font-size:24px;display:block;margin-bottom:10px}
-.page-home .step-card strong{
-  display:block;font-family:var(--serif);font-size:17px;font-weight:600;
-  letter-spacing:.1em;color:var(--sumi);margin-bottom:8px;
-}
-.page-home .step-card p{font-size:13.5px;color:var(--sumi-2);line-height:1.95}
-
-/* ---------------- 闂傛粍鏌?---------------- */
-.page-home .about{
-  position:relative;border-radius:10px;padding:28px 30px 28px 34px;margin-top:0;
-  background:linear-gradient(170deg,rgba(255,255,255,.55),rgba(246,240,228,.38));
-  border:1px solid var(--line);box-shadow:none;
-  backdrop-filter:none;-webkit-backdrop-filter:none;
-}
+/* ---------------- 關於本站（首頁多落款與膠帶） ---------------- */
+.page-home .about{position:relative;padding:28px 30px 28px 34px}
 .page-home .about::before{
-  content:"";position:absolute;left:0;top:18px;bottom:18px;width:3px;background:var(--ai);opacity:.45;
+  content:"";position:absolute;left:0;top:18px;bottom:18px;width:3px;background:var(--brand);opacity:.45;
 }
-.page-home .about p{font-size:14.5px;color:var(--sumi-2);line-height:2.05;margin-bottom:13px}
-.page-home .about p:last-child{margin-bottom:0}
-/* 閽€鑺ヮ儥 */
 .page-home .about .about-sign{
   display:flex;align-items:center;justify-content:flex-end;gap:10px;
   margin:20px 0 0;
 }
 .page-home .about-sign-text{
   writing-mode:vertical-rl;font-family:var(--serif);
-  font-size:12.5px;letter-spacing:.3em;color:var(--sumi-3);line-height:1.9;
+  font-size:12.5px;letter-spacing:.3em;color:var(--ink-3);line-height:1.9;
 }
 .page-home .about-seal{
   display:grid;place-items:center;width:30px;height:30px;flex:none;
@@ -556,39 +245,16 @@
   opacity:.85;
 }
 
-/* ---------------- 瑜板牏鐛?---------------- */
-.page-home .modal-box{
-  background:var(--washi-hi);border:1px solid var(--line);
-  border-radius:12px;box-shadow:0 24px 50px -24px rgba(44,42,38,.6);
-}
-.page-home .modal-box h3{font-family:var(--serif);font-weight:600;letter-spacing:.1em;color:var(--sumi)}
-.page-home .modal-box p{color:var(--sumi-2)}
-
-/* ---------------- 闂嬩礁鐔?---------------- */
+/* ---------------- 頁尾 ---------------- */
 .page-home .site-footer{
   position:relative;z-index:2;margin:0;padding:0 20px 30px;
   background:transparent;border-top:0;
 }
-.page-home .foot-rule{
-  height:1px;border-radius:0;background:var(--line);box-shadow:none;
-}
-.page-home .foot-cols{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:20px;
-  text-align:center;padding:26px 0;
-}
-.page-home .foot-col p{font-size:13.5px;color:var(--sumi-2);margin-bottom:6px;line-height:1.8}
-.page-home .foot-col a{color:var(--sumi);font-weight:600;text-decoration:none;border-bottom:1px solid transparent}
-.page-home .foot-col a:hover{color:var(--shu);border-bottom-color:var(--shu)}
+.page-home .foot-cols{padding:26px 0}
 
 /* ---------------- responsive ---------------- */
 @media (max-width:860px){
   .page-home .sheet{padding:30px 0 34px}
-  .page-home .pane{grid-template-columns:160px minmax(0,1fr) auto;gap:18px;padding:18px 22px 18px 18px}
-  .page-home .pane-title{font-size:21px}
-  .page-home .pane-par{font-size:14.5px}
-  .page-home .pane-thumb{max-width:160px}
-  .page-home .site-menu a{font-size:13.5px;padding:9px 4px 11px;letter-spacing:.04em}
-  .page-home .logo-games{font-size:23px}
   .page-home .hero{gap:24px;padding:4px 24px 28px}
   .page-home .tategaki{font-size:16px}
   .page-home .hero-branch{width:190px;right:-40px;bottom:-28px;opacity:.11}
@@ -598,20 +264,8 @@
   .page-home .hero-branch{display:none}
 }
 @media (max-width:620px){
-  .page-home .header-inner{flex-wrap:wrap;gap:10px;padding:0 14px}
-  .page-home .site-menu{order:3;flex:1 0 100%}
-  .page-home .site-menu li{flex:0 1 auto;min-width:0}
-  .page-home .site-menu ul{justify-content:space-between}
-  .page-home .site-menu a{font-size:11.5px;letter-spacing:0;padding:9px 2px 11px}
-  .page-home .header-tools{margin-left:auto}
+  .page-home .header-inner{margin-top:14px}
   .page-home .site-main{padding:16px 12px 32px}
-  .page-home .pane{grid-template-columns:1fr;gap:14px;text-align:center;padding:20px 16px 22px}
-  .page-home .pane-thumb{max-width:148px;margin:0 auto}
-  .page-home .pane-body{align-items:center}
-  .page-home .pane-par{max-width:none;margin:0}
-  .page-home .pane-tags{justify-content:center}
-  .page-home .pane-go{justify-self:center}
-  .page-home .pane-note{top:12px;right:12px}
   .page-home .sheet-title{font-size:20px;letter-spacing:.1em}
   .page-home .foot-cols{grid-template-columns:1fr;gap:12px}
   .page-home .about{padding:22px 20px 22px 24px}
@@ -620,7 +274,7 @@
   .page-home .tategaki{font-size:14px;letter-spacing:.26em;line-height:1.9;padding:12px 8px}
   .page-home .hanko{width:28px;height:28px;font-size:14px}
   .page-home #lbHomeBtn{margin:24px 0 2px}
-  .page-home .lb-home-btn{gap:14px;padding:16px 18px;border-radius:10px}
+  .page-home .lb-home-btn{gap:14px;padding:16px 18px}
   .page-home .lb-home-ico{width:50px;height:50px}
   .page-home .lb-home-txt strong{font-size:18px}
   .page-home .lb-home-txt em{font-size:12.5px}
@@ -634,9 +288,7 @@
 }
 @media (prefers-reduced-motion:reduce){
   .page-home .sakura{display:none}
-  .page-home .pane,
   .page-home .lb-home-btn,
-  .page-home .pane:hover .pane-go,
   .page-home .lb-home-btn:hover,
   .page-home .site-logo:hover,
   .page-home .tool-btn:hover{transition:none}
