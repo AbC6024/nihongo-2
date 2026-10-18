@@ -7,6 +7,7 @@ const net = require('net');
 const os = require('os');
 const path = require('path');
 const vm = require('vm');
+const { createHash } = require('crypto');
 const { execFileSync, spawn } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -578,6 +579,25 @@ function validateStaticBuild() {
     .forEach(file => assert(fs.existsSync(path.join(ROOT, 'dist', file)), `Static build is missing ${file}`));
   ['server.js', 'render.yaml', 'package.json', 'tests', 'apps', 'node_modules']
     .forEach(file => assert(!fs.existsSync(path.join(ROOT, 'dist', file)), `Static build exposed private file ${file}`));
+
+  for (const file of ['index.html', 'particles.html', 'gojuon.html', 'conjugation.html']) {
+    const source = fs.readFileSync(path.join(ROOT, file), 'utf8');
+    assert.strictEqual(fs.readFileSync(path.join(ROOT, 'dist', file), 'utf8'), source,
+      `${file}: direct hosting and static hosting must receive the same asset versions`);
+    const assets = Array.from(source.matchAll(/(?:src|href)="((?:js|css)\/[^"?#]+)(\?[^"#]+)?"/g));
+    assert(assets.some(m => m[1] === 'js/catalog.js'), `${file}: shared game catalog must be loaded`);
+    assets.forEach(([, asset, search]) => {
+      const content = fs.readFileSync(path.join(ROOT, asset), 'utf8').replace(/\r\n/g, '\n');
+      const expected = createHash('sha256').update(content).digest('hex').slice(0, 12);
+      assert.strictEqual(new URLSearchParams(search).get('v'), expected,
+        `${file}: ${asset} must use its current content version instead of a stale cached file`);
+    });
+  }
+  const entries = ['index.html', 'particles.html', 'gojuon.html', 'conjugation.html'];
+  const firstBuild = entries.map(file => fs.readFileSync(path.join(ROOT, file), 'utf8'));
+  execFileSync(process.execPath, [path.join(ROOT, 'scripts', 'build-static.mjs')], {cwd: ROOT, stdio: 'ignore'});
+  assert.deepStrictEqual(entries.map(file => fs.readFileSync(path.join(ROOT, file), 'utf8')), firstBuild,
+    'Repeated static builds must keep asset versions stable');
 
   const game = fs.readFileSync(path.join(ROOT, 'dist/listening/index.html'), 'utf8');
   const assets = Array.from(game.matchAll(/(?:src|href)="(\.\/assets\/[^"#?]+)"/g), match => match[1]);
