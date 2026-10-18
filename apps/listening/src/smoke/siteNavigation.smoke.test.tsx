@@ -29,16 +29,18 @@ async function click(selector: string) {
 }
 
 describe("merged site navigation", () => {
-  it("links to all original games from the listening subdirectory", () => {
+  it("links to all original games and Hiragana Adventure from the listening subdirectory", () => {
     const links = Array.from(container.querySelectorAll(".learning-site-nav a"));
     expect(links.map((link) => link.getAttribute("href"))).toEqual([
       "../index.html",
       "../particles.html",
       "../gojuon.html",
       "../conjugation.html",
+      "../hiragana/",
       "#/home",
     ]);
     expect(links[links.length - 1]?.getAttribute("aria-current")).toBe("page");
+    expect(container.querySelector('.learning-site-nav a[href="../hiragana/"]')?.textContent).toBe("五十音大冒險");
     expect(container.querySelector(".learning-site-brand")?.getAttribute("href")).toBe("../index.html");
   });
 
@@ -70,7 +72,15 @@ describe("merged site navigation", () => {
       select.dispatchEvent(new Event("change", { bubbles: true }));
     });
     expect(container.querySelector(".learning-site-nav")?.getAttribute("aria-label")).toBe("Site navigation");
+    expect(container.querySelector('.learning-site-nav a[href="../hiragana/"]')?.textContent).toBe("Hiragana Adventure");
     expect(container.querySelector(".learning-site-footer")?.textContent).toContain("does not automatically sync");
     expect(container.querySelector(".learning-site-footer a")?.textContent).toBe("Data sources and licenses");
+
+    await act(async () => {
+      if (!select) throw new Error("missing language selector");
+      select.value = "ja";
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    expect(container.querySelector('.learning-site-nav a[href="../hiragana/"]')?.textContent).toBe("ひらがな冒険");
   });
 });

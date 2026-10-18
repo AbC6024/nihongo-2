@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<script>
+  // 補齊目錄斜線，讓相對資源與全站導覽在靜態主機正確載入。
+  if (location.pathname.endsWith('/hiragana')) {
+    const target = new URL(location.href);
+    target.pathname += '/';
+    location.replace(target.href);
+  }
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#365f85">
+<meta name="description" content="日語平假名五十音互動學習遊戲：連連看、翻牌記憶、句子填空三種闖關模式。">
+<title>五十音大冒險｜遊戲學日語</title>
+<link rel="canonical" href="https://nihongo-2-static.onrender.com/hiragana/">
+<meta property="og:title" content="五十音大冒險｜遊戲學日語">
+<meta property="og:description" content="從平假名與羅馬字連連看、翻牌記憶，到日語句子填空，循序練習五十音。">
+<meta property="og:url" content="https://nihongo-2-static.onrender.com/hiragana/">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"WebApplication","name":"五十音大冒險","url":"https://nihongo-2-static.onrender.com/hiragana/","applicationCategory":"EducationalApplication","operatingSystem":"Web","inLanguage":["zh-Hant","ja"]}
+</script>
+<link rel="stylesheet" href="css/style.css?v=2284bd6bae6e">
+<link rel="stylesheet" href="css/site-theme.css?v=3e16df5beb00">
+</head>
+<body>
+
+<a class="skip-link" href="#app">跳到主要內容</a>
+
+<header class="learning-site-header">
+  <div class="learning-site-header__inner">
+    <a class="learning-site-brand" href="../index.html">
+      <span class="learning-site-brand__mark" aria-hidden="true">日</span>
+      <span>遊戲學日語<small>NIHONGO GAMES</small></span>
+    </a>
+    <nav class="learning-site-nav" aria-label="全站導覽">
+      <a href="../index.html">首頁</a>
+      <a href="../particles.html">助詞大冒險</a>
+      <a href="../gojuon.html">五十音圖</a>
+      <a href="../conjugation.html">動詞活用</a>
+      <a href="../listening/">日語聽打</a>
+      <a href="./" aria-current="page">五十音大冒險</a>
+    </nav>
+  </div>
+</header>
+
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__brand" href="#/">
+      <span class="nav__logo" aria-hidden="true">あ</span>
+      <span class="nav__brandtext">
+        <strong>五十音大冒險</strong>
+        <small>Hiragana Adventure</small>
+      </span>
+    </a>
+
+    <button class="nav__toggle" id="navToggle" type="button" aria-expanded="false" aria-controls="navLinks" aria-label="切換遊戲模式選單">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="nav__links" id="navLinks" aria-label="五十音大冒險遊戲模式">
+      <a class="nav__link" href="#/matching" data-route="matching"><i>①</i> 初階・連連看</a>
+      <a class="nav__link" href="#/memory" data-route="memory"><i>②</i> 進階・翻牌記憶</a>
+      <a class="nav__link" href="#/sentence" data-route="sentence"><i>③</i> 高階・句子填空</a>
+      <a class="nav__link nav__link--home" href="#/"><i>⌂</i> 主選單</a>
+    </nav>
+  </div>
+  <div class="nav__sakura" aria-hidden="true"></div>
+</header>
+
+<main id="app" class="app" tabindex="-1"></main>
+
+<footer class="footer">
+  <p class="footer__lead">焦らず少しずつ、毎日成長しよう！</p>
+<p>made with <span aria-hidden="true">🌸</span> for 日語初學者 ・ 一步一步向前，把五十音練成肌肉記憶</p>
+</footer>
+
+<div id="modalRoot"></div>
+<div id="toastRoot" class="toast-root" role="status" aria-live="polite"></div>
+
+<script src="js/utils.js?v=a299f5031ba4"></script>
+<script src="js/data.js?v=2877b2a5d47c"></script>
+<script src="js/matching.js?v=1abffd046f1e"></script>
+<script src="js/memory.js?v=4375676e9bbb"></script>
+<script src="js/sentence.js?v=121287f7af48"></script>
+<script src="js/app.js?v=bb1e87eea610"></script>
+</body>
+</html>

@@ -47,6 +47,16 @@ JPQ.CATALOG = [
     detail: ['N5～N1', '單字與句子', '錯題複習', '每日挑戰']
   },
   {
+    slug: 'hiragana',
+    status: 'live',
+    thumb: 'cards',
+    title: '五十音大冒險',
+    titleEn: 'Hiragana Adventure',
+    href: 'hiragana/',
+    desc: '先認字連連看，再挑戰翻牌記憶，最後用平假名與羅馬字完成句子填空，循序練熟基礎五十音。',
+    detail: ['6 關連連看', '5 種翻牌網格', '15 題句子填空', '日語朗讀']
+  },
+  {
     slug: 'vocab',
     status: 'soon',
     thumb: 'cards',

@@ -1,0 +1,162 @@
+/* Keep the adventure's game layouts isolated while joining the site's washi palette. */
+:root {
+  --pink-50: #fbf3ed;
+  --pink-100: #f4e6dc;
+  --pink-200: #e7c5b5;
+  --pink-300: #cc9680;
+  --pink-400: #a83b32;
+  --pink-500: #96382f;
+  --pink-600: #823028;
+  --indigo-100: #e8eef2;
+  --indigo-300: #a1b7c9;
+  --indigo-500: #365f85;
+  --indigo-600: #2f4f6f;
+  --matcha-100: #eef3e8;
+  --matcha-400: #5b8057;
+  --matcha-600: #42633e;
+  --sun-100: #f8edcf;
+  --sun-400: #d7a94c;
+  --sun-600: #826021;
+  --sakura-400: var(--indigo-300);
+  --sakura-500: var(--indigo-500);
+  --sakura-600: var(--indigo-600);
+  --ink-900: #2c2a26;
+  --ink-700: #514c43;
+  --ink-500: #665f53;
+  --ink-300: #786e60;
+  --paper: #f4eee0;
+  --line: #dcd3c2;
+  --radius-m: 12px;
+  --radius-l: 16px;
+  --radius-xl: 20px;
+  --shadow-s: 0 2px 8px rgba(44, 42, 38, .06);
+  --shadow-m: 0 12px 28px -22px rgba(44, 42, 38, .4);
+  --shadow-l: 0 22px 40px -24px rgba(44, 42, 38, .35);
+  --font-jp: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Microsoft JhengHei", "PingFang TC", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --site-serif: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "PMingLiU", "MingLiU", serif;
+}
+
+body {
+  background-image:
+    radial-gradient(ellipse at 95% 0, rgba(77, 123, 166, .09), transparent 55%),
+    repeating-linear-gradient(0deg, rgba(98, 81, 51, .018) 0 1px, transparent 1px 5px);
+}
+
+.learning-site-header {
+  flex: 0 0 auto;
+  background: #fbf7ee;
+  border-bottom: 1px solid var(--line);
+}
+
+.learning-site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 24px;
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 12px 18px 8px;
+}
+
+.learning-site-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  color: var(--ink-900);
+  text-decoration: none;
+  font-family: var(--site-serif);
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+
+.learning-site-brand__mark {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: linear-gradient(160deg, #fbf7ee, #e8dfcc);
+  color: var(--pink-400);
+  font-size: 20px;
+}
+
+.learning-site-brand small {
+  display: block;
+  color: var(--ink-700);
+  font: 600 9px/1.4 var(--font-jp);
+  letter-spacing: .16em;
+}
+
+.learning-site-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 5px;
+  min-width: 0;
+}
+
+.learning-site-nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: var(--ink-700);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.learning-site-nav a:hover {
+  color: var(--indigo-600);
+  background: var(--indigo-100);
+}
+
+.learning-site-nav a[aria-current="page"] {
+  color: var(--pink-400);
+  box-shadow: inset 0 -2px var(--pink-400);
+}
+
+.nav {
+  flex: 0 0 auto;
+  background: #365f85;
+  box-shadow: 0 6px 18px -14px rgba(44, 42, 38, .6);
+}
+
+.nav__logo { color: var(--indigo-500); }
+.nav__sakura { background: rgba(255, 255, 255, .35); height: 3px; }
+.nav__brandtext strong, .hero h1, .page-head h1 { font-family: var(--site-serif); }
+.nav__link.is-active { color: var(--indigo-600); }
+.btn { box-shadow: 0 8px 18px -12px rgba(120, 49, 40, .8); }
+.btn--indigo { box-shadow: 0 8px 18px -12px rgba(54, 95, 133, .8); }
+.btn--matcha { box-shadow: 0 8px 18px -12px rgba(66, 99, 62, .8); }
+.btn--sun:hover { background: #c9983c; }
+.mcard__back {
+  background:
+    repeating-radial-gradient(circle at 50% 118%, rgba(255, 255, 255, .2) 0 9px, transparent 9px 18px),
+    linear-gradient(150deg, #365f85, #63849e 55%, #a83b32);
+}
+.mcard__front { background: linear-gradient(180deg, #fffdfb, #fbf3ed); }
+.mcard.is-wrong .mcard__front, .tile.is-wrong, .slot.is-wrong { background: #faece7; }
+.tile.is-selected { box-shadow: 0 0 0 4px rgba(168, 59, 50, .12), var(--shadow-s); }
+
+/* Leave the two navigation bars clear while retaining the game's floating timer. */
+.timer-float { top: auto; bottom: calc(14px + env(safe-area-inset-bottom)); }
+.footer { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
+
+@media (max-width: 860px) {
+  .nav__links { background: #2f4f6f; }
+}
+
+@media (max-width: 600px) {
+  .learning-site-header__inner { padding-right: 12px; padding-left: 12px; }
+  .learning-site-nav { width: 100%; gap: 2px 3px; }
+  .learning-site-nav a { padding-right: 8px; padding-left: 8px; font-size: 13px; }
+  .nav__brandtext strong { font-size: 16px; }
+}
+
+@media print { .learning-site-header { display: none; } }

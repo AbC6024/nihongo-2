@@ -948,6 +948,13 @@ rt{
 .foot-links span{color:var(--ink-3);opacity:.6}
 
 /* ---------------- responsive ---------------- */
+@media (max-width:960px){
+  .site-header .header-inner{height:auto;min-height:66px;flex-wrap:wrap;gap:6px 14px}
+  .site-header .site-menu{order:3;flex:1 0 100%}
+  .site-header .site-menu ul{flex-wrap:wrap;justify-content:center}
+  .site-header .site-menu li{flex:1 0 auto;min-width:0}
+  .site-header .header-tools{margin-left:auto}
+}
 @media (max-width:860px){
   .hero-inner{flex-direction:column;text-align:center;padding:40px 20px 46px}
   .hero-art{width:200px;height:200px;transform:scale(.88)}

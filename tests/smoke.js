@@ -501,7 +501,8 @@ function validateSeoAssets() {
     ['particles.html', `${publicOrigin}/particles.html`],
     ['gojuon.html', `${publicOrigin}/gojuon.html`],
     ['conjugation.html', `${publicOrigin}/conjugation.html`],
-    ['listening/index.html', `${publicOrigin}/listening/`]
+    ['listening/index.html', `${publicOrigin}/listening/`],
+    ['hiragana/index.html', `${publicOrigin}/hiragana/`]
   ];
 
   pages.forEach(([file, canonical]) => {
@@ -580,20 +581,22 @@ function validateStaticBuild() {
   ['server.js', 'render.yaml', 'package.json', 'tests', 'apps', 'node_modules']
     .forEach(file => assert(!fs.existsSync(path.join(ROOT, 'dist', file)), `Static build exposed private file ${file}`));
 
-  for (const file of ['index.html', 'particles.html', 'gojuon.html', 'conjugation.html']) {
+  for (const file of ['index.html', 'particles.html', 'gojuon.html', 'conjugation.html', 'hiragana/index.html']) {
     const source = fs.readFileSync(path.join(ROOT, file), 'utf8');
     assert.strictEqual(fs.readFileSync(path.join(ROOT, 'dist', file), 'utf8'), source,
       `${file}: direct hosting and static hosting must receive the same asset versions`);
     const assets = Array.from(source.matchAll(/(?:src|href)="((?:js|css)\/[^"?#]+)(\?[^"#]+)?"/g));
-    assert(assets.some(m => m[1] === 'js/catalog.js'), `${file}: shared game catalog must be loaded`);
+    assert(assets.some(m => m[1] === (file.startsWith('hiragana/') ? 'js/app.js' : 'js/catalog.js')),
+      `${file}: game entry must be loaded`);
     assets.forEach(([, asset, search]) => {
-      const content = fs.readFileSync(path.join(ROOT, asset), 'utf8').replace(/\r\n/g, '\n');
+      const assetPath = path.join(ROOT, path.dirname(file), asset);
+      const content = fs.readFileSync(assetPath, 'utf8').replace(/\r\n/g, '\n');
       const expected = createHash('sha256').update(content).digest('hex').slice(0, 12);
       assert.strictEqual(new URLSearchParams(search).get('v'), expected,
         `${file}: ${asset} must use its current content version instead of a stale cached file`);
     });
   }
-  const entries = ['index.html', 'particles.html', 'gojuon.html', 'conjugation.html'];
+  const entries = ['index.html', 'particles.html', 'gojuon.html', 'conjugation.html', 'hiragana/index.html'];
   const firstBuild = entries.map(file => fs.readFileSync(path.join(ROOT, file), 'utf8'));
   execFileSync(process.execPath, [path.join(ROOT, 'scripts', 'build-static.mjs')], {cwd: ROOT, stdio: 'ignore'});
   assert.deepStrictEqual(entries.map(file => fs.readFileSync(path.join(ROOT, file), 'utf8')), firstBuild,
@@ -608,6 +611,12 @@ function validateStaticBuild() {
   assert(!game.includes('/src/main.tsx'), 'Production listening page must load compiled assets');
   const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, 'dist/listening/manifest.webmanifest'), 'utf8'));
   assert.strictEqual(manifest.scope, './', 'Offline mode must stay within the listening game');
+  const adventure = fs.readFileSync(path.join(ROOT, 'dist/hiragana/index.html'), 'utf8');
+  assert(adventure.includes('../listening/'), 'The new game must preserve the listening navigation entry');
+  assert(adventure.includes('五十音大冒險'));
+  assert(!adventure.includes('fonts.googleapis.com'), 'The new game must use local fonts');
+  ['js/utils.js', 'js/data.js', 'js/matching.js', 'js/memory.js', 'js/sentence.js', 'js/app.js', 'css/style.css', 'css/site-theme.css']
+    .forEach(file => assert(fs.existsSync(path.join(ROOT, 'dist/hiragana', file)), `Adventure build is missing ${file}`));
 }
 
 function freePort() {
@@ -739,6 +748,12 @@ async function validateServer() {
     assert(result.headers['content-type'].startsWith('application/manifest+json'));
     result = await request(port, '/listening/data/vocabulary.sample.json');
     assert.strictEqual(result.status, 200, 'Public vocabulary sample must not be blocked as private leaderboard data');
+    result = await request(port, '/hiragana');
+    assert.strictEqual(result.status, 302);
+    assert.strictEqual(result.headers.location, '/hiragana/index.html');
+    result = await request(port, '/hiragana/index.html');
+    assert.strictEqual(result.status, 200);
+    assert(result.body.includes('五十音大冒險'));
 
     result = await request(port, '/robots.txt');
     assert.strictEqual(result.status, 200, 'robots.txt must be publicly available');
