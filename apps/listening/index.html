@@ -2,6 +2,14 @@
 <html lang="zh-Hant">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // 部分靜態主機直接回傳目錄首頁；先補齊斜線，讓相對資源路徑正確。
+      if (location.pathname.endsWith("/listening")) {
+        const target = new URL(location.href);
+        target.pathname += "/";
+        location.replace(target.href);
+      }
+    </script>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0"

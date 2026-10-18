@@ -7,12 +7,25 @@
 import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { runInNewContext } from "node:vm";
 
 const ROOT = resolve(__dirname, "..", "..");
 const read = (rel: string) => readFileSync(resolve(ROOT, rel), "utf8");
 const has = (rel: string) => existsSync(resolve(ROOT, rel));
 
 describe("PWA 資產存在", () => {
+  it("normalizes directory entry URLs while retaining query, hash and GitHub Pages prefixes", () => {
+    const script = read("index.html").match(/<script>\s*([\s\S]*?)\s*<\/script>/)?.[1];
+    expect(script).toBeTruthy();
+    for (const pathname of ["/listening", "/nihongo-2/listening", "/listening/", "/listening/index.html"]) {
+      const url = new URL(pathname + "?practice=1#/word", "https://example.com");
+      let replacement: string | undefined;
+      runInNewContext(script!, {URL, location:{href:url.href, pathname:url.pathname, replace:(href:string) => {replacement = href;}}});
+      if (pathname.endsWith('/listening')) {
+        expect(replacement).toBe(`https://example.com${pathname}/?practice=1#/word`);
+      } else expect(replacement).toBeUndefined();
+    }
+  });
   it("manifest.webmanifest 存在且是合法 JSON", () => {
     expect(has("public/manifest.webmanifest")).toBe(true);
     const manifest = JSON.parse(read("public/manifest.webmanifest"));

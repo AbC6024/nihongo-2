@@ -34,7 +34,7 @@ const PRECACHE_MANIFEST = [
   "./icons/icon-512.png",
   "./icons/icon-maskable-512.png"
 ];
-const CACHE_VERSION = "67fc66fa7b72";
+const CACHE_VERSION = "144607a88599";
 const SCOPE_URL = new URL(self.registration.scope);
 // 同網域可以有多款遊戲；版本更新不得刪除其他路徑的離線資料。
 const CACHE_PREFIX = `niiki-board-${encodeURIComponent(SCOPE_URL.pathname)}-`;
