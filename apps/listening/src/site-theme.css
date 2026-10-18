@@ -1,0 +1,197 @@
+/* The listening game keeps its own styles; these tokens join the site's washi palette. */
+:root {
+  --bg: #f4eee0;
+  --surface: #fbf7ee;
+  --surface-alt: #f7f1e5;
+  --ink: #2c2a26;
+  --ink-soft: #5d574d;
+  --ink-faint: #71685a;
+  --line: rgba(44, 42, 38, 0.18);
+  --accent: #365f85;
+  --accent-soft: #e8eef2;
+  --accent-ink: #2f4f6f;
+  --good: #4f7a4a;
+  --good-soft: #eef3e8;
+  --bad: #a83b32;
+  --bad-soft: #faece7;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow: 0 12px 28px -22px rgba(44, 42, 38, 0.45);
+  --site-serif: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP",
+    "Songti SC", "PMingLiU", "MingLiU", serif;
+}
+
+body {
+  background-image: radial-gradient(ellipse at 95% 0, rgba(77, 123, 166, 0.09), transparent 55%);
+}
+
+.learning-site-header {
+  border-bottom: 1px solid var(--line);
+  background: rgba(251, 247, 238, 0.85);
+}
+
+.learning-site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 24px;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 12px 20px 8px;
+}
+
+.learning-site-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  color: var(--ink);
+  text-decoration: none;
+  font-family: var(--site-serif);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.learning-site-brand__mark {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: linear-gradient(160deg, #fbf7ee, #e8dfcc);
+  color: #a83b32;
+  font-size: 20px;
+}
+
+.learning-site-brand small {
+  display: block;
+  color: var(--ink-soft);
+  font: 600 9px/1.4 var(--font);
+  letter-spacing: 0.16em;
+}
+
+.learning-site-nav,
+.listening-tools {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  min-width: 0;
+}
+
+.learning-site-nav a,
+.listening-tools a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.learning-site-nav a:hover,
+.listening-tools a:hover {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.learning-site-nav a[aria-current="page"] {
+  color: #a83b32;
+  box-shadow: inset 0 -2px #a83b32;
+}
+
+.learning-site-brand:focus-visible,
+.learning-site-nav a:focus-visible,
+.listening-tools a:focus-visible,
+.learning-site-footer a:focus-visible {
+  outline: 3px solid #4d7ba6;
+  outline-offset: 2px;
+}
+
+.topbar {
+  background: rgba(244, 238, 224, 0.95);
+}
+
+.topbar__title,
+.hero__title {
+  font-family: var(--site-serif);
+  letter-spacing: 0.08em;
+}
+
+.listening-tools {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 5px 16px 0;
+}
+
+.listening-tools a {
+  font-size: 0.8125rem;
+}
+
+.listening-tools a[aria-current="page"] {
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+  font-weight: 700;
+}
+
+.mode-card:hover:not(:disabled),
+.profile-entry:hover {
+  border-color: #4d7ba6;
+}
+
+.mode-card:first-child {
+  border-top: 3px solid #4d7ba6;
+}
+
+.mode-card:nth-child(5) {
+  border-top: 3px solid #a83b32;
+}
+
+.learning-site-footer {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 18px 16px calc(24px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.learning-site-footer p {
+  margin: 0 0 5px;
+}
+
+.learning-site-footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--accent-ink);
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .learning-site-header__inner {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .learning-site-nav {
+    width: 100%;
+    gap: 2px 3px;
+  }
+
+  .learning-site-nav a {
+    padding-right: 9px;
+    padding-left: 9px;
+    font-size: 0.8125rem;
+  }
+}

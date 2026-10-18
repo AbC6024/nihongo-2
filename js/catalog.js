@@ -37,6 +37,16 @@ JPQ.CATALOG = [
     detail: ['每次 6 題', '不限時間', '基礎變化', '初級Ⅱ變化']
   },
   {
+    slug: 'listening',
+    status: 'live',
+    thumb: 'listen',
+    title: '日語聽打',
+    titleEn: 'Kii Board',
+    href: 'listening/',
+    desc: '聞いボード：聽日文、打出答案，從 N5 到 N1 練習單字與句子，搭配錯題複習和每日挑戰。',
+    detail: ['N5～N1', '單字與句子', '錯題複習', '每日挑戰']
+  },
+  {
     slug: 'vocab',
     status: 'soon',
     thumb: 'cards',

@@ -55,7 +55,7 @@
     const steps = [
       { icon: '🧭', title: '挑一款遊戲', text: '點任何一張卡片就能開始，不用下載或安裝。' },
       { icon: '✏️', title: '一邊玩一邊記', text: '答錯會馬上跳出正確答案和原因，比看十次課本印象深。' },
-      { icon: '🌸', title: '回頭查速查表', text: '遊戲頁面下方永遠有一張助詞速查表可以隨時複習。' }
+      { icon: '🌸', title: '回頭複習', text: '助詞、五十音與動詞有速查表；聽打遊戲可以用錯題本與複習模式加強。' }
     ];
     box.innerHTML = steps.map((s, i) => `<div class="step-card">
       <span class="step-no">${['一', '二', '三'][i]}</span>

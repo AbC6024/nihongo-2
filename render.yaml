@@ -25,6 +25,9 @@ services:
       - path: /*
         name: Referrer-Policy
         value: strict-origin-when-cross-origin
+      - path: /listening/sw.js
+        name: Cache-Control
+        value: no-cache, max-age=0, must-revalidate
 
   # 原本的免費 Web Service 只負責排行榜 API；休眠不影響頁面與 Google 收錄。
   - type: web
@@ -37,7 +40,7 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
-        value: "20"
+        value: "24"
       - key: NODE_ENV
         value: production
       # 填入後排行榜就會永久保存（免費額度 500K 指令/月）

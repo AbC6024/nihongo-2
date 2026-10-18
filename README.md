@@ -1,10 +1,11 @@
 # 遊戲學日語 · Games to Learn Japanese
 
-用一款款小遊戲練日語。目前有三款：
+用一款款小遊戲練日語。目前有四款：
 
 - **助詞大冒險**（`particles.html`）— は・が・の・を・に・で・と・も 八大主題助詞，四種玩法
 - **動詞變化練習**（`conjugation.html`）— 初級Ⅰ、Ⅱ程度，每次只練一種變化，6 題、不計時、3 選 1
 - **五十音圖**（`gojuon.html`）— 看字選音、看音選字、聽音辨識、配對記憶，每款都能切換字集
+- **日語聽打・聞いボード**（`listening/`）— N5～N1 單字與句子聽打，包含錯題本、重點複習、每日挑戰與練習分析
 
 ## 本機執行
 
@@ -15,7 +16,24 @@ node server.js 8080     # 換埠號
 
 開啟 <http://localhost:8000>。同一個 Wi-Fi 的手機／平板可以用啟動畫面顯示的區網網址連進來。
 
-需要 Node.js 18 以上，不需要安裝任何 npm 套件。
+既有三款遊戲及已建置的 `listening/` 可直接用 Node.js 18 以上執行。修改、測試或重新建置整合專案請使用 Node.js 24.15 以上，並先安裝依賴：
+
+```powershell
+npm install
+npm run build:games     # 將 apps/listening 的原始碼建置至 listening/
+npm run build           # 重新建置聽打，再產生完整靜態網站 dist/
+npm run build:static    # 將已保存的發佈版本打包成 dist/（雲端部署使用）
+```
+
+`listening/` 是會隨專案保存的發佈版本，請勿直接修改其中的產物；遊戲原始碼位於 `apps/listening/`。修改原始碼後執行 `npm run build` 並一併提交產物，讓 Render 與 GitHub Pages 使用相同版本；雲端的靜態打包流程不需要安裝聽打開發套件。
+
+## 日語聽打整合
+
+首頁、主選單及頁尾都提供「日語聽打」入口；遊戲以 `/listening/` 為獨立路徑，保留原有單字／句子模式、錯題本、每日挑戰、分析及設定。返回首頁可繼續使用助詞、動詞與五十音遊戲。
+
+聽打遊戲的設定、錯題和遊玩紀錄使用自己的 `niiki.*` 儲存鍵，既有遊戲的星星與紀錄各自保留。首頁的學習紀錄與排行榜仍顯示原有遊戲；聽打紀錄可在日語聽打內查看。
+
+目前題庫以瀏覽器 Web Speech API 的日文機器語音播放；這不是已驗證的真人錄音或 OJAD 聲調音檔。實際聲音取決於裝置上的日文語音支援。題庫來源與授權說明保留在 `apps/listening/DATA_SOURCE.md`，匯入外部題目或音檔時仍須自行確認授權。
 
 ## 檢查遊戲
 
@@ -154,6 +172,8 @@ index.html            遊戲總覽
 particles.html        助詞大冒險
 conjugation.html      動詞活用大冒險
 gojuon.html           五十音圖
+listening/            日語聽打的已建置發佈版本
+apps/listening/       聞いボード原始碼、測試及資料來源說明
 server.js             靜態伺服器 + 排行榜 API
 css/home.css          總覽頁樣式
 css/style.css         遊戲介面樣式

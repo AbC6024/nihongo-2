@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="聞いボード">
+  <rect width="512" height="512" rx="112" fill="#c2410c"/>
+  <g fill="#ffffff">
+    <rect x="118" y="189" width="38" height="134" rx="19"/>
+    <rect x="176" y="150" width="38" height="212" rx="19"/>
+    <rect x="237" y="121" width="38" height="270" rx="19"/>
+    <rect x="298" y="150" width="38" height="212" rx="19"/>
+    <rect x="356" y="189" width="38" height="134" rx="19"/>
+  </g>
+  <rect x="150" y="352" width="212" height="18" rx="9" fill="#ffedd5" opacity="0.6"/>
+</svg>

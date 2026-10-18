@@ -499,12 +499,13 @@ function validateSeoAssets() {
     ['index.html', `${publicOrigin}/`],
     ['particles.html', `${publicOrigin}/particles.html`],
     ['gojuon.html', `${publicOrigin}/gojuon.html`],
-    ['conjugation.html', `${publicOrigin}/conjugation.html`]
+    ['conjugation.html', `${publicOrigin}/conjugation.html`],
+    ['listening/index.html', `${publicOrigin}/listening/`]
   ];
 
   pages.forEach(([file, canonical]) => {
     const source = fs.readFileSync(path.join(ROOT, file), 'utf8');
-    assert(source.includes(`<link rel="canonical" href="${canonical}">`), `${file} is missing its canonical URL`);
+    assert(source.includes(`rel="canonical" href="${canonical}"`), `${file} is missing its canonical URL`);
     assert(source.includes('property="og:title"'), `${file} is missing Open Graph metadata`);
     const structuredData = source.match(/<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/);
     assert(structuredData, `${file} is missing structured data`);
@@ -575,8 +576,18 @@ function validateStaticBuild() {
     'robots.txt', 'sitemap.xml', 'google9c5c7b9e4d268263.html',
     path.join('css', 'style.css'), path.join('js', 'leaderboard.js')]
     .forEach(file => assert(fs.existsSync(path.join(ROOT, 'dist', file)), `Static build is missing ${file}`));
-  ['server.js', 'render.yaml', 'package.json', 'tests']
+  ['server.js', 'render.yaml', 'package.json', 'tests', 'apps', 'node_modules']
     .forEach(file => assert(!fs.existsSync(path.join(ROOT, 'dist', file)), `Static build exposed private file ${file}`));
+
+  const game = fs.readFileSync(path.join(ROOT, 'dist/listening/index.html'), 'utf8');
+  const assets = Array.from(game.matchAll(/(?:src|href)="(\.\/assets\/[^"#?]+)"/g), match => match[1]);
+  assert(assets.length >= 2, 'Listening game needs both built JavaScript and styles');
+  assets.forEach(file => assert(fs.existsSync(path.join(ROOT, 'dist/listening', file)), `Listening build is missing ${file}`));
+  ['sw.js', 'manifest.webmanifest', 'DATA_SOURCE.md', 'data/vocabulary.sample.json', 'icons/icon-192.png'].forEach(file =>
+    assert(fs.existsSync(path.join(ROOT, 'dist/listening', file)), `Listening build is missing ${file}`));
+  assert(!game.includes('/src/main.tsx'), 'Production listening page must load compiled assets');
+  const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, 'dist/listening/manifest.webmanifest'), 'utf8'));
+  assert.strictEqual(manifest.scope, './', 'Offline mode must stay within the listening game');
 }
 
 function freePort() {
@@ -694,6 +705,20 @@ async function validateServer() {
 
     result = await request(port, '/server.js');
     assert.strictEqual(result.status, 403, 'Private source files must not be served');
+
+    result = await request(port, '/apps/listening/src/App.tsx');
+    assert.strictEqual(result.status, 403, 'Imported development source must not be served');
+    result = await request(port, '/listening');
+    assert.strictEqual(result.status, 302, 'Directory entry must redirect to a relative-assets-safe URL');
+    assert.strictEqual(result.headers.location, '/listening/index.html');
+    result = await request(port, '/listening/index.html');
+    assert.strictEqual(result.status, 200);
+    assert(result.body.includes('聞いボード'));
+    result = await request(port, '/listening/manifest.webmanifest');
+    assert.strictEqual(result.status, 200);
+    assert(result.headers['content-type'].startsWith('application/manifest+json'));
+    result = await request(port, '/listening/data/vocabulary.sample.json');
+    assert.strictEqual(result.status, 200, 'Public vocabulary sample must not be blocked as private leaderboard data');
 
     result = await request(port, '/robots.txt');
     assert.strictEqual(result.status, 200, 'robots.txt must be publicly available');

@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outputDir = path.join(projectRoot, 'dist');
-const publicDirectories = ['css', 'js'];
+const publicDirectories = ['css', 'js', 'listening'];
 const publicFiles = ['robots.txt', 'sitemap.xml'];
 
 fs.rmSync(outputDir, { recursive: true, force: true });

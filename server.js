@@ -50,6 +50,8 @@ const MIME = {
   '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
+  '.md': 'text/plain; charset=utf-8',
   '.xml': 'application/xml; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
@@ -384,7 +386,7 @@ const PRIVATE_FILES = new Set([
   'render.yaml', 'fly.toml', 'procfile', 'railway.json', 'nixpacks.toml',
   'dockerfile', '.gitignore', '.env', '.npmrc', 'readme.md'
 ]);
-const PRIVATE_DIRS = new Set(['data', 'node_modules', '.git', '.github']);
+const PRIVATE_DIRS = new Set(['data', 'node_modules', 'apps', 'scripts', 'tests', '.git', '.github']);
 
 function isPrivatePath(filePath) {
   const rel = path.relative(ROOT, path.resolve(filePath));

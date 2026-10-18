@@ -1,0 +1,55 @@
+{
+  "name": "聞いボード — 聞いて、打って、覚えよう。",
+  "short_name": "聞いボード",
+  "description": "1〜3分の日本語タイピング練習。N5〜N1 の単語と文を聞いて、打って、覚えるゲーム。",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f7f5f0",
+  "theme_color": "#4d7ba6",
+  "lang": "zh-Hant",
+  "dir": "ltr",
+  "categories": ["education", "games"],
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "快速單字",
+      "short_name": "單字",
+      "url": "./#/word",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "句子填空",
+      "short_name": "句子",
+      "url": "./#/sentence",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "今日挑戰",
+      "short_name": "挑戰",
+      "url": "./#/daily",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}
