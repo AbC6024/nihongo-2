@@ -114,10 +114,8 @@
     }
 
     const live = (JPQ.CATALOG || []).filter(g => g.status === 'live').length;
-    const soon = (JPQ.CATALOG || []).length - live;
     box.innerHTML = `
       <span class="stat-chip">🎮 <b>${live}</b> 款遊戲上線</span>
-      <span class="stat-chip">🌱 <b>${soon}</b> 款製作中</span>
       <span class="stat-chip">📚 免費・免安裝・離線可玩</span>
       <span class="stat-chip">🔒 進度只存在你的電腦</span>`;
   }
