@@ -5,8 +5,7 @@
   const NAMES = { 'は':'主題', 'が':'主語', 'を':'動作的對象', 'に':'方向・對象', 'で':'場所・方法', 'と':'和・一起', 'も':'也', 'の':'所屬・修飾' };
   const FORMS = [
     ['te','て形',1], ['nai','ない形',2], ['base','辞書形',3], ['ta','た形',4],
-    ['masu','ます形',12], ['masen','ません',13], ['mashita','ました',14], ['masendeshita','ませんでした',15],
-    ['nakatta','なかった形',16], ['mashimashou','ましょう',17], ['masenka','ませんか',18], ['tara','たら形',19]
+    ['masu','ます形',12]
   ];
   const GAMES = { quiz:'助詞選擇題', speed:'助詞搶答', scramble:'助詞拼圖', match:'助詞配對',
     'verb-quiz':'動詞變化練習', 'verb-speed':'動詞搶答', 'verb-scramble':'動詞拼圖', 'verb-match':'動詞配對',

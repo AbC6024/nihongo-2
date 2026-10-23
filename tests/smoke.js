@@ -394,16 +394,26 @@ function validateVerbLevels() {
   const JPQ = loadData().JPQ;
   const verb = JPQ.verb;
 
-  const allowedForms = ['te', 'nai', 'base', 'ta', 'masu', 'masen', 'mashita', 'masendeshita', 'nakatta',
-    'mashimashou', 'masenka', 'tara'];
+  const allowedForms = ['te', 'nai', 'base', 'ta', 'masu'];
+  const removedForms = ['masen', 'mashita', 'masendeshita', 'nakatta', 'mashimashou', 'masenka', 'tara',
+    'dekita', 'you', 'meirei', 'kinshi', 'kate', 'ukerare', 'saseru', 'darou'];
   const vocab = JPQ.verbStudy.VOCAB;
-  assert(Array.isArray(vocab) && vocab.length >= 20, 'Practice needs a curated textbook vocabulary pool');
+  assert(Array.isArray(vocab) && vocab.length === 132, 'Practice must retain the 132 audited textbook verbs');
   assert.strictEqual(JPQ.VERB_LEVELS.length, allowedForms.length, 'Only the agreed beginner forms may be practiced');
   assert.deepStrictEqual(Array.from(JPQ.VERB_LEVELS.slice(0, 4), l => l.forms[0]), allowedForms.slice(0, 4),
     'Existing topic IDs must keep their meaning for saved progress and links');
-  [5, 6, 7, 8, 9, 10, 11].forEach(no => assert(!JPQ.VERB_LEVELS.some(level => level.no === no),
-    `Out-of-scope legacy topic ${no} must not be reused`));
+  [5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19].forEach(no => {
+    assert(!JPQ.VERB_LEVELS.some(level => level.no === no), `Out-of-scope legacy topic ${no} must not be reused`);
+    assert.strictEqual(JPQ.verbStudy.configFor(`#/play/verb-quiz/${no}`), null,
+      `Removed topic ${no} must not start a round through an old link`);
+  });
   assert.deepStrictEqual(Array.from(JPQ.VERB_LEVELS, l => l.forms[0]).sort(), allowedForms.slice().sort());
+  assert.deepStrictEqual(Array.from(JPQ.verbStudy.FORM_KEYS), allowedForms);
+  removedForms.forEach(key => {
+    assert.strictEqual(JPQ.verbGame.build({ forms: [key] }).length, 0, `Removed form ${key} must not create questions`);
+    assert.strictEqual(JPQ.verbStudy.configFor(`#/play/verb-quiz/${key}`), null,
+      `Removed form ${key} must not start a round through a direct link`);
+  });
   assert.strictEqual(new Set(vocab.map(v => v.id || v.kana)).size, vocab.length, 'Vocabulary entries must not duplicate verbs');
   vocab.forEach(v => {
     assert([1, 2].includes(v.book), `${v.kana}: textbook volume must be 1 or 2`);
@@ -886,7 +896,8 @@ function validateVerbUI() {
   const choices = nodes['#verbSheet'].innerHTML;
   JPQ.VERB_LEVELS.forEach(level =>
     assert(choices.includes(`value="${level.forms[0]}"`), `Missing beginner form option ${level.forms[0]}`));
-  ['dekita', 'you', 'meirei', 'kinshi', 'kate', 'ukerare', 'saseru'].forEach(key =>
+  ['masen', 'mashita', 'masendeshita', 'nakatta', 'mashimashou', 'masenka', 'tara',
+    'dekita', 'you', 'meirei', 'kinshi', 'kate', 'ukerare', 'saseru'].forEach(key =>
     assert(!choices.includes(`value="${key}"`), `Out-of-scope form ${key} appeared in settings`));
 
   /* 遊戲卡片的縮圖樣式必須在 site.js 的表裡，否則首頁會畫不出縮圖 */

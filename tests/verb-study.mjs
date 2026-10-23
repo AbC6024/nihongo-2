@@ -6,9 +6,11 @@ import { JSDOM, VirtualConsole } from 'jsdom';
 
 const root = new URL('../', import.meta.url);
 const source = file => readFileSync(new URL(file, root), 'utf8');
-const forms = ['te', 'nai', 'base', 'ta', 'masu', 'masen', 'mashita', 'masendeshita', 'nakatta',
-  'mashimashou', 'masenka', 'tara'];
-const topicNumbers = [1, 2, 3, 4, 12, 13, 14, 15, 16, 17, 18, 19];
+const forms = ['te', 'nai', 'base', 'ta', 'masu'];
+const removedForms = ['masen', 'mashita', 'masendeshita', 'nakatta', 'mashimashou', 'masenka', 'tara'];
+const advancedForms = ['dekita', 'you', 'meirei', 'kinshi', 'kate', 'ukerare', 'saseru', 'darou'];
+const topicNumbers = [1, 2, 3, 4, 12];
+const removedTopicNumbers = [5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19];
 const types = ['godan', 'ichidan', 'suru', 'kuru'];
 const verbIdentity = verb => verb.id || verb.kana;
 
@@ -41,6 +43,7 @@ test('textbook vocabulary retains lesson provenance, two volumes, and distinct v
   const J = dataHarness();
   const vocab = J.verbStudy.VOCAB;
   assert.equal(vocab, J.verbVocab.VERBS, 'The study pool must use the audited vocabulary alias');
+  assert.equal(vocab.length, 132, 'Reducing the form range must retain the audited textbook vocabulary');
   assert.equal(new Set(vocab.map(verbIdentity)).size, vocab.length);
   [1, 2].forEach(book => assert.ok(vocab.filter(v => v.book === book).length >= 10, `Volume ${book} needs at least ten verbs`));
   vocab.forEach(v => {
@@ -50,13 +53,14 @@ test('textbook vocabulary retains lesson provenance, two volumes, and distinct v
     assert.ok(types.includes(v.type));
   });
   assert.deepEqual(Array.from(J.verbStudy.LESSONS, lesson => lesson.forms[0]).sort(), forms.slice().sort());
+  assert.deepEqual(Array.from(J.verbStudy.FORM_KEYS), forms, 'The public practice allowlist must contain only five basic forms');
   J.verbStudy.LESSONS.forEach((lesson, i) => {
     assert.equal(lesson.no, topicNumbers[i]);
     assert.equal(lesson.count, 10);
   });
 });
 
-test('new beginner forms have independent fixed answers including ordinary negative past and tara', () => {
+test('the underlying conjugation engine retains fixed answers independently of the public practice range', () => {
   const J = dataHarness();
   const answers = [
     ['かく', 'かきます', 'かきません', 'かきました', 'かきませんでした', 'かかなかった', 'かきましょう', 'かきませんか', 'かいたら'],
@@ -85,7 +89,7 @@ test('default mixed draw uses ten distinct textbook verbs and can draw both volu
     questions.forEach(q => { books.add(q.verb.book); seenForms.add(q.key); });
   }
   assert.deepEqual([...books].sort(), [1, 2]);
-  assert.ok(seenForms.size > 1, 'Mixed practice must draw more than one target form');
+  assert.deepEqual([...seenForms].sort(), forms.slice().sort(), 'Mixed practice must draw only the five basic forms');
 });
 
 test('every beginner form and either textbook volume produces a complete non-repeating round', () => {
@@ -112,14 +116,20 @@ test('an extreme random source cannot stall the ten-verb draw', { timeout: 3000 
 
 test('out-of-scope forms cannot be requested and round length stays fixed at ten', () => {
   const J = dataHarness();
-  ['dekita', 'you', 'meirei', 'kinshi', 'kate', 'ukerare', 'saseru', 'darou'].forEach(key => {
+  [...removedForms, ...advancedForms].forEach(key => {
     assert.equal(J.verbGame.build({ book: 'all', forms: [key], count: 10, types }).length, 0,
       `Explicit out-of-scope form ${key} must not fall back to a different practice`);
+    ['all', '1', '2'].forEach(book => assert.equal(J.verbStudy.configFor(`#/play/verb-quiz/${key}/${book}`), null,
+      `Removed form route ${key}/${book} must not produce a practice config`));
   });
+  removedTopicNumbers.forEach(no => ['all', '1', '2'].forEach(book => {
+    assert.equal(J.verbStudy.configFor(`#/play/verb-quiz/${no}/${book}`), null,
+      `Removed topic route ${no}/${book} must not produce a practice config`);
+  }));
   [3, 99].forEach(count => validateRound(J, J.verbGame.build({ book: 'all', forms, count, types })));
 });
 
-test('the shared pool excludes advanced forms and non-textbook verbs', () => {
+test('the shared pool excludes removed forms, advanced forms, and non-textbook verbs', () => {
   const J = dataHarness();
   const pool = J.verbGame.poolAll();
   assert.ok(pool.length > 100);
@@ -132,6 +142,7 @@ test('the shared pool excludes advanced forms and non-textbook verbs', () => {
     assert.ok(J.verbStudy.VOCAB.includes(q.verb));
     assert.equal(new Set([q.a, ...q.opts]).size, 3);
   });
+  assert.deepEqual([...new Set(pool.map(q => q.key))].sort(), forms.slice().sort());
 });
 
 async function uiHarness() {
@@ -187,6 +198,13 @@ test('the shipped practice settings default to both books and mixed forms, with 
   try {
     assert.equal(h.query('#verbBook').value, 'all');
     assert.equal(h.query('#verbForm').value, 'mixed');
+    assert.deepEqual([...h.query('#verbForm').options].map(option => option.value), ['mixed', ...forms],
+      'Settings must offer mixed practice plus exactly five basic forms');
+    assert.deepEqual([...h.query('#vbStudyForm').options].map(option => option.value), forms,
+      'The reference sheet must expose the same five basic forms');
+    [...removedForms, ...advancedForms].forEach(key => {
+      assert.ok(!h.document.querySelector(`a[href*="/verb-quiz/${key}"]`), `Removed form ${key} must not have a topic link`);
+    });
     assert.ok(h.query('#view-home').textContent.includes('10'));
     assert.ok(!/6\s*題/.test(h.query('#view-home').textContent));
     h.submit();
@@ -211,7 +229,7 @@ test('compound verbs and katakana keep correct spelling and furigana in question
   try {
     [
       ['買い物する', 'te', '買[か]い物[もの]して'],
-      ['買い物する', 'nakatta', '買[か]い物[もの]しなかった'],
+      ['買い物する', 'nai', '買[か]い物[もの]しない'],
       ['乗り換える', 'te', '乗[の]り換[か]えて'],
       ['コピーする', 'te', 'コピーして']
     ].forEach(([id, key, expected]) => {
@@ -237,9 +255,9 @@ test('ten answers finish once; retry, settings, and leaving do not duplicate rou
   const h = await uiHarness();
   try {
     h.query('#verbBook').value = '2';
-    h.query('#verbForm').value = 'nakatta';
+    h.query('#verbForm').value = 'nai';
     h.submit();
-    validateRound(h.J, h.rounds.at(-1), '2', ['nakatta']);
+    validateRound(h.J, h.rounds.at(-1), '2', ['nai']);
     for (let i = 0; i < 10; i++) {
       const option = h.answer(i, i !== 3);
       option.click();
@@ -254,7 +272,7 @@ test('ten answers finish once; retry, settings, and leaving do not duplicate rou
     assert.deepEqual(h.runs, [['verb-quiz', 10, 9]]);
     h.query('#verbRetry').click();
     assert.equal(h.rounds.length, 2);
-    validateRound(h.J, h.rounds.at(-1), '2', ['nakatta']);
+    validateRound(h.J, h.rounds.at(-1), '2', ['nai']);
     assert.equal(h.runs.length, 1);
     h.answer(0);
     h.route('#/');
@@ -268,17 +286,17 @@ test('ten answers finish once; retry, settings, and leaving do not duplicate rou
   } finally { h.close(); }
 });
 
-test('old topic links still start ten questions with their original target form', async () => {
+test('basic topic links retain ten-question rounds and removed topic links cannot start questions', async () => {
   const h = await uiHarness();
   try {
-    [1, 4, 12, 19].forEach(no => {
+    topicNumbers.forEach(no => {
       h.route(`#/play/verb-quiz/${no}`);
       validateRound(h.J, h.rounds.at(-1), 'all', [forms[topicNumbers.indexOf(no)]]);
     });
-    [5, 6, 7, 8, 9, 10, 11].forEach(no => {
+    [...removedTopicNumbers, ...removedForms, ...advancedForms].forEach(no => {
       const before = h.rounds.length;
       h.route(`#/play/verb-quiz/${no}`);
-      assert.equal(h.rounds.length, before, `Removed advanced topic ${no} must not create questions`);
+      assert.equal(h.rounds.length, before, `Removed topic ${no} must not create questions`);
       const choose = h.query('#stage #verbChoose');
       assert.ok(choose, 'Removed advanced links should provide a return to practice settings');
       choose.click(); h.settle();

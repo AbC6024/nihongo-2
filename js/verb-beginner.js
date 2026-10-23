@@ -7,14 +7,7 @@
     [2, 'nai', 'ない形', '普通體的否定', '書きます → 書かない', 17, 'plain'],
     [3, 'base', '辞書形', '字典裡的原形', '書きます → 書く', 18, 'plain'],
     [4, 'ta', 'た形', '普通體的過去', '書きます → 書いた', 19, 'plain'],
-    [12, 'masu', 'ます形', '禮貌地說明動作', '書く → 書きます', 4, 'polite'],
-    [13, 'masen', 'ません', '禮貌地表示不做', '書きます → 書きません', 4, 'polite'],
-    [14, 'mashita', 'ました', '禮貌地表示做過了', '書きます → 書きました', 4, 'polite'],
-    [15, 'masendeshita', 'ませんでした', '禮貌地表示過去沒做', '書きます → 書きませんでした', 4, 'polite'],
-    [16, 'nakatta', 'なかった形', '普通體的過去否定', '書きます → 書かなかった', 20, 'plain'],
-    [17, 'mashimashou', 'ましょう', '提議一起做', '書きます → 書きましょう', 6, 'phrase'],
-    [18, 'masenka', 'ませんか', '邀請對方一起做', '書きます → 書きませんか', 6, 'phrase'],
-    [19, 'tara', 'たら形', '表示「如果……」的條件', '書きます → 書いたら', 25, 'phrase']
+    [12, 'masu', 'ます形', '禮貌地說明動作', '書く → 書きます', 4, 'polite']
   ];
   const TYPES = ['godan', 'ichidan', 'suru', 'kuru'];
   const LESSONS = topics.map(t => ({
@@ -37,7 +30,7 @@
     return {
       no: lesson ? lesson.no : null, key: lesson ? lesson.forms[0] : 'mixed',
       title: lesson ? lesson.title : '綜合變化',
-      sub: lesson ? lesson.sub : '混合第 1～25 課的基本變化',
+      sub: lesson ? lesson.sub : '混合 5 種基本動詞變化',
       forms: lesson ? lesson.forms.slice() : FORM_KEYS.slice(),
       types: TYPES.slice(), count: 10, book
     };
@@ -97,13 +90,12 @@
 
   function topicsHTML(book = 'all') {
     if (!['all', '1', '2'].includes(String(book))) book = 'all';
-    const cards = group => LESSONS.filter(l => l.group === group).map(l =>
+    const cards = LESSONS.map(l =>
       `<a class="level-btn" href="#/play/verb-quiz/${l.forms[0]}/${book}">
         <strong>${l.title}</strong><small>${l.sub}</small>
         <span class="vb-topic-example">${l.example}</span><small>第 ${l.lesson} 課 · 隨機 10 題 →</small>
       </a>`).join('');
-    return [['polite', 'ます形與禮貌體'], ['plain', '普通形與て形'], ['phrase', '邀請與條件']]
-      .map(([group, title]) => `<h3 class="vb-h3">${title}</h3><div class="level-grid">${cards(group)}</div>`).join('');
+    return '<div class="level-grid">' + cards + '</div>';
   }
   JPQ.verbStudy = { LESSONS, FORM_KEYS, VOCAB: JPQ.verbVocab.VERBS, tip, topicsHTML, lessonFor, configFor };
 })(window);
