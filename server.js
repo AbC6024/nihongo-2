@@ -7,6 +7,8 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { createGoogleTtsService } = require('./server/google-tts');
+const googleTts = createGoogleTtsService();
 
 const ROOT = __dirname;
 const PORT = Number(process.argv[2]) || Number(process.env.PORT) || 8000;
@@ -270,6 +272,33 @@ async function handleAPI(req, res, urlPath) {
     return;
   }
 
+  /* ---- GET /api/tts（Google 日語／中文朗讀；固定上游、有限快取） ---- */
+  if (req.method === 'GET' && urlPath === '/api/tts') {
+    let query;
+    try { query = new URL(req.url, 'http://localhost').searchParams; }
+    catch (_) { sendJSON(res, 400, { ok: false, error: '朗讀請求格式錯誤。' }); return; }
+    try {
+      const result = await googleTts.synthesize(query.get('text'), query.has('lang') ? query.get('lang') : 'ja');
+      res.writeHead(200, {
+        'Content-Type': result.contentType,
+        'Content-Length': result.audio.length,
+        'Cache-Control': 'public, max-age=86400',
+        'Access-Control-Allow-Origin': '*',
+        'Cross-Origin-Resource-Policy': 'cross-origin',
+        'X-Content-Type-Options': 'nosniff'
+      });
+      // A complete 200 response is valid even when HTMLAudio sends a Range request.
+      res.end(result.audio);
+    } catch (error) {
+      const status = [400, 429, 502].includes(error.statusCode) ? error.statusCode : 502;
+      const message = status === 400 ? '朗讀文字或語言格式不正確。'
+        : status === 429 ? '目前朗讀人數較多，請稍後重試。'
+          : '語音服務暫時無法使用，請稍後重試。';
+      sendJSON(res, status, { ok: false, error: message });
+    }
+    return;
+  }
+
   /* ---- GET /api/health（平台健康檢查用） ---- */
   if (req.method === 'GET' && urlPath === '/api/health') {
     let writable = false;
@@ -386,7 +415,7 @@ const PRIVATE_FILES = new Set([
   'render.yaml', 'fly.toml', 'procfile', 'railway.json', 'nixpacks.toml',
   'dockerfile', '.gitignore', '.env', '.npmrc', 'readme.md'
 ]);
-const PRIVATE_DIRS = new Set(['data', 'node_modules', 'apps', 'scripts', 'tests', '.git', '.github']);
+const PRIVATE_DIRS = new Set(['data', 'node_modules', 'apps', 'scripts', 'tests', 'server', '.git', '.github']);
 
 function isPrivatePath(filePath) {
   const rel = path.relative(ROOT, path.resolve(filePath));

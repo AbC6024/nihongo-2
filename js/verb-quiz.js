@@ -16,6 +16,7 @@
   }
 
   function showLevels(stage) {
+    if (JPQ.tts) JPQ.tts.stop();
     clearKeys(); state = null;
     stage.innerHTML = `<div class="panel narrow vb-empty"><p class="eyebrow">PRACTICE</p>
       <h2>先選今天的練習</h2><p>從初級Ⅰ、Ⅱ的收錄動詞抽出 10 題，可綜合練習，也可指定一種變化。</p>
@@ -26,6 +27,7 @@
   }
 
   function startRound(config, stage) {
+    if (JPQ.tts) JPQ.tts.stop();
     clearKeys();
     const qs = JPQ.verbGame.build(config);
     if (qs.length !== 10) {
@@ -39,6 +41,7 @@
   }
 
   function renderQuestion(stage) {
+    if (JPQ.tts) JPQ.tts.stop();
     clearKeys(); state.answered = false;
     const q = state.qs[state.i]; state.q = q;
     const lesson = lessonFor(q.key);
@@ -46,10 +49,11 @@
     stage.innerHTML = `<div class="panel vb-question">
       <div class="vb-question-head"><span class="vb-origin">${origin(q.verb)}</span>
         <span class="vb-question-number">第 ${state.i + 1} / 10 題</span></div>
-      <div class="q-sentence"><span class="vb-word">${ruby(q.from)}</span><span class="vb-arrow" aria-label="變成">→</span>
+      <div class="q-sentence"><span class="vb-word"><button type="button" class="tts-text" data-tts-text="${U.escapeHTML(JPQ.verb.conjugate(q.verb, q.fromKey))}" aria-label="朗讀題目動詞">${ruby(q.from)}<span class="tts-icon" aria-hidden="true">🔊</span></button></span><span class="vb-arrow" aria-label="變成">→</span>
         <span class="vb-form">${lesson.title}</span></div>
       <div class="q-zh">${U.escapeHTML(q.zh)}</div>
       <p class="vb-question-prompt">請選出正確的${lesson.title}</p>
+      <p class="tts-note">點日文聽發音</p>
       <div class="opt-grid vb-options">${opts.map((o, i) => `<button type="button" class="opt" data-o="${U.escapeHTML(o)}">
         <span class="key" aria-hidden="true">${i + 1}</span><span class="vb-option-text">${ruby(JPQ.verb.displayKana(q.verb, o))}</span></button>`).join('')}</div>
       <p class="vb-key-hint">鍵盤 1～3 作答，Enter 前往下一題</p>
@@ -58,6 +62,7 @@
     </div>`;
     JPQ.hud.set(titleFor(state.config), bookName(String(state.config.book)) + ' · 每輪 10 題');
     JPQ.hud.progress(state.i / 10); paint();
+    if (JPQ.tts) JPQ.tts.bind(stage);
     U.$$('.opt', stage).forEach(btn => btn.addEventListener('click', () => answer(btn, stage)));
     U.$('#nextBtn', stage).addEventListener('click', () => { JPQ.sfx.click(); next(stage); });
     unkey = JPQ.onKey(e => {
@@ -77,6 +82,7 @@
     if (!state || state.finished || state.answered) return;
     state.answered = true;
     const pick = btn.dataset.o, q = state.q, ok = pick === q.a;
+    if (JPQ.tts) JPQ.tts.say(pick, { trigger: btn });
     state.answers.push({ q: q, pick: pick, ok: ok });
     U.$$('.opt', stage).forEach(b => {
       b.disabled = true;
@@ -90,7 +96,9 @@
     fb.className = 'fb show ' + (ok ? 'ok' : 'no');
     fb.innerHTML = `<strong>${ok ? '答對了！' : '再記一次這個變化'}</strong>
       <p class="vb-answer">${ruby(q.from)} → ${ruby(JPQ.verb.displayKana(q.verb, q.a))}</p>
-      <p class="vb-tip">${U.escapeHTML(JPQ.verbStudy.tip(q.verb, q.key))}</p><p>${lessonFor(q.key).sub}</p>`;
+      <p class="vb-tip">${U.escapeHTML(JPQ.verbStudy.tip(q.verb, q.key))}</p><p>${lessonFor(q.key).sub}</p>
+      ${JPQ.tts ? JPQ.tts.control(q.a, '聽正確答案') : ''}`;
+    if (JPQ.tts) JPQ.tts.bind(fb);
     U.$('#nextRow', stage).hidden = false;
     U.$('#nextBtn', stage).focus({ preventScroll: true }); paint();
   }
@@ -107,11 +115,13 @@
       <p class="vb-review-origin">${U.escapeHTML(a.q.zh)} · ${origin(a.q.verb)}</p>
       ${!a.ok ? `<p class="vb-picked">你的答案：${ruby(JPQ.verb.displayKana(a.q.verb, a.pick))}</p>` : ''}
       <p class="vb-correct-answer">正確答案：${ruby(JPQ.verb.displayKana(a.q.verb, a.q.a))}</p>
+      ${JPQ.tts ? JPQ.tts.control(a.q.a, '聽正確答案') : ''}
       <p class="vb-tip">${U.escapeHTML(JPQ.verbStudy.tip(a.q.verb, a.q.key))}</p></li>`).join('');
   }
 
   function finish(stage) {
     if (!state || state.finished) return;
+    if (JPQ.tts) JPQ.tts.stop();
     state.finished = true; clearKeys();
     const config = state.config, right = 10 - state.wrong;
     const stars = right === 10 ? 3 : right >= 8 ? 2 : 1;
@@ -132,6 +142,7 @@
       <details class="vb-review" ${wrongAnswers.length ? 'open' : ''}>
         <summary>${wrongAnswers.length ? '錯題複習 · ' + wrongAnswers.length + ' 題' : '回顧本輪的 10 題'}</summary>
         <ol id="verbReview">${reviewHTML(wrongAnswers.length ? wrongAnswers : state.answers)}</ol></details></section>`;
+    if (JPQ.tts) JPQ.tts.bind(stage);
     U.$('#verbRetry', stage).addEventListener('click', () => { JPQ.sfx.click(); startRound(config, stage); global.scrollTo(0, 0); });
     U.$('#verbSettings', stage).addEventListener('click', () => { JPQ.sfx.click(); JPQ.go('#/'); });
     global.scrollTo(0, 0);
@@ -143,6 +154,6 @@
     best: () => totalStars() ? totalStars() + ' ⭐' : '',
     mount(stage) { clearKeys(); const config = JPQ.verbStudy.configFor(location.hash);
       if (config) startRound(config, stage); else showLevels(stage); },
-    unmount() { clearKeys(); state = null; }
+    unmount() { if (JPQ.tts) JPQ.tts.stop(); clearKeys(); state = null; }
   });
 })(window);

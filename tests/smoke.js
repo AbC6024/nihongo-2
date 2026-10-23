@@ -603,9 +603,9 @@ function validateStaticBuild() {
   });
   ['index.html', 'particles.html', 'gojuon.html', 'conjugation.html',
     'robots.txt', 'sitemap.xml', 'google9c5c7b9e4d268263.html',
-    path.join('css', 'style.css'), path.join('js', 'leaderboard.js')]
+    path.join('css', 'style.css'), path.join('js', 'leaderboard.js'), path.join('js', 'google-tts.js')]
     .forEach(file => assert(fs.existsSync(path.join(ROOT, 'dist', file)), `Static build is missing ${file}`));
-  ['server.js', 'render.yaml', 'package.json', 'tests', 'apps', 'node_modules']
+  ['server.js', 'server', 'render.yaml', 'package.json', 'tests', 'apps', 'node_modules']
     .forEach(file => assert(!fs.existsSync(path.join(ROOT, 'dist', file)), `Static build exposed private file ${file}`));
 
   for (const file of ['index.html', 'particles.html', 'gojuon.html', 'conjugation.html', 'hiragana/index.html']) {
@@ -761,6 +761,10 @@ async function validateServer() {
 
     result = await request(port, '/server.js');
     assert.strictEqual(result.status, 403, 'Private source files must not be served');
+    result = await request(port, '/server/google-tts.js');
+    assert.strictEqual(result.status, 403, 'The Google provider implementation must remain private');
+    result = await request(port, '/api/tts');
+    assert.strictEqual(result.status, 400, 'A missing speech text must be rejected without contacting Google');
 
     result = await request(port, '/apps/listening/src/App.tsx');
     assert.strictEqual(result.status, 403, 'Imported development source must not be served');

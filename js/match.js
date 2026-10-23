@@ -75,6 +75,11 @@
   function pick(stage, btn) {
     if (!timer || btn.disabled) return;
     const side = btn.dataset.side, k = btn.dataset.k;
+    const pair = JPQ.MATCH[st.r].pairs.find(p => p.k === k);
+    if (pair) JPQ.tts?.say(side === 'L' ? k : pair.t, {
+      lang: side === 'L' || st.r === 1 ? 'ja' : 'zh-TW',
+      particle: side === 'L', trigger: btn
+    });
 
     if (!st.sel) {
       st.sel = { side: side, k: k, btn: btn };
@@ -176,7 +181,7 @@ actions: [
     });
   }
 
-  function stop() { if (timer) { clearInterval(timer); timer = null; } }
+  function stop() { JPQ.tts?.stop(); if (timer) { clearInterval(timer); timer = null; } }
 
   JPQ.registerGame({
     name: 'match',

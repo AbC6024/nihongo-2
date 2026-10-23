@@ -213,6 +213,16 @@ js/verb-boot.js       動詞專頁啟動
 
 舊有搶答、拼圖、配對程式與完整規則引擎保留在原始碼中，公開題庫僅使用上述五種形式。保留主題 1～4、12 的進度鍵，其他舊題型連結回到練習設定；舊學習資料不清除。混合模式以冊別使用獨立星星鍵，學習紀錄的可練入口同步限五種基本變化。
 
+## 助詞與動詞的點擊朗讀
+
+助詞四種玩法及動詞練習載入 `js/google-tts.js`、`css/tts.css`。點題目日文或喇叭可朗讀題目；選答案、重排單字、點配對卡片時也會朗讀實際所選內容，答題後可以重聽正確答案。助詞題的空格只停頓，動詞題只讀題幹，作答前不讀出隱藏答案。獨立助詞「は／へ／を」按「わ／え／お」發音，配對的中文解說使用中文聲線。
+
+音訊來自 Google Translate 的朗讀服務，由現有 Node 服務的 `GET /api/tts?text=...&lang=ja` 代取；瀏覽器直接播放網站的 MP3。靜態 Render／GitHub Pages 前端連到 `https://nihongo-2.onrender.com/api/tts`，本機及 Node 網址使用同源路徑。這項朗讀需要網路；不會將裝置 Web Speech API 冒稱 Google 語音，也不會自動播放。
+
+這是 Google Translate 的公開朗讀端點，並非需專案與驗證的 [Google Cloud Text-to-Speech API](https://docs.cloud.google.com/text-to-speech/docs/reference/rest/v1/text/synthesize)，未使用金鑰或啟用付費帳務。端點沒有正式 API 穩定性承諾，失敗會顯示可重試訊息，仍可照常答題。伺服器僅向固定 Google 網域取音訊，限制文字 200 字與語言，加入有上限的快取、重複請求合併及並發限制，避免整份題庫預先產生大量請求。
+
+重複點擊會停止上一段，換頁、切到背景或關閉右上角聲音也會停止。快速搶答仍按原計時換題，短選項語音可延續到下一題，下一次點擊會立即取代。語音控制、錯誤與計分回歸測試：`node tests/click-tts.mjs`。
+
 ## 動詞活用的規則引擎
 
 動詞題目不是一條一條手寫的，而是用 `js/verb-data.js` 裡的 `conjugate(動詞, 活用形)`

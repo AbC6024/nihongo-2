@@ -157,6 +157,15 @@ async function uiHarness() {
   await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve, { once: true }));
   window.scrollTo = () => {};
   window.HTMLCanvasElement.prototype.getContext = () => null;
+  // jsdom has no media playback. Keep game clicks and reader cleanup real while
+  // leaving network/audio verification to click-tts.mjs and browser checks.
+  window.Audio = class extends window.EventTarget {
+    constructor(url) { super(); this.src = url || ''; }
+    play() { return Promise.resolve(); }
+    pause() {}
+    load() {}
+    removeAttribute(name) { if (name === 'src') this.src = ''; }
+  };
   window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, boards: {} }) });
   document.querySelectorAll('script[src]').forEach(script => {
     const file = script.getAttribute('src').split('?')[0];
@@ -190,7 +199,7 @@ async function uiHarness() {
     return option;
   };
   return { window, document, J, errors, rounds, runs, answers, query, route, settle, submit, answer,
-    close() { dom.window.close(); } };
+    close() { J.tts?.stop(); dom.window.close(); } };
 }
 
 test('the shipped practice settings default to both books and mixed forms, with ten-question copy', async () => {

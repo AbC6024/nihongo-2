@@ -1,0 +1,13 @@
+/* Japanese text remains the main control; the speaker makes its click action visible. */
+.tts-text{display:inline-flex;align-items:center;justify-content:center;gap:.35em;padding:.12em .25em;border:0;border-radius:8px;background:transparent;color:inherit;font:inherit;line-height:inherit;letter-spacing:inherit;cursor:pointer;max-width:100%;text-align:inherit}
+.tts-text:hover,.tts-text.is-speaking{background:rgba(77,123,166,.09);color:var(--brand)}
+.tts-text:focus-visible,.tts-play:focus-visible{outline:2px solid var(--brand);outline-offset:4px}
+.tts-text .tts-icon{font-size:.45em;letter-spacing:0;flex:none;opacity:.7}
+.tts-play{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:7px 13px;border:1px solid var(--line);border-radius:22px;color:var(--brand);background:rgba(255,255,255,.65);font:inherit;font-size:12px;letter-spacing:.03em;cursor:pointer;vertical-align:middle}
+.tts-play:hover,.tts-play.is-speaking{background:rgba(77,123,166,.1);border-color:var(--brand)}
+.tts-row{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px;margin:12px 0}
+.tts-note{font-size:12px;color:var(--ink-3);text-align:center;margin:8px 0 16px}
+.tts-status{position:fixed;z-index:1100;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);max-width:calc(100vw - 32px);padding:10px 18px;border:1px solid var(--line);border-radius:12px;box-shadow:0 4px 18px rgba(44,42,38,.12);background:#fbf7ee;color:var(--brand);font:14px/1.6 var(--jp);text-align:center;pointer-events:none}
+.tts-status:empty{display:none}
+.tts-status[data-state="error"]{color:#a83b32}
+@media(max-width:600px){.tts-play{min-height:44px}.tts-text{gap:.2em;flex-wrap:wrap}.tts-status{font-size:13px}}

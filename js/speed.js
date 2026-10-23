@@ -54,12 +54,13 @@
       const q = qs[st.i % qs.length];
       st.cur = q;
       st.opts = U.shuffle(q.opts);
-      U.$('#qline', stage).innerHTML = U.blanked(q.q);
+      U.$('#qline', stage).innerHTML = `<button type="button" class="tts-text" data-tts-text="${U.escapeHTML(q.q)}" aria-label="朗讀題目，空格處略過">${U.blanked(q.q)} <span class="tts-icon" aria-hidden="true">🔊</span></button>`;
       U.$('#qzh', stage).textContent = q.zh;
       U.$('#opts', stage).innerHTML = st.opts.map((o, i) =>
         `<button class="opt" data-o="${o}"><span class="key">${i + 1}</span>${o}</button>`).join('');
       U.$$('#opts .opt', stage).forEach(b =>
         b.addEventListener('click', () => hit(b, draw, end)));
+      JPQ.tts?.bind(stage);
       paint();
     }
 
@@ -74,6 +75,7 @@
 
     function hit(btn, redraw, finish) {
       if (!playing) return;
+      JPQ.tts?.say(btn.dataset.o, { particle: true, trigger: btn });
       U.$$('#opts .opt', stage).forEach(b => b.disabled = true);
       const ok = btn.dataset.o === st.cur.a;
       if (ok) {
@@ -154,6 +156,7 @@ actions: [
   }
 
   function stop() {
+    JPQ.tts?.stop();
     playing = false;
     if (pending !== null) { clearTimeout(pending); pending = null; }
     if (timer) { clearInterval(timer); timer = null; }

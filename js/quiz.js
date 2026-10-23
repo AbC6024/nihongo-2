@@ -8,6 +8,7 @@
 
   /* ---------- 關卡選擇 ---------- */
   function showLevels(stage) {
+    JPQ.tts?.stop();
     state = null;
     const total = JPQ.LEVELS.length;
     const maxNo = JPQ.LEVELS.reduce((m, l) =>
@@ -55,13 +56,14 @@
 
   /* ---------- 出題 ---------- */
   function renderQuestion(stage, lv) {
+    JPQ.tts?.stop();
     if (unkey) { unkey(); unkey = null; }
     const q = lv.qs[state.order[state.i]];
     state.q = q;
     const opts = U.shuffle(q.opts);
 
     stage.innerHTML = `<div class="panel">
-      <div class="q-sentence">${U.blanked(q.q)}</div>
+      <div class="q-sentence"><button type="button" class="tts-text" data-tts-text="${U.escapeHTML(q.q)}" aria-label="朗讀題目，空格處略過">${U.blanked(q.q)} <span class="tts-icon" aria-hidden="true">🔊</span></button></div>
       <div class="q-zh">${q.zh}</div>
       <div class="opt-grid">
         ${opts.map((o, i) => `<button class="opt" data-o="${o}">
@@ -86,6 +88,7 @@
     });
 
     U.$('#nextBtn', stage).addEventListener('click', () => { JPQ.sfx.click(); next(stage, lv); });
+    JPQ.tts?.bind(stage);
 
     unkey = JPQ.onKey(e => {
       const n = parseInt(e.key, 10);
@@ -103,6 +106,7 @@
   function answer(btn, stage, lv, q) {
     U.$$('.opt', stage).forEach(b => b.disabled = true);
     const pick = btn.dataset.o;
+    JPQ.tts?.say(pick, { particle: true, trigger: btn });
     const ok = pick === q.a;
     const fb = U.$('#fb', stage);
 
@@ -120,7 +124,9 @@
 
     fb.className = 'fb show ' + (ok ? 'ok' : 'no');
     fb.innerHTML = `<strong>${ok ? '答對了！' : '正確答案是「' + q.a + '」'}</strong>
-                    <p>${U.ruby(q.tip || '')}</p>`;
+                    <p>${U.ruby(q.tip || '')}</p>
+                    ${JPQ.tts?.control(q.q.replace(/__/, q.a), '聽完整句子') || ''}`;
+    JPQ.tts?.bind(fb);
 
     U.$('#nextRow', stage).style.display = 'flex';
     U.$('#nextBtn', stage).focus();
@@ -138,6 +144,7 @@
 
   /* ---------- 結算 ---------- */
   function finish(stage, lv) {
+    JPQ.tts?.stop();
     const stars = state.wrong === 0 ? 3 : (state.wrong <= 2 ? 2 : 1);
     JPQ.store.setLevelStars(lv.no, stars);
     JPQ.stats.run('quiz', lv.qs.length, lv.qs.length - state.wrong);
@@ -200,7 +207,7 @@ JPQ.modal.show({
       if (unkey) { unkey(); unkey = null; }
       showLevels(stage);
     },
-    unmount() { if (unkey) { unkey(); unkey = null; } }
+    unmount() { JPQ.tts?.stop(); if (unkey) { unkey(); unkey = null; } }
   });
 
 })(window);

@@ -10,6 +10,7 @@
 
   /* ---------- 說明 ---------- */
   function intro(stage) {
+    JPQ.tts?.stop();
     st = null;
     const best = JPQ.store.record('scramble');
     stage.innerHTML = `<div class="panel narrow center">
@@ -39,6 +40,7 @@
   }
 
 function draw(stage) {
+    JPQ.tts?.stop();
     if (st.i >= st.list.length) return finish(stage);
     st.cur = st.list[st.i];
     st.placed = [];
@@ -52,6 +54,7 @@ function draw(stage) {
         <div class="jp-read">把下面 ${st.cur.ans.length} 個單字排成正確的日語句子　·　想重來可以點掉已排的單字</div>
       </div>
       <div class="scr-answer" id="slot"></div>
+      <div class="scr-audio" id="sentenceAudio"></div>
       <div class="scr-pool" id="pool"></div>
       <div class="scr-tools">
         <button class="btn ghost" id="hintBtn">💡 提示（每題一次）</button>
@@ -82,6 +85,9 @@ function paintTokens(stage) {
     U.$$('[data-pool]', stage).forEach(b => b.addEventListener('click', () => {
       if (st.answered) return;
       const idx = Number(b.dataset.pool);
+      const token = b.dataset.slot !== undefined
+        ? st.placed[Number(b.dataset.slot)] : st.pool.find(p => p.i === idx);
+      if (token) JPQ.tts?.say(token.t, { particle: /^[はがのをにでともへ]$/.test(token.t), trigger: b });
       if (b.dataset.slot !== undefined) {           // 從答案列移回選字池
         const item = st.placed.splice(Number(b.dataset.slot), 1)[0];
         if (item) st.pool.push(item);                // 整包放回去，文字不會遺失
@@ -96,6 +102,10 @@ function paintTokens(stage) {
     }));
 
     U.$('#checkBtn', stage).disabled = st.placed.length !== st.cur.ans.length;
+    const audio = U.$('#sentenceAudio', stage);
+    audio.innerHTML = st.placed.length
+      ? JPQ.tts?.control(st.placed.map(p => p.t).join(''), '聽目前排列') || '' : '';
+    JPQ.tts?.bind(audio);
   }
 
   /* 提示：每一題只能用一次，避免一直按就把整句送完 */
@@ -145,9 +155,11 @@ function check(stage) {
         <div class="fb ok show" style="text-align:center">
           <strong>正確！${U.stars(st.combo >= 3 ? 3 : 1)}</strong>
           <p>${st.cur.note || ''}</p>
+          ${JPQ.tts?.control(st.cur.ans.join(''), '聽完整句子') || ''}
         </div>
         <div class="btn-row"><button class="btn" id="nextBtn">${st.i + 1 >= st.list.length ? '看成績 →' : '下一句 →'}</button></div>`);
       const nextBtn = U.$('#nextBtn', stage);
+      JPQ.tts?.bind(stage);
       nextBtn.addEventListener('click', () => { st.i++; draw(stage); });
       nextBtn.focus();
       paint(stage);
@@ -164,7 +176,9 @@ function check(stage) {
           <strong>順序還不太對，正確的寫法是：</strong>
           <p style="font-size:19px;margin:6px 0 2px">${answerHTML}</p>
           <p>${st.cur.note || ''}</p>
+          ${JPQ.tts?.control(st.cur.ans.join(''), '聽正確句子') || ''}
         </div>`);
+      JPQ.tts?.bind(stage);
     }
   }
 
@@ -178,6 +192,7 @@ function check(stage) {
   }
 
   function finish(stage) {
+    JPQ.tts?.stop();
     if (unkey) { unkey(); unkey = null; }
     JPQ.store.setRecord('scramble', st.right);
     JPQ.stats.run('scramble', st.right + (st.wrong || 0), st.right);
@@ -228,7 +243,7 @@ actions: [
       return b ? `最佳 <b>${b}</b>/${items().length}` : '';
     },
     mount(stage) { if (unkey) { unkey(); unkey = null; } intro(stage); },
-    unmount() { if (unkey) { unkey(); unkey = null; } st = null; }
+    unmount() { JPQ.tts?.stop(); if (unkey) { unkey(); unkey = null; } st = null; }
   });
 
 })(window);
