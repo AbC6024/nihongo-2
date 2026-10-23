@@ -2,7 +2,6 @@
 (function (global) {
   const JPQ = global.JPQ, verb = JPQ.verb;
   const topics = [
-    ['masu', 'ます形', '禮貌地說一個動作', '書く → 書きます'],
     ['te', 'て形', '請別人做一件事時會用到', '書きます → 書いて'],
     ['nai', 'ない形', '表示「不做」', '書きます → 書かない'],
     ['base', '辞書形', '字典裡的原形', '書きます → 書く'],
@@ -18,7 +17,7 @@
   const LESSONS = topics.map((topic, i) => ({
     no: i + 1, title: topic[1], sub: topic[2], example: topic[3],
     forms: [topic[0]], types: ['godan', 'ichidan', 'suru', 'kuru'],
-    count: 6, book: i < 5 ? 1 : 2
+    count: 6, book: i < 4 ? 1 : 2
   }));
 
   function tip(v, key) {

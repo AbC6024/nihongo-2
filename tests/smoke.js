@@ -394,8 +394,8 @@ function validateVerbLevels() {
   const JPQ = loadData().JPQ;
   const verb = JPQ.verb;
 
-  assert.strictEqual(JPQ.VERB_LEVELS.length, 12, 'Beginner topics cover basic and later beginner forms');
-  assert.strictEqual(JPQ.VERB_LEVELS.filter(l => l.book === 1).length, 5);
+  assert.strictEqual(JPQ.VERB_LEVELS.length, 11, 'Beginner topics cover basic and later beginner forms');
+  assert.strictEqual(JPQ.VERB_LEVELS.filter(l => l.book === 1).length, 4);
   JPQ.VERB_LEVELS.forEach(level => {
     assert.strictEqual(level.forms.length, 1, 'Each practice must focus on just one form');
     assert.strictEqual(level.count, 6, 'Each practice must contain six questions');

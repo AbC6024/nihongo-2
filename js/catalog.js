@@ -33,7 +33,7 @@ JPQ.CATALOG = [
     title: '動詞活用',
     titleEn: 'Verbs',
     href: 'conjugation.html',
-    desc: '適合初級Ⅰ、Ⅱ。從ます形開始，每次只練一種變化，附簡單中文說明。',
+    desc: '適合初級Ⅰ、Ⅱ。每次只練一種變化，附簡單中文說明。',
     detail: ['每次 6 題', '不限時間', '基礎變化', '初級Ⅱ變化']
   },
   {
