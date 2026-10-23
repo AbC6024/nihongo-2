@@ -48,7 +48,7 @@
         <span class="vb-question-number">第 ${state.i + 1} / 10 題</span></div>
       <div class="q-sentence"><span class="vb-word">${ruby(q.from)}</span><span class="vb-arrow" aria-label="變成">→</span>
         <span class="vb-form">${lesson.title}</span></div>
-      <div class="q-zh">${U.escapeHTML(q.zh)} <span class="vb-tag">${JPQ.verb.TYPE_NAME[q.verb.type]}</span></div>
+      <div class="q-zh">${U.escapeHTML(q.zh)}</div>
       <p class="vb-question-prompt">請選出正確的${lesson.title}</p>
       <div class="opt-grid vb-options">${opts.map((o, i) => `<button type="button" class="opt" data-o="${U.escapeHTML(o)}">
         <span class="key" aria-hidden="true">${i + 1}</span><span class="vb-option-text">${ruby(JPQ.verb.displayKana(q.verb, o))}</span></button>`).join('')}</div>
