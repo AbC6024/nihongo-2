@@ -1,227 +1,148 @@
-/* =========================================================
-   動詞活用 — 遊戲 1：動詞變化練習
-   ------------------------------------------------------------
-   題目是引擎算出來的：顯示一個動詞 + 一個活用形，
-   從三個選項裡挑出正確答案。
-   答錯時不是只秀答案，而是把「為什麼是這個」拆開講。
-   ========================================================= */
+/* 初級Ⅰ・Ⅱ的動詞練習：每輪抽 10 個不同動詞，逐題說明並整理錯題。 */
 (function (global) {
   const JPQ = global.JPQ, U = JPQ.util;
   let unkey = null;
   let state = null;
+  const levelStars = no => JPQ.store.levelStars('verb-study-v2-' + no);
+  const totalStars = () => JPQ.verbStudy.LESSONS.reduce((sum, l) => sum + levelStars(l.no), 0);
+  const bookName = book => book === '1' ? '初級Ⅰ字彙' : book === '2' ? '初級Ⅱ字彙' : '初級Ⅰ＋Ⅱ字彙';
+  const lessonFor = key => JPQ.verbStudy.lessonFor(key);
+  const titleFor = config => config.forms.length === 1 ? lessonFor(config.forms[0]).title : '綜合變化';
+  const origin = v => `初級${Number(v.book) === 1 ? 'Ⅰ' : 'Ⅱ'} · 第 ${v.lesson} 課`;
+  const ruby = value => U.ruby(U.escapeHTML(value));
 
-  /* 動詞遊戲的星星存檔要跟助詞遊戲分開，否則 LEVEL 1 會互相覆蓋 */
-  const sKey = no => 'verb-study-v2-' + no;
-  const levelStars = no => JPQ.store.levelStars(sKey(no));
-  const setLevelStars = (no, s) => JPQ.store.setLevelStars(sKey(no), s);
-  function totalStars() {
-    return JPQ.VERB_LEVELS.reduce((sum, l) => sum + levelStars(l.no), 0);
+  function clearKeys() {
+    if (unkey) { unkey(); unkey = null; }
   }
 
-  /* ---------- 關卡選擇 ---------- */
   function showLevels(stage) {
-    state = null;
-    const maxStars = JPQ.VERB_LEVELS.length * 3;
-
-    const cards = JPQ.verbStudy.topicsHTML();
-
-    stage.innerHTML = `<div class="panel narrow">
-      <h2 class="center">選擇要練的變化</h2>
-      <p class="center section-note">每次 6 題，不計時。選你已經學過的內容。</p>
-      ${cards}
-      <div class="btn-row">
-        <button class="btn grey" data-go="#/">回主頁</button>
-      </div>
-    </div>`;
-
-    JPQ.hud.set('動詞變化練習', '已完成 ' + totalStars() + ' / ' + maxStars + ' ⭐');
-    JPQ.hud.progress(0);
-    JPQ.hud.clearPills();
-
-    U.$('[data-go="#/"]', stage).addEventListener('click', () => JPQ.sfx.click());
+    clearKeys(); state = null;
+    stage.innerHTML = `<div class="panel narrow vb-empty"><p class="eyebrow">PRACTICE</p>
+      <h2>先選今天的練習</h2><p>從初級Ⅰ、Ⅱ的收錄動詞抽出 10 題，可綜合練習，也可指定一種變化。</p>
+      <div class="btn-row"><button type="button" class="btn" id="verbChoose">選擇字彙與變化</button></div></div>`;
+    U.$('#verbChoose', stage).addEventListener('click', () => { JPQ.sfx.click(); JPQ.go('#/'); });
+    JPQ.hud.set('動詞變化練習', '每輪 10 題 · 不計時');
+    JPQ.hud.progress(0); JPQ.hud.clearPills();
   }
 
-  /* ---------- 開始一關 ---------- */
-  function startLevel(no, stage) {
-    const lv = JPQ.VERB_LEVELS.find(l => l.no === no);
-    const qs = JPQ.verbGame.build(lv);
-    if (!qs.length) {
-      JPQ.modal.show({
-        title: '這一關出題失敗',
-        html: '<p>這個組合目前生不出題目，請選別的關卡。</p>',
-        actions: [
-          { label: '選別的關卡', onClick: () => { JPQ.modal.close(); showLevels(stage); } },
-          { label: '選其他變化', cls: 'grey', onClick: () => { JPQ.modal.close(); JPQ.go('#/'); } }
-        ]
-      });
+  function startRound(config, stage) {
+    clearKeys();
+    const qs = JPQ.verbGame.build(config);
+    if (qs.length !== 10) {
+      showLevels(stage);
+      JPQ.modal.show({ title: '這個組合暫時無法抽滿 10 題', html: '<p>請換一組字彙或變化再試一次。</p>',
+        actions: [{ label: '回練習設定', onClick: () => { JPQ.modal.close(); JPQ.go('#/'); } }] });
       return;
     }
-    state = { no: no, i: 0, wrong: 0, qs: qs, answered: false };
-    renderQuestion(stage, lv);
+    state = { config: config, i: 0, wrong: 0, qs: qs, answered: false, finished: false, answers: [] };
+    renderQuestion(stage);
   }
 
-  /* ---------- 出題 ---------- */
-  function renderQuestion(stage, lv) {
-    if (unkey) { unkey(); unkey = null; }
-    state.answered = false;
-    const q = state.qs[state.i];
-    state.q = q;
-
+  function renderQuestion(stage) {
+    clearKeys(); state.answered = false;
+    const q = state.qs[state.i]; state.q = q;
+    const lesson = lessonFor(q.key);
     const opts = U.shuffle(q.opts.concat([q.a]));
-
-    stage.innerHTML = `<div class="panel">
-      <div class="q-sentence">
-        <span class="vb-word">${U.ruby(q.from)}</span>
-        <span class="vb-arrow">→</span>
-        <span class="vb-form">${lv.title}</span>
-      </div>
-      <div class="q-zh">${q.zh} · 請選出${lv.title} <span class="vb-tag">${JPQ.verb.TYPE_NAME[q.verb.type]}</span></div>
-      <div class="opt-grid vb-options">
-        ${opts.map((o, i) => `<button class="opt" data-o="${o}">
-          <span class="key">${i + 1}</span><span class="vb-option-text">${U.ruby(JPQ.verb.displayKana(q.verb, o))}</span></button>`).join('')}
-      </div>
-      <div class="fb" id="fb"></div>
-      <div class="btn-row" id="nextRow" style="display:none">
-        <button class="btn" id="nextBtn">下一題 →</button>
-      </div>
+    stage.innerHTML = `<div class="panel vb-question">
+      <div class="vb-question-head"><span class="vb-origin">${origin(q.verb)}</span>
+        <span class="vb-question-number">第 ${state.i + 1} / 10 題</span></div>
+      <div class="q-sentence"><span class="vb-word">${ruby(q.from)}</span><span class="vb-arrow" aria-label="變成">→</span>
+        <span class="vb-form">${lesson.title}</span></div>
+      <div class="q-zh">${U.escapeHTML(q.zh)} <span class="vb-tag">${JPQ.verb.TYPE_NAME[q.verb.type]}</span></div>
+      <p class="vb-question-prompt">請選出正確的${lesson.title}</p>
+      <div class="opt-grid vb-options">${opts.map((o, i) => `<button type="button" class="opt" data-o="${U.escapeHTML(o)}">
+        <span class="key" aria-hidden="true">${i + 1}</span><span class="vb-option-text">${ruby(JPQ.verb.displayKana(q.verb, o))}</span></button>`).join('')}</div>
+      <p class="vb-key-hint">鍵盤 1～3 作答，Enter 前往下一題</p>
+      <div class="fb" id="fb" aria-live="polite"></div>
+      <div class="btn-row" id="nextRow" hidden><button type="button" class="btn" id="nextBtn">${state.i === 9 ? '看本輪結果 →' : '下一題 →'}</button></div>
     </div>`;
-
-    JPQ.hud.set(lv.title + '練習', lv.sub);
-    JPQ.hud.progress(state.i / state.qs.length);
-    paint();
-
-    U.$$('.opt', stage).forEach(btn => btn.addEventListener('click', () => answer(btn, stage, lv)));
-
-    const nextBtn = U.$('#nextBtn', stage);
-    nextBtn.addEventListener('click', () => { JPQ.sfx.click(); next(stage, lv); });
-
+    JPQ.hud.set(titleFor(state.config), bookName(String(state.config.book)) + ' · 每輪 10 題');
+    JPQ.hud.progress(state.i / 10); paint();
+    U.$$('.opt', stage).forEach(btn => btn.addEventListener('click', () => answer(btn, stage)));
+    U.$('#nextBtn', stage).addEventListener('click', () => { JPQ.sfx.click(); next(stage); });
     unkey = JPQ.onKey(e => {
-      const n = parseInt(e.key, 10);
-      if (n >= 1 && n <= opts.length) {
+      const n = Number(e.key);
+      if (n >= 1 && n <= opts.length && Number.isInteger(n)) {
         const btn = U.$$('.opt', stage)[n - 1];
-        if (btn && !btn.disabled) answer(btn, stage, lv);
-      } else if (e.key === 'Enter' && state.answered) {
-        e.preventDefault();
-        next(stage, lv);
-      }
+        if (btn && !btn.disabled) { e.preventDefault(); answer(btn, stage); }
+      } else if (e.key === 'Enter' && state && state.answered) { e.preventDefault(); next(stage); }
     });
   }
 
   function paint() {
-    JPQ.hud.pills([
-      { label: '進度', value: (state.i + 1) + '/' + state.qs.length },
-      { label: '答錯', value: state.wrong }
-    ]);
+    JPQ.hud.pills([{ label: '答對', value: state.answers.filter(a => a.ok).length }, { label: '答錯', value: state.wrong }]);
   }
 
-  /* ---------- 判定 ---------- */
-  function answer(btn, stage, lv) {
-    if (state.answered) return;
+  function answer(btn, stage) {
+    if (!state || state.finished || state.answered) return;
     state.answered = true;
-    U.$$('.opt', stage).forEach(b => b.disabled = true);
-    const pick = btn.dataset.o;
-    const ok = pick === state.q.a;
-
+    const pick = btn.dataset.o, q = state.q, ok = pick === q.a;
+    state.answers.push({ q: q, pick: pick, ok: ok });
     U.$$('.opt', stage).forEach(b => {
-      if (b.dataset.o === state.q.a) b.classList.add('correct');
+      b.disabled = true;
+      if (b.dataset.o === q.a) b.classList.add('correct');
       else if (b === btn) b.classList.add('wrong');
       else b.classList.add('dim');
     });
-
-    if (ok) JPQ.sfx.correct();
-    else { state.wrong++; JPQ.sfx.wrong(); }
-
-    /* 記錄這題的表現：用活用形當統計單位 */
-    JPQ.stats.answer('形:' + state.q.key, ok);
-
+    if (ok) JPQ.sfx.correct(); else { state.wrong++; JPQ.sfx.wrong(); }
+    JPQ.stats.answer('形:' + q.key, ok);
     const fb = U.$('#fb', stage);
     fb.className = 'fb show ' + (ok ? 'ok' : 'no');
-    fb.innerHTML = feedback(state.q, ok);
-
-    U.$('#nextRow', stage).style.display = 'flex';
-    U.$('#nextBtn', stage).focus();
-    paint();
+    fb.innerHTML = `<strong>${ok ? '答對了！' : '再記一次這個變化'}</strong>
+      <p class="vb-answer">${ruby(q.from)} → ${ruby(JPQ.verb.displayKana(q.verb, q.a))}</p>
+      <p class="vb-tip">${U.escapeHTML(JPQ.verbStudy.tip(q.verb, q.key))}</p><p>${lessonFor(q.key).sub}</p>`;
+    U.$('#nextRow', stage).hidden = false;
+    U.$('#nextBtn', stage).focus({ preventScroll: true }); paint();
   }
 
-  /* 把「為什麼是這個答案」拆成可以看懂的步驟 */
-  function feedback(q, ok) {
-    const meaning = JPQ.verbStudy.LESSONS.find(l => l.forms[0] === q.key);
-    return `<strong>${ok ? '答對了！' : '再記一次，正確答案是「' + q.a + '」'}</strong>
-      <p class="vb-answer">${U.ruby(q.from)} → ${q.a}</p>
-      <p class="vb-tip">${JPQ.verbStudy.tip(q.verb, q.key)}</p>
-      <p>${meaning.sub}</p>`;
-  }
-
-  function next(stage, lv) {
-    if (!state.answered) return;
+  function next(stage) {
+    if (!state || !state.answered || state.finished) return;
     state.i++;
-    if (state.i >= state.qs.length) finish(stage, lv);
-    else renderQuestion(stage, lv);
+    if (state.i >= 10) finish(stage); else renderQuestion(stage);
   }
 
-  /* ---------- 結算 ---------- */
-  function finish(stage, lv) {
-    const stars = state.wrong === 0 ? 3 : (state.wrong <= 2 ? 2 : 1);
-    setLevelStars(lv.no, stars);
-    JPQ.stats.run('verb-quiz', state.qs.length, state.qs.length - state.wrong);
-    if (unkey) { unkey(); unkey = null; }
-
-    const row = U.$('#nextRow', stage);
-    if (row) row.style.display = 'none';
-    JPQ.hud.progress(1);
-    JPQ.hud.pills([{ label: '星星', value: '⭐'.repeat(stars) }]);
-    if (stars === 3) { JPQ.sfx.levelup(); JPQ.fx.center(); }
-
-    const isLast = lv.no >= JPQ.VERB_LEVELS.length;
-    JPQ.modal.show({
-      title: lv.title + '練習完成！',
-      html: `
-        <div class="result-stars">${U.stars(stars)}</div>
-        <div class="result-score">${state.qs.length - state.wrong}/${state.qs.length}</div>
-        <p>${stars === 3 ? '全對！規則已經很熟了 🎉' : (stars === 2 ? '不錯，再練一次就能拿三顆星' : '回速查表看一下每一步怎麼變，再挑戰一次')}</p>
-        <div class="result-row">
-          <div>答對題數<b>${state.qs.length - state.wrong}</b></div>
-          <div>答錯題數<b>${state.wrong}</b></div>
-          <div>本關星星<b>${stars} / 3</b></div>
-          <div>總星星<b>${totalStars()}</b></div>
-        </div>`,
-      actions: [
-
-        !isLast ? { label: '練下一種變化 →', onClick: () => {
-            JPQ.modal.close(); JPQ.go('#/play/verb-quiz/' + (lv.no + 1));
-          } } : null,
-        { label: '重玩本關', cls: 'ghost', onClick: () => {
-            JPQ.modal.close(); startLevel(lv.no, stage);
-          } },
-        { label: '選其他變化', cls: 'grey', onClick: () => { JPQ.modal.close(); JPQ.go('#/'); } }
-      ].filter(Boolean)
-    });
+  function reviewHTML(answers) {
+    return answers.map((a, i) => `<li class="vb-review-item">
+      <div class="vb-review-heading"><strong>${i + 1}. ${ruby(a.q.from)}</strong><span>${lessonFor(a.q.key).title}</span></div>
+      <p class="vb-review-origin">${U.escapeHTML(a.q.zh)} · ${origin(a.q.verb)}</p>
+      ${!a.ok ? `<p class="vb-picked">你的答案：${ruby(JPQ.verb.displayKana(a.q.verb, a.pick))}</p>` : ''}
+      <p class="vb-correct-answer">正確答案：${ruby(JPQ.verb.displayKana(a.q.verb, a.q.a))}</p>
+      <p class="vb-tip">${U.escapeHTML(JPQ.verbStudy.tip(a.q.verb, a.q.key))}</p></li>`).join('');
   }
 
-  /* ---------- 註冊 ---------- */
-  JPQ.registerGame({
-    name: 'verb-quiz',
-    title: '動詞變化練習',
-    sub: '每次只練一種變化',
-    card: {
-      thumb: 'quiz',
-      icon: '🎯',
-      color: '#93a4f0',
-      title: '動詞變化練習',
-      desc: '每次 6 題，選出答案，再看簡單中文說明。',
-      tag: '不計時'
-    },
-    best: () => {
-      const s = totalStars();
-      return s ? `${s} ⭐` : '';
-    },
-    mount(stage) {
-      if (unkey) { unkey(); unkey = null; }
-      const no = Number(location.hash.split('/')[3]);
-      if (JPQ.VERB_LEVELS.some(l => l.no === no)) startLevel(no, stage);
-      else showLevels(stage);
-    },
-    unmount() { if (unkey) { unkey(); unkey = null; } }
+  function finish(stage) {
+    if (!state || state.finished) return;
+    state.finished = true; clearKeys();
+    const config = state.config, right = 10 - state.wrong;
+    const stars = right === 10 ? 3 : right >= 8 ? 2 : 1;
+    const form = config.forms.length === 1 ? config.forms[0] : 'mixed';
+    const lesson = form === 'mixed' ? null : lessonFor(form);
+    const saveKey = lesson ? 'verb-study-v2-' + lesson.no : 'verb-study-round-mixed-' + config.book;
+    JPQ.store.setLevelStars(saveKey, stars); JPQ.stats.run('verb-quiz', 10, right);
+    JPQ.hud.progress(1); JPQ.hud.pills([{ label: '正確率', value: (right * 10) + '%' }]);
+    if (right === 10) { JPQ.sfx.levelup(); JPQ.fx.center(); }
+    const wrongAnswers = state.answers.filter(a => !a.ok);
+    stage.innerHTML = `<section class="panel vb-result" id="verbResult" aria-labelledby="verbResultTitle">
+      <p class="eyebrow">ROUND COMPLETE</p><h2 id="verbResultTitle">本輪練習完成</h2>
+      <p class="vb-result-sub">${titleFor(config)} · ${bookName(String(config.book))}</p>
+      <div class="vb-round-score"><strong>${right}<span> / 10</span></strong><p>正確率 ${right * 10}%</p></div>
+      <p class="vb-result-message">${right === 10 ? '10 題全對！再換一組動詞，讓變化更熟練。' : '把下面的錯題再看一次，再抽一組繼續練習。'}</p>
+      <div class="btn-row"><button type="button" class="btn" id="verbRetry">再抽 10 題</button>
+        <button type="button" class="btn grey" id="verbSettings">換練習設定</button></div>
+      <details class="vb-review" ${wrongAnswers.length ? 'open' : ''}>
+        <summary>${wrongAnswers.length ? '錯題複習 · ' + wrongAnswers.length + ' 題' : '回顧本輪的 10 題'}</summary>
+        <ol id="verbReview">${reviewHTML(wrongAnswers.length ? wrongAnswers : state.answers)}</ol></details></section>`;
+    U.$('#verbRetry', stage).addEventListener('click', () => { JPQ.sfx.click(); startRound(config, stage); global.scrollTo(0, 0); });
+    U.$('#verbSettings', stage).addEventListener('click', () => { JPQ.sfx.click(); JPQ.go('#/'); });
+    global.scrollTo(0, 0);
+  }
+
+  JPQ.registerGame({ name: 'verb-quiz', title: '動詞變化練習', sub: '初級Ⅰ・Ⅱ · 每輪 10 題',
+    card: { thumb: 'quiz', icon: '🎯', color: '#93a4f0', title: '動詞變化練習',
+      desc: '從初級Ⅰ、Ⅱ收錄動詞抽 10 題，綜合練習或指定一種變化。', tag: '不計時' },
+    best: () => totalStars() ? totalStars() + ' ⭐' : '',
+    mount(stage) { clearKeys(); const config = JPQ.verbStudy.configFor(location.hash);
+      if (config) startRound(config, stage); else showLevels(stage); },
+    unmount() { clearKeys(); state = null; }
   });
-
 })(window);

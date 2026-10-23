@@ -29,7 +29,7 @@ function loadData() {
   const sandbox = {};
   sandbox.window = sandbox;
   const context = vm.createContext(sandbox);
-  ['data.js', 'kana-data.js', 'vocab-data.js', 'verb-data.js', 'verb-beginner.js', 'verb-levels.js'].forEach(file => {
+  ['data.js', 'kana-data.js', 'vocab-data.js', 'verb-data.js', 'verb-vocab.js', 'verb-beginner.js', 'verb-levels.js'].forEach(file => {
     const source = fs.readFileSync(path.join(ROOT, 'js', file), 'utf8');
     new vm.Script(source, { filename: file }).runInContext(context);
   });
@@ -394,12 +394,26 @@ function validateVerbLevels() {
   const JPQ = loadData().JPQ;
   const verb = JPQ.verb;
 
-  assert.strictEqual(JPQ.VERB_LEVELS.length, 11, 'Beginner topics cover basic and later beginner forms');
-  assert.strictEqual(JPQ.VERB_LEVELS.filter(l => l.book === 1).length, 4);
+  const allowedForms = ['te', 'nai', 'base', 'ta', 'masu', 'masen', 'mashita', 'masendeshita', 'nakatta',
+    'mashimashou', 'masenka', 'tara'];
+  const vocab = JPQ.verbStudy.VOCAB;
+  assert(Array.isArray(vocab) && vocab.length >= 20, 'Practice needs a curated textbook vocabulary pool');
+  assert.strictEqual(JPQ.VERB_LEVELS.length, allowedForms.length, 'Only the agreed beginner forms may be practiced');
+  assert.deepStrictEqual(Array.from(JPQ.VERB_LEVELS.slice(0, 4), l => l.forms[0]), allowedForms.slice(0, 4),
+    'Existing topic IDs must keep their meaning for saved progress and links');
+  [5, 6, 7, 8, 9, 10, 11].forEach(no => assert(!JPQ.VERB_LEVELS.some(level => level.no === no),
+    `Out-of-scope legacy topic ${no} must not be reused`));
+  assert.deepStrictEqual(Array.from(JPQ.VERB_LEVELS, l => l.forms[0]).sort(), allowedForms.slice().sort());
+  assert.strictEqual(new Set(vocab.map(v => v.id || v.kana)).size, vocab.length, 'Vocabulary entries must not duplicate verbs');
+  vocab.forEach(v => {
+    assert([1, 2].includes(v.book), `${v.kana}: textbook volume must be 1 or 2`);
+    assert(Number.isInteger(v.lesson) && v.lesson >= 1 && v.lesson <= 25, `${v.kana}: lesson must be 1–25`);
+    assert.strictEqual(v.book, v.lesson <= 12 ? 1 : 2, `${v.kana}: textbook volume disagrees with the lesson`);
+  });
   JPQ.VERB_LEVELS.forEach(level => {
     assert.strictEqual(level.forms.length, 1, 'Each practice must focus on just one form');
-    assert.strictEqual(level.count, 6, 'Each practice must contain six questions');
-    verb.VERBS.filter(v => verb.supports(v, level.forms[0])).forEach(v => {
+    assert.strictEqual(level.count, 10, 'Each practice must contain ten questions');
+    vocab.filter(v => verb.supports(v, level.forms[0])).forEach(v => {
       const tip = JPQ.verbStudy.tip(v, level.forms[0]);
       assert(!/undefined|未然|連用|連体|音便|五段|サ変|カ変/.test(tip), 'Learner explanations must use beginner language');
       assert(tip.includes(verb.conjugate(v, level.forms[0])), 'The explanation must include the correct answer');
@@ -413,7 +427,7 @@ function validateVerbLevels() {
 
   JPQ.VERB_LEVELS.forEach(level => {
     assert(level.no > 0 && level.title && level.sub, `Level ${level.no} is missing copy`);
-    assert(level.count >= 6, `Level ${level.no} needs at least 6 questions`);
+    assert.strictEqual(level.count, 10, `Level ${level.no} needs exactly ten questions`);
     level.forms.forEach(k => assert(verb.form(k),
       `Level ${level.no} refers to an unknown form "${k}"`));
     level.types.forEach(t => assert(['godan', 'ichidan', 'suru', 'kuru'].includes(t),
@@ -444,16 +458,17 @@ function validateVerbLevels() {
         assert.strictEqual(q.from, verb.display(q.verb, q.key === 'masu' ? 'base' : 'masu'),
           'Questions should start from the familiar masu form unless asking for masu');
 
-        const sig = q.verb.kana + ':' + q.key;
-        assert(!seen.has(sig), `Level ${level.no}: repeated ${sig}`);
-        seen.add(sig);
+        assert(vocab.some(v => v.kana === q.verb.kana), `Level ${level.no}: ${q.verb.kana} is outside textbook vocabulary`);
+        const identity = q.verb.id || q.verb.kana;
+        assert(!seen.has(identity), `Level ${level.no}: repeated verb ${identity}`);
+        seen.add(identity);
       });
     }
   });
 
   /* 快速搶答的總題庫 */
   const pool = JPQ.verbGame.poolAll();
-  assert(pool.length > 400, `The speed-run pool is too small (${pool.length})`);
+  assert(pool.length > 100, `The shared beginner question pool is too small (${pool.length})`);
   const question = (kana, key) => pool.find(q => q.verb.kana === kana && q.key === key);
   [
     ['のむ', 'te', ['のんて', 'のみて']],
@@ -469,14 +484,14 @@ function validateVerbLevels() {
     dekita:/る$/, you:/う$/, kinshi:/な$/, kate:/ば$/, ukerare:/れる$/, saseru:/せる$/ };
   JPQ.VERB_LEVELS.forEach(level => {
     const key = level.forms[0];
-    verb.VERBS.filter(v => verb.supports(v, key)).forEach(v => {
+    vocab.filter(v => verb.supports(v, key)).forEach(v => {
       const q = question(v.kana, key);
       assert(q, `${v.kana} ${key}: every supported beginner question must have distractors`);
       const prefix = v.type === 'suru' || v.type === 'kuru' ? v.kana.slice(0, -2) : v.kana.slice(0, -1);
       q.opts.forEach(o => {
         assert(o.startsWith(prefix), `${v.kana} ${key}: distractors must use this verb`);
         if (endings[key]) assert(endings[key].test(o), `${v.kana} ${key}: don't reveal the answer by its ending`);
-        assert(o !== verb.conjugate(v, 'masu'), 'Do not offer the unchanged prompt as a distractor');
+        assert(o !== verb.conjugate(v, q.fromKey), `${v.kana} ${key}: do not offer the unchanged prompt as a distractor (${o})`);
       });
       if (v.type === 'ichidan' && key === 'dekita') assert(!q.opts.includes(v.kana.slice(0, -1) + 'れる'));
       if (v.type === 'ichidan' && key === 'meirei') assert(!q.opts.includes(v.kana.slice(0, -1) + 'よ'));
@@ -484,6 +499,8 @@ function validateVerbLevels() {
     });
   });
   pool.forEach(q => {
+    assert(allowedForms.includes(q.key), `Shared pool contains out-of-scope form ${q.key}`);
+    assert(vocab.some(v => v.kana === q.verb.kana), `Shared pool contains out-of-scope verb ${q.verb.kana}`);
     q.opts.concat(q.a).forEach(kana => {
       const shown = verb.displayKana(q.verb, kana);
       assert.strictEqual(shown.replace(/[一-龯々〆〇]+\[([^\]]+)\]/g, '$1'), kana,
@@ -781,7 +798,7 @@ async function validateServer() {
 
 /* =========================================================
    動詞玩法的畫面
-   用一個剛好夠用的假 DOM 把四種玩法都掛上去跑一次。
+   用一個剛好夠用的假 DOM 載入實際公開的練習頁面。
    規則引擎測得過不代表畫得出來，所以這一段專門抓 render 的錯誤。
    ========================================================= */
 function validateVerbUI() {
@@ -796,6 +813,8 @@ function validateVerbUI() {
   });
 
   const nodes = {};
+  nodes['#vbStudyForm'] = Object.assign(stubEl(), { value: 'te' });
+  nodes['#vbStudyBook'] = Object.assign(stubEl(), { value: 'all' });
   const location = { hash: '#/' };
   const document = {
     body: stubEl(), head: stubEl(), createElement: stubEl, addEventListener() {},
@@ -814,39 +833,15 @@ function validateVerbUI() {
   sandbox.globalThis = sandbox;
 
   const context = vm.createContext(sandbox);
-  ['core.js', 'catalog.js', 'site.js', 'learn.js', 'verb-data.js', 'verb-beginner.js', 'verb-levels.js',
-   'verb-quiz.js', 'verb-speed.js', 'verb-scramble.js', 'verb-match.js',
+  ['core.js', 'catalog.js', 'site.js', 'learn.js', 'verb-data.js', 'verb-vocab.js', 'verb-beginner.js', 'verb-levels.js',
+   'verb-quiz.js',
    'verb-sheet.js', 'leaderboard.js', 'home.js'
   ].forEach(file => {
-    let source = fs.readFileSync(path.join(ROOT, 'js', file), 'utf8');
-    /* 在測試環境取得出題函式，以驗證各回合實際產生的配對資料。 */
-    if (file === 'verb-match.js') {
-      source = source.replace('function intro(stage) {',
-        'JPQ.matchTest = { rounds: ROUNDS, takePairs: takePairs }; function intro(stage) {');
-    }
+    const source = fs.readFileSync(path.join(ROOT, 'js', file), 'utf8');
     new vm.Script(source, { filename: file }).runInContext(context);
   });
 
   const JPQ = context.JPQ;
-  const roundKeys = [
-    ['base', 'te', 'ta', 'nai'],
-    ['masu', 'masen', 'mashita', 'masendeshita'],
-    ['you', 'darou', 'meirei', 'kate', 'saseru', 'dekita', 'ukerare']
-  ];
-  JPQ.matchTest.rounds.forEach((round, index) => {
-    for (let n = 0; n < 10; n++) {
-      const pairs = JPQ.matchTest.takePairs(round.pairs());
-      assert.strictEqual(pairs.length, 8, 'Each match round needs eight pairs');
-      const texts = new Set();
-      pairs.forEach(p => {
-        assert(roundKeys[index].includes(p.k), `Match round ${index + 1} asks ${p.k} outside its scope`);
-        assert(p.base && p.label, 'Match prompts need both the verb and target form');
-        const text = p.text.replace(/\[.*?\]/g, '');
-        assert(!texts.has(text), `Ambiguous matching answers: ${text}`);
-        texts.add(text);
-      });
-    }
-  });
   JPQ.store.load();
   JPQ.store.save = () => {};
   JPQ.hud.init();
@@ -855,8 +850,8 @@ function validateVerbUI() {
   JPQ.fx.burst = () => {};
   JPQ.fx.center = () => {};
 
-  /* 四款玩法都要註冊成功 */
-  ['verb-quiz', 'verb-speed', 'verb-scramble', 'verb-match'].forEach(name => {
+  /* 公開的動詞練習要帶齊首頁卡片欄位 */
+  ['verb-quiz'].forEach(name => {
     assert(JPQ.games[name], `Game "${name}" was never registered`);
     const card = JPQ.games[name].card || {};
     assert(card.title && card.desc && card.tag && card.color && card.icon && card.thumb,
@@ -867,7 +862,7 @@ function validateVerbUI() {
   JPQ.verbSheet.render();
   const sheet = nodes['#verbSheet'].innerHTML + nodes['#vbStudyExamples'].innerHTML;
   assert(sheet.length > 1000, `Cheat sheet rendered only ${sheet.length} characters`);
-  ['想查哪一種變化', '第Ⅰ類', '第Ⅱ類', '第Ⅲ類', '看更多動詞'].forEach(text =>
+  ['想查哪一種變化', '第Ⅰ類', '第Ⅱ類', '第Ⅲ類', '查看收錄字彙'].forEach(text =>
     assert(sheet.includes(text), `Cheat sheet is missing the "${text}" section`));
   /* 表上每個動詞都要真的排得出來，否則會出現空白格 */
   assert(!/undefined|NaN|\[object/.test(sheet), 'Cheat sheet contains undefined/NaN text');
@@ -881,17 +876,22 @@ function validateVerbUI() {
     assert(!/undefined|NaN|\[object/.test(html), `Game "${name}" rendered undefined/NaN text`);
   });
 
-  /* 選擇題闖關的關卡選擇頁：關卡數要跟 LEVELS 一致 */
+  /* 設定頁可指定冊別與變化，所有選項限於初級範圍。 */
   JPQ.go('#/play/verb-quiz');
   JPQ.router();
-  const levels = JPQ.VERB_LEVELS.length;
-  const btnCount = (nodes['#stage'].innerHTML.match(/class="level-btn"/g) || []).length;
-  assert.strictEqual(btnCount, levels,
-    `The level picker shows ${btnCount} buttons but there are ${levels} levels`);
+  const settings = fs.readFileSync(path.join(ROOT, 'conjugation.html'), 'utf8');
+  ['verbPracticeForm', 'verbBook', 'verbForm', 'verbStart'].forEach(id =>
+    assert(settings.includes(`id="${id}"`), `Practice settings are missing ${id}`));
+  assert(nodes['#stage'].innerHTML.includes('id="verbChoose"'), 'Invalid practice links need a way back to settings');
+  const choices = nodes['#verbSheet'].innerHTML;
+  JPQ.VERB_LEVELS.forEach(level =>
+    assert(choices.includes(`value="${level.forms[0]}"`), `Missing beginner form option ${level.forms[0]}`));
+  ['dekita', 'you', 'meirei', 'kinshi', 'kate', 'ukerare', 'saseru'].forEach(key =>
+    assert(!choices.includes(`value="${key}"`), `Out-of-scope form ${key} appeared in settings`));
 
   /* 遊戲卡片的縮圖樣式必須在 site.js 的表裡，否則首頁會畫不出縮圖 */
   const siteSource = fs.readFileSync(path.join(ROOT, 'js', 'site.js'), 'utf8');
-  ['verb-quiz', 'verb-speed', 'verb-scramble', 'verb-match'].forEach(name => {
+  ['verb-quiz'].forEach(name => {
     const thumb = JPQ.games[name].card.thumb;
     assert(new RegExp('\\b' + thumb + ':').test(siteSource),
       `Thumbnail "${thumb}" (used by ${name}) is missing from THUMBS in js/site.js`);

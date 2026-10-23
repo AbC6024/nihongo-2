@@ -21,6 +21,10 @@
     const godan = v.type === 'godan', ichidan = v.type === 'ichidan';
     const prefix = s.prefix || '';
     let candidates = [];
+    const polite = { masen:'ません', mashita:'ました', masendeshita:'ませんでした', mashimashou:'ましょう', masenka:'ませんか' };
+    if (polite[key]) return distractors(v, 'masu').map(k => k.slice(0, -2) + polite[key]);
+    if (key === 'nakatta') return distractors(v, 'nai').map(k => k.slice(0, -2) + 'なかった');
+    if (key === 'tara') return distractors(v, 'ta').map(k => k + 'ら');
     if (key === 'te' || key === 'ta') {
       const te = verb.conjugate(v, 'te');
       if (godan) {
@@ -96,7 +100,10 @@
 
   /* 這一關可以用的動詞 */
   function verbsOf(level) {
-    let list = verb.VERBS.filter(v => level.types.indexOf(v.type) !== -1);
+    const types = level.types || ['godan', 'ichidan', 'suru', 'kuru'];
+    let list = JPQ.verbStudy.VOCAB.filter(v => v.lesson >= 1 && v.lesson <= 25 &&
+      types.indexOf(v.type) !== -1 &&
+      (level.book === 'all' || String(v.book) === String(level.book)));
     if (level.cols) {
       list = list.filter(v => level.cols.indexOf(v.col) !== -1);
     }
@@ -106,7 +113,7 @@
   /* 這個動詞能出的活用形 */
   function formsOf(v, level) {
     return verb.formsFor(v)
-      .filter(f => level.forms.indexOf(f.key) !== -1)
+      .filter(f => JPQ.verbStudy.FORM_KEYS.indexOf(f.key) !== -1 && level.forms.indexOf(f.key) !== -1)
       .map(f => f.key);
   }
 
@@ -138,37 +145,36 @@
 
   /* 產生一關的題目 */
   function build(level) {
-    const verbs = verbsOf(level);
-    const out = [];
+    level = Object.assign({ book: 'all', forms: JPQ.verbStudy.FORM_KEYS }, level);
+    if (!['all', '1', '2'].includes(String(level.book)) || !Array.isArray(level.forms)) return [];
+    const forms = shuffle(JPQ.verbStudy.FORM_KEYS.filter(key => level.forms.includes(key)));
+    if (!forms.length) return [];
+    // 先列出可用字彙再洗牌，固定抽10個不同動詞，不靠不斷重抽湊題數。
     const seen = new Set();
-    let guard = 0;
-
-    while (out.length < level.count && guard++ < 4000) {
-      const v = verbs[Math.floor(Math.random() * verbs.length)];
-      const forms = formsOf(v, level);
-      if (!forms.length) continue;
-
-      const key = forms[Math.floor(Math.random() * forms.length)];
-      const q = makeQuestion(v, key);
-      if (!q) continue;
-
-      /* 同一個活用形在同一關不重複出題 */
-      const sig = q.verb.kana + ':' + q.key;
-      if (seen.has(sig)) continue;
-      seen.add(sig);
-
-      out.push(q);
-    }
-
+    const candidates = shuffle(verbsOf(level)).filter(v => {
+      const id = v.id || v.kana;
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    }).map(v => ({ verb: v, questions: formsOf(v, level).map(key => makeQuestion(v, key)).filter(Boolean) }))
+      .filter(item => item.questions.length);
+    if (candidates.length < 10) return [];
+    const out = [];
+    candidates.slice(0, 10).forEach((item, i) => {
+      // 綜合練習輪替形式，同時略過該動詞不適用的形式。
+      const preferred = forms.slice(i % forms.length).concat(forms.slice(0, i % forms.length));
+      const key = preferred.find(key => item.questions.some(q => q.key === key));
+      out.push(item.questions.find(q => q.key === key));
+    });
     return shuffle(out);
   }
 
   /* 快速搶答用的題庫：全部活用形混在一起 */
   function poolAll() {
     const out = [];
-    verb.VERBS.forEach(v => {
-      verb.formsFor(v).forEach(f => {
-        const q = makeQuestion(v, f.key);
+    verbsOf({ book:'all' }).forEach(v => {
+      formsOf(v, { forms:JPQ.verbStudy.FORM_KEYS }).forEach(key => {
+        const q = makeQuestion(v, key);
         if (q) out.push(q);
       });
     });

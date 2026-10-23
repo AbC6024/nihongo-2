@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>動詞變化練習 · 遊戲學日語</title>
-<meta name="description" content="適合大家的日本語初級Ⅰ、Ⅱ的動詞變化練習。一次選一種變化，每次6題，附簡單中文說明。">
+<meta name="description" content="大家的日本語台灣版初級Ⅰ、Ⅱ動詞練習，只練第1～25課。從收錄字彙每輪隨機抽10題，可選冊別、綜合或指定變化，附解說與錯題複習。">
 <link rel="canonical" href="https://nihongo-2-static.onrender.com/conjugation.html">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="zh_TW">
 <meta property="og:site_name" content="遊戲學日語">
 <meta property="og:title" content="日語動詞變化練習 · 遊戲學日語">
-<meta property="og:description" content="免費練習日語動詞活用，包含て形、ない形、可能形、受身形與使役形。">
+<meta property="og:description" content="只練大家的日本語台灣版初級Ⅰ、Ⅱ，第1～25課。每輪抽10個不同動詞，附變化說明與錯題複習。">
 <meta property="og:url" content="https://nihongo-2-static.onrender.com/conjugation.html">
 <meta name="twitter:card" content="summary">
 <script type="application/ld+json">
@@ -19,7 +19,7 @@
   "@type": "LearningResource",
   "name": "動詞變化練習",
   "url": "https://nihongo-2-static.onrender.com/conjugation.html",
-  "description": "免費的日語動詞活用練習遊戲。",
+  "description": "大家的日本語台灣版初級Ⅰ、Ⅱ第1～25課動詞練習，每輪隨機抽10題。",
   "inLanguage": ["zh-Hant", "ja"],
   "educationalLevel": "Beginner",
   "learningResourceType": "Educational game",
@@ -32,9 +32,10 @@
 </script>
 <link rel="stylesheet" href="css/style.css?v=30c461c1432f">
 <link rel="stylesheet" href="css/home.css?v=3dadfc038f94">
+<link rel="stylesheet" href="css/verb-study.css?v=2a4da9cf830a">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%F0%9F%A7%A9%3C/text%3E%3C/svg%3E">
 </head>
-<body>
+<body class="verb-study-page">
 
 <div id="site-header"></div>
 
@@ -64,26 +65,47 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
             回遊戲總覽
           </a>
-          <p class="eyebrow">大家的日本語 · 初級Ⅰ／Ⅱ</p>
+          <p class="eyebrow">大家的日本語 · 台灣版初級Ⅰ／Ⅱ</p>
           <h1>動詞變化練習</h1>
-          <p class="portal-lede">一次練一種變化，從最基礎的「て形」開始。<br>
-            每次 6 題，選出答案後就能看簡單說明。</p>
+          <p class="portal-lede">只練第 1～25 課的動詞變化。<br>
+            每輪從收錄字彙抽 10 題，答完再整理不熟的地方。</p>
           <div class="hero-stats" id="heroStats"></div>
         </div>
       </div>
     </div>
 
-    <div class="wrap">
-      <h2 class="section-title">今天想練哪一種？</h2>
-      <p class="section-note">不用按順序闖關。選你正在學的內容就可以開始。</p>
-      <div id="verbTopics"></div>
+    <div class="wrap vb-study-home">
+      <section class="vb-practice-card" aria-labelledby="verbPracticeTitle">
+        <div class="vb-section-head"><div><p class="eyebrow">TODAY'S PRACTICE</p>
+          <h2 id="verbPracticeTitle">今天的 10 題</h2></div><span class="vb-round-badge">不計時</span></div>
+        <p class="vb-practice-intro">先選單字來源，再決定綜合練習，或集中練一種變化。</p>
+        <form id="verbPracticeForm">
+          <div class="vb-practice-controls">
+            <label for="verbBook">單字來源<select id="verbBook" name="book">
+              <option value="all">初級Ⅰ＋Ⅱ · 第 1～25 課</option>
+              <option value="1">初級Ⅰ · 第 1～12 課</option>
+              <option value="2">初級Ⅱ · 第 13～25 課</option>
+            </select></label>
+            <label for="verbForm">練習變化<select id="verbForm" name="form"><option value="mixed">綜合變化</option></select></label>
+          </div>
+          <p class="vb-pool-info" id="verbPoolInfo" aria-live="polite">正在整理收錄字彙……</p>
+          <div class="vb-start-row"><button type="submit" class="btn" id="verbStart">開始抽 10 題 →</button>
+            <span>同輪動詞不重複 · 每題附變化說明</span></div>
+        </form>
+      </section>
 
-      <details class="vb-reference">
-        <summary>忘記怎麼變？看簡單對照表</summary>
-        <p class="section-note">先選一種變化，再看第Ⅰ、Ⅱ、Ⅲ類的例子。</p>
-        <div id="verbSheet"></div>
+      <section class="vb-scope" aria-labelledby="verbScopeTitle">
+        <h2 id="verbScopeTitle">跟著目前進度練習</h2>
+        <p>範圍依台灣版初級Ⅰ（第 1～12 課）、初級Ⅱ（第 13～25 課）。收錄字彙持續整理，冊別只決定抽哪些單字。</p>
+        <details class="vb-reference vb-topic-reference"><summary>查看本頁的動詞變化</summary>
+          <p class="section-note">點選一種變化即可開始，沿用上方的單字來源設定。</p><div id="verbTopics"></div>
+        </details>
+      </section>
+
+      <details class="vb-reference vb-sheet-reference">
+        <summary>忘記怎麼變？查動詞對照表</summary>
+        <p class="section-note">先選變化，看三類動詞的例子，也可以查閱收錄字彙。</p><div id="verbSheet"></div>
       </details>
-
     </div>
   </section>
 
@@ -118,16 +140,17 @@
 <canvas id="fx" aria-hidden="true"></canvas>
 
   <script src="js/core.js?v=93d33e43efa2"></script>
-  <script src="js/catalog.js?v=29003fd45257"></script>
-  <script src="js/learn.js?v=2de4867935cd"></script>
+  <script src="js/catalog.js?v=b99401040ffe"></script>
+  <script src="js/learn.js?v=a1e590f68ed3"></script>
   <script src="js/site.js?v=c0c26ec6ab4d"></script>
-  <script src="js/verb-data.js?v=d1d4458ee078"></script>
-  <script src="js/verb-beginner.js?v=c6f95735ff11"></script>
-  <script src="js/verb-levels.js?v=62da20167de5"></script>
-  <script src="js/verb-quiz.js?v=6ce3ea90d765"></script>
-  <script src="js/verb-sheet.js?v=47aa09911cef"></script>
+  <script src="js/verb-data.js?v=90c621deacdc"></script>
+  <script src="js/verb-vocab.js?v=757a17c37822"></script>
+  <script src="js/verb-beginner.js?v=1ef6f2c28d63"></script>
+  <script src="js/verb-levels.js?v=8ad3798ed7cd"></script>
+  <script src="js/verb-quiz.js?v=5a60203ce1eb"></script>
+  <script src="js/verb-sheet.js?v=1288ab777abf"></script>
   <script src="js/leaderboard.js?v=d6025b244299"></script>
   <script src="js/home.js?v=dfdc4c80cdfc"></script>
-  <script src="js/verb-boot.js?v=0adcdd4019ca"></script>
+  <script src="js/verb-boot.js?v=84e05f08e07b"></script>
 </body>
 </html>

@@ -193,6 +193,8 @@
     { key:'masenka',   label:'ませんか',     en:'Question',      group:'masu', hint:'連用形 + ませんか' },
 
     { key:'nai',    label:'ない形',       en:'Negative',     group:'sent', hint:'未然形 + ない' },
+    { key:'nakatta',label:'なかった形', en:'Plain past negative', group:'sent', hint:'ない形の「ない」を「なかった」に替える' },
+    { key:'tara',   label:'たら形',     en:'If / when',    group:'sent', hint:'た形 + ら' },
     { key:'darou',  label:'だろう',     en:'Presumptive',  group:'sent', hint:'辞書形 + だろう' },
     { key:'you',    label:'意向形',     en:'Volitional',   group:'sent', hint:'五段：詞尾變お段 + う；一段：去る + よう；する→しよう；来る→こよう' },
     { key:'meirei', label:'命令形',     en:'Imperative',   group:'sent', hint:'直接叫人做：書け／食べろ' },
@@ -219,8 +221,8 @@
   /* ruby 有幾個假名被漢字蓋住。沒有標注音的（來）就用字數算。 */
   function coverLen(verb) {
     if (!verb.ruby) return 0;
-    const kana = rubyKana(verb.ruby);
-    return kana ? kana.length : String(verb.ruby).length;
+    // 買[か]い物[もの]、乗[の]り換[か] 之間的假名也佔讀音長度。
+    return String(verb.ruby).replace(/[一-龯々〆〇]+\[([^\]]+)\]/g, '$1').length;
   }
 
   /* ---------------- 規則引擎 ---------------- */
@@ -312,6 +314,8 @@
       meirei: s.meirei,
 
       nai:    nai,
+      nakatta: nai.slice(0, -2) + 'なかった',
+      tara:   s.ta + 'ら',
       darou:  s.base + 'だろう',
       you:    s.you,
       kinshi: s.base + 'な',
@@ -501,6 +505,8 @@
           head = v.kana === 'ある' ? '' : s.mizen; tail = kana.slice(head.length); break;
 
         case 'darou':          head = s.base; tail = 'だろう'; break;
+        case 'nakatta':        head = a.nai.slice(0, -2); tail = 'なかった'; break;
+        case 'tara':           head = s.ta; tail = 'ら'; break;
         case 'kinshi':         head = s.base; tail = 'な'; break;
         case 'you':            head = godan ? s.you.slice(0, -1) : s.mizen; tail = godan ? 'う' : 'よう'; break;
         case 'meirei':         head = godan || v.type === 'ichidan' ? s.stem : s.prefix; tail = kana.slice(head.length); break;
