@@ -152,6 +152,34 @@ test('the shipped nose question keeps 鼻 lexical without revealing its missing 
   } finally { h.close(); }
 });
 
+test('particle prompts, feedback, reference examples and matching contain no time expressions', async () => {
+  const h = await harness(['data.js']);
+  try {
+    const catalog = JSON.stringify([h.J.PARTICLES, h.J.LEVELS, h.J.SPEED_EXTRA, h.J.SCRAMBLE, h.J.MATCH]);
+    assert.doesNotMatch(catalog, /毎[日朝晩週月年]|今日|昨日|明日|来年|週末|[月火水木金土日]曜日|(?:[一二三四五六七八九十0-9]+|何)時|朝\[|今\[|あした|休\[やす\]みの日|每天|早上|明天|昨天|今天|星期|週末|假日|明年|幾點|特定時間/);
+    assert.deepEqual(Array.from(h.J.LEVELS, level => level.qs.length), [8, 9, 9, 10, 6, 8]);
+    assert.equal(h.J.SCRAMBLE.length, 24, 'Rewriting time-based questions must preserve the existing round length');
+  } finally { h.close(); }
+});
+
+test('the bread question displays and reads the same sentence without a time modifier', async () => {
+  const h = await harness(['data.js', 'quiz.js']);
+  try {
+    const q = h.J.LEVELS[1].qs.find(item => item.q.startsWith('パン__') && item.q.includes('食[た]べます'));
+    assert.ok(q, 'Keep the learner-reported bread exercise');
+    h.J.LEVELS = [{ no: 1, title: '朗讀回歸', sub: '', qs: [q] }];
+    h.route('#/play/quiz'); h.query('[data-lv="1"]').click();
+    assert.equal(playButton(h).dataset.ttsText, q.q);
+    assert.equal(h.query('.q-zh').textContent, '我吃麵包。');
+    playButton(h).click(); assert.equal(spoken(h).text, 'パン、 たべます。');
+    h.query('.opt[data-o="を"]').click();
+    h.query('#fb [data-tts-text]').click();
+    assert.equal(spoken(h).text, 'パンを たべます。');
+    assert.deepEqual(h.answers, [['を', true]]);
+    assert.deepEqual(h.errors, []);
+  } finally { h.close(); }
+});
+
 test('newest click cancels previous playback and stale errors cannot replay an old request', async () => {
   const h = await harness();
   try {
