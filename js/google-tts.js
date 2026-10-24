@@ -5,14 +5,21 @@
   const bound = new WeakSet();
   let active = null;
 
-  function reading(value) {
-    return String(value == null ? '' : value)
-      .replace(/([一-龯々〆〇0-9]+)\[([^\]]+)\]/g, (_, word, kana) => {
-        // Keep 鼻 lexical: Google can parse plain はなが as the particle は
-        // followed by なが. Other words still use their explicit course reading.
-        return word === '鼻' && kana === 'はな' ? word : kana;
-      })
-      .replace(/__+/g, '、').replace(/\s+/g, ' ').trim();
+  // A bare homograph has less context than a sentence. Preserve the course
+  // reading for these isolated forms (rain vs. alighting; piano vs. bursting).
+  const isolatedKana = new Set(['降[ふ]ります', '弾[ひ]けます']);
+
+  function reading(value, options) {
+    options = options || {};
+    const raw = String(value == null ? '' : value).trim();
+    const kanaOnly = options.reading === 'kana' || isolatedKana.has(raw);
+    let text = raw.replace(/([一-龯々〆〇0-9]+)\[([^\]]+)\]/g, (_, word, kana) =>
+      kanaOnly || word === '何' ? kana : word);
+    text = text.replace(/__+/g, '、');
+    if (options.lang === 'zh-TW') return text.replace(/\s+/g, ' ').trim();
+    // Large spaces are the matching game's blanks; other spaces are layout,
+    // not word boundaries. Keep the actual words so Google can infer meaning.
+    return text.replace(/[ \u3000]{2,}/g, '、').replace(/\s+/g, '');
   }
 
   function status(text, state) {
@@ -74,7 +81,7 @@
       status('聲音已關閉，可從右上角開啟。', 'muted');
       return Promise.resolve(false);
     }
-    let text = reading(value);
+    let text = reading(value, options);
     if (options.particle) text = ({ 'は':'わ', 'へ':'え', 'を':'お' })[text] || text;
     if (!text || !/[\p{L}\p{N}]/u.test(text)) return Promise.resolve(false);
     if (Array.from(text).length > 200) {
@@ -94,7 +101,8 @@
           // The website's API retrieves Google audio; browser media headers are not sent to Google.
           audio = new global.Audio(urlFor(text, lang));
           audio.preload = 'auto';
-          audio.playbackRate = 0.9;
+          audio.playbackRate = 1;
+          audio.preservesPitch = true;
         } catch (e) { ctx.failure = e.name || 'AudioUnavailable'; fail(); return; }
         ctx.audio = audio;
         const current = () => active === ctx && ctx.audio === audio;
@@ -145,7 +153,7 @@
     const esc = JPQ.util.escapeHTML;
     options = options || {};
     label = label || '聽題目';
-    return `<button type="button" class="tts-play" data-tts-text="${esc(text)}" data-tts-lang="${options.lang === 'zh-TW' ? 'zh-TW' : 'ja'}" data-tts-particle="${options.particle ? 'true' : 'false'}" title="Google 朗讀" aria-label="${esc(label)}"><span aria-hidden="true">🔊</span><span>${esc(label)}</span></button>`;
+    return `<button type="button" class="tts-play" data-tts-text="${esc(text)}" data-tts-lang="${options.lang === 'zh-TW' ? 'zh-TW' : 'ja'}" data-tts-reading="${options.reading === 'kana' ? 'kana' : 'text'}" data-tts-particle="${options.particle ? 'true' : 'false'}" title="Google 朗讀" aria-label="${esc(label)}"><span aria-hidden="true">🔊</span><span>${esc(label)}</span></button>`;
   }
 
   function bind(root) {
@@ -155,6 +163,7 @@
       button.addEventListener('click', () => {
         say(button.dataset.ttsText, {
           lang: button.dataset.ttsLang,
+          reading: button.dataset.ttsReading,
           particle: button.dataset.ttsParticle === 'true',
           trigger: button
         });

@@ -49,7 +49,7 @@
     stage.innerHTML = `<div class="panel vb-question">
       <div class="vb-question-head"><span class="vb-origin">${origin(q.verb)}</span>
         <span class="vb-question-number">第 ${state.i + 1} / 10 題</span></div>
-      <div class="q-sentence"><span class="vb-word"><button type="button" class="tts-text" data-tts-text="${U.escapeHTML(JPQ.verb.conjugate(q.verb, q.fromKey))}" aria-label="朗讀題目動詞">${ruby(q.from)}<span class="tts-icon" aria-hidden="true">🔊</span></button></span><span class="vb-arrow" aria-label="變成">→</span>
+      <div class="q-sentence"><span class="vb-word"><button type="button" class="tts-text" data-tts-text="${U.escapeHTML(q.from)}" aria-label="朗讀題目動詞">${ruby(q.from)}<span class="tts-icon" aria-hidden="true">🔊</span></button></span><span class="vb-arrow" aria-label="變成">→</span>
         <span class="vb-form">${lesson.title}</span></div>
       <div class="q-zh">${U.escapeHTML(q.zh)}</div>
       <p class="vb-question-prompt">請選出正確的${lesson.title}</p>
@@ -82,7 +82,9 @@
     if (!state || state.finished || state.answered) return;
     state.answered = true;
     const pick = btn.dataset.o, q = state.q, ok = pick === q.a;
-    if (JPQ.tts) JPQ.tts.say(pick, { trigger: btn });
+    // Invalid distractors are deliberately not dictionary words. Read their
+    // supplied kana; a correct form retains its kanji and lexical identity.
+    if (JPQ.tts) JPQ.tts.say(JPQ.verb.displayKana(q.verb, pick), { reading: ok ? 'text' : 'kana', trigger: btn });
     state.answers.push({ q: q, pick: pick, ok: ok });
     U.$$('.opt', stage).forEach(b => {
       b.disabled = true;
@@ -97,7 +99,7 @@
     fb.innerHTML = `<strong>${ok ? '答對了！' : '再記一次這個變化'}</strong>
       <p class="vb-answer">${ruby(q.from)} → ${ruby(JPQ.verb.displayKana(q.verb, q.a))}</p>
       <p class="vb-tip">${U.escapeHTML(JPQ.verbStudy.tip(q.verb, q.key))}</p><p>${lessonFor(q.key).sub}</p>
-      ${JPQ.tts ? JPQ.tts.control(q.a, '聽正確答案') : ''}`;
+      ${JPQ.tts ? JPQ.tts.control(JPQ.verb.displayKana(q.verb, q.a), '聽正確答案') : ''}`;
     if (JPQ.tts) JPQ.tts.bind(fb);
     U.$('#nextRow', stage).hidden = false;
     U.$('#nextBtn', stage).focus({ preventScroll: true }); paint();
@@ -115,7 +117,7 @@
       <p class="vb-review-origin">${U.escapeHTML(a.q.zh)} · ${origin(a.q.verb)}</p>
       ${!a.ok ? `<p class="vb-picked">你的答案：${ruby(JPQ.verb.displayKana(a.q.verb, a.pick))}</p>` : ''}
       <p class="vb-correct-answer">正確答案：${ruby(JPQ.verb.displayKana(a.q.verb, a.q.a))}</p>
-      ${JPQ.tts ? JPQ.tts.control(a.q.a, '聽正確答案') : ''}
+      ${JPQ.tts ? JPQ.tts.control(JPQ.verb.displayKana(a.q.verb, a.q.a), '聽正確答案') : ''}
       <p class="vb-tip">${U.escapeHTML(JPQ.verbStudy.tip(a.q.verb, a.q.key))}</p></li>`).join('');
   }
 

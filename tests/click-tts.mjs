@@ -92,7 +92,7 @@ test('Google audio starts on click, uses Japanese readings and preserves the exi
     playButton(h).click();
     const audio = spoken(h);
     assert.equal(audio.lang, 'ja');
-    assert.ok(audio.text.includes('わたし') && audio.text.includes('がっこう') && audio.text.includes('いきます'));
+    assert.equal(audio.text, '私は学校、行きます。', 'Keep the original words and remove only visual spacing');
     assert.ok(!/[\[\]_]/.test(audio.text), 'Ruby syntax and blanks cannot be read literally');
     assert.equal(h.J.speech, speech);
     assert.equal(h.synthesisCalls(), 0, 'Google playback cannot silently fall back to Web Speech');
@@ -124,7 +124,7 @@ test('standalone particle pronunciation changes only when explicitly requested',
     });
     h.J.tts.say('はなします');
     assert.equal(spoken(h).text, 'はなします', 'The beginning of a normal word is not a particle');
-    h.J.tts.say('母[はは]'); assert.equal(spoken(h).text, 'はは');
+    h.J.tts.say('母[はは]'); assert.equal(spoken(h).text, '母');
   } finally { h.close(); }
 });
 
@@ -136,18 +136,18 @@ test('the shipped nose question keeps 鼻 lexical without revealing its missing 
     h.J.LEVELS = [{ no: 1, title: '發音回歸', sub: '', qs: [q] }];
     h.route('#/play/quiz'); h.query('[data-lv="1"]').click();
     playButton(h).click();
-    assert.equal(spoken(h).text, 'ぞう、 鼻が ながいです。');
+    assert.equal(spoken(h).text, '象、鼻が長いです。');
     assert.equal(h.answers.length, 0, 'Listening to the question must not submit an answer');
     h.query('.opt[data-o="は"]').click();
     assert.equal(spoken(h).text, 'わ', 'The standalone topic particle still needs wa');
     h.query('#fb [data-tts-text]').click();
-    assert.equal(spoken(h).text, 'ぞうは 鼻が ながいです。', 'Only post-answer playback may fill the blank');
+    assert.equal(spoken(h).text, '象は鼻が長いです。', 'Only post-answer playback may fill the blank');
     h.J.tts.say('鼻[はな]', { particle: true });
     assert.equal(spoken(h).text, '鼻', 'A noun cannot be mistaken for a standalone particle');
     h.J.tts.say('弾[ひ]けます');
     assert.equal(spoken(h).text, 'ひけます', 'Keep the explicit reading of ambiguous kanji');
     h.J.tts.say('話[はな]します');
-    assert.equal(spoken(h).text, 'はなします', 'Do not replace は globally within words');
+    assert.equal(spoken(h).text, '話します', 'Keep the lexical word instead of replacing は globally');
     assert.deepEqual(h.errors, []);
   } finally { h.close(); }
 });
@@ -159,6 +159,9 @@ test('particle prompts, feedback, reference examples and matching contain no tim
     assert.doesNotMatch(catalog, /毎[日朝晩週月年]|今日|昨日|明日|来年|週末|[月火水木金土日]曜日|(?:[一二三四五六七八九十0-9]+|何)時|朝\[|今\[|あした|休\[やす\]みの日|每天|早上|明天|昨天|今天|星期|週末|假日|明年|幾點|特定時間/);
     assert.deepEqual(Array.from(h.J.LEVELS, level => level.qs.length), [8, 9, 9, 10, 6, 8]);
     assert.equal(h.J.SCRAMBLE.length, 24, 'Rewriting time-based questions must preserve the existing round length');
+    assert.ok(h.J.MATCH[1].pairs.some(p => p.t.includes('上手[じょうず]です。')));
+    assert.ok(!catalog.includes('上手[じょうず]い'), 'じょうず is a na-adjective, not じょうずい');
+    assert.ok(!catalog.includes('お茶[おちゃ]'), 'The kana お is already outside the annotated kanji');
   } finally { h.close(); }
 });
 
@@ -171,12 +174,43 @@ test('the bread question displays and reads the same sentence without a time mod
     h.route('#/play/quiz'); h.query('[data-lv="1"]').click();
     assert.equal(playButton(h).dataset.ttsText, q.q);
     assert.equal(h.query('.q-zh').textContent, '我吃麵包。');
-    playButton(h).click(); assert.equal(spoken(h).text, 'パン、 たべます。');
+    playButton(h).click(); assert.equal(spoken(h).text, 'パン、食べます。');
     h.query('.opt[data-o="を"]').click();
     h.query('#fb [data-tts-text]').click();
-    assert.equal(spoken(h).text, 'パンを たべます。');
+    assert.equal(spoken(h).text, 'パンを食べます。');
     assert.deepEqual(h.answers, [['を', true]]);
     assert.deepEqual(h.errors, []);
+  } finally { h.close(); }
+});
+
+test('Japanese words retain meaning while ambiguous readings and Chinese spacing stay explicit', async () => {
+  const h = await harness();
+  try {
+    const cases = [
+      ['単語[たんご]__　勉強[べんきょう]します。', '単語、勉強します。'],
+      ['かばんの　中[なか]におかしが入[はい]っています。', 'かばんの中におかしが入っています。'],
+      ['箱[はこ]の中[なか]に猫[ねこ]がいます。', '箱の中に猫がいます。'],
+      ['母[はは]は日本語[にほんご]で話[はな]します。', '母は日本語で話します。'],
+      ['切[き]る', '切る'], ['着[き]る', '着る'],
+      ['降[ふ]ります', 'ふります'], ['降[お]ります', '降ります'],
+      ['雨[あめ]が降[ふ]ります。', '雨が降ります。'],
+      ['弾[ひ]けます', 'ひけます'],
+      ['ピアノが弾[ひ]けます。', 'ピアノが弾けます。'],
+      ['これは何[なん]ですか。', 'これはなんですか。'],
+      ['何[なに]を見[み]ますか。', 'なにを見ますか。'],
+      ['友達[ともだち]　　　映画[えいが]を見[み]る。', '友達、映画を見る。']
+    ];
+    for (const [raw, expected] of cases) {
+      h.J.tts.say(raw); assert.equal(spoken(h).text, expected);
+    }
+    h.J.tts.say('生[う]まれらない', { reading: 'kana' });
+    assert.equal(spoken(h).text, 'うまれらない', 'A deliberately incorrect choice must retain its supplied reading');
+    h.stage.innerHTML = h.J.tts.control('生[う]まれらない', '聽所選內容', { reading: 'kana' });
+    h.J.tts.bind(h.stage); playButton(h).click();
+    assert.equal(spoken(h).text, 'うまれらない', 'Replay controls must retain an explicit reading mode');
+    h.J.tts.say('表示「A 的 B」或性質', { lang: 'zh-TW' });
+    assert.equal(spoken(h).text, '表示「A 的 B」或性質');
+    assert.equal(spoken(h).lang, 'zh-TW');
   } finally { h.close(); }
 });
 
@@ -258,8 +292,8 @@ test('particle quiz reads only the visible blank prompt and the selected option 
     h.route('#/play/quiz'); h.query('[data-lv="1"]').click();
     assert.equal(h.audios.length, 0);
     playButton(h).click(); const text = spoken(h).text;
-    assert.ok(text.includes('せんせい') && text.includes('てがみ'));
-    assert.ok(!text.includes('せんせいに'), 'Question playback must not fill the correct particle');
+    assert.equal(text, '先生、手紙を書きます。');
+    assert.ok(!text.includes('先生に'), 'Question playback must not fill the correct particle');
     assert.equal(h.answers.length, 0, 'Replay is not an answer');
     h.query('.opt[data-o="は"]').click();
     assert.equal(spoken(h).text, 'わ');
@@ -331,9 +365,10 @@ test('verb question reads its presented source form, selected options read thems
     h.J.verbGame.build = config => { round = build(config); return round; };
     h.route('#/play/verb-quiz/nai/all');
     assert.equal(h.audios.length, 0);
-    const q = round[0]; const expectedSource = h.J.verb.conjugate(q.verb, q.fromKey);
-    assert.notEqual(expectedSource, q.a);
+    const q = round[0]; const expectedSource = h.J.tts.reading(q.from);
+    assert.notEqual(h.J.verb.conjugate(q.verb, q.fromKey), q.a);
     const word = h.query('.vb-word [data-tts-text]'); assert.ok(word); word.click();
+    assert.equal(word.dataset.ttsText, q.from, 'The prompt must preserve its displayed verb identity, including kanji');
     assert.equal(spoken(h).lang, 'ja');
     assert.equal(spoken(h).text, expectedSource, 'The prompt must read its visible source form, not the target answer');
     assert.equal(h.answers.length, 0);
@@ -342,6 +377,9 @@ test('verb question reads its presented source form, selected options read thems
     assert.equal(spoken(h).text, pick);
     assert.deepEqual(h.answers, [['形:nai', false]]);
     wrong.click(); assert.equal(h.answers.length, 1);
+    const replay = h.query('#fb [data-tts-text]');
+    assert.equal(replay.dataset.ttsText, h.J.verb.displayKana(q.verb, q.a));
+    replay.click(); assert.equal(spoken(h).text, h.J.tts.reading(h.J.verb.displayKana(q.verb, q.a)));
     h.query('#nextBtn').click();
     assert.equal(h.audios.at(-1).paused, true, 'Advancing questions must stop the previous voice');
     assert.deepEqual(h.errors, []);
