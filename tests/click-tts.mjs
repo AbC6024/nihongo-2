@@ -128,6 +128,30 @@ test('standalone particle pronunciation changes only when explicitly requested',
   } finally { h.close(); }
 });
 
+test('the shipped nose question keeps 鼻 lexical without revealing its missing particle', async () => {
+  const h = await harness(['data.js', 'quiz.js']);
+  try {
+    const q = h.J.LEVELS.flatMap(level => level.qs).find(item => item.q.includes('鼻[はな]'));
+    assert.ok(q, 'Exercise the actual question reported by the learner');
+    h.J.LEVELS = [{ no: 1, title: '發音回歸', sub: '', qs: [q] }];
+    h.route('#/play/quiz'); h.query('[data-lv="1"]').click();
+    playButton(h).click();
+    assert.equal(spoken(h).text, 'ぞう、 鼻が ながいです。');
+    assert.equal(h.answers.length, 0, 'Listening to the question must not submit an answer');
+    h.query('.opt[data-o="は"]').click();
+    assert.equal(spoken(h).text, 'わ', 'The standalone topic particle still needs wa');
+    h.query('#fb [data-tts-text]').click();
+    assert.equal(spoken(h).text, 'ぞうは 鼻が ながいです。', 'Only post-answer playback may fill the blank');
+    h.J.tts.say('鼻[はな]', { particle: true });
+    assert.equal(spoken(h).text, '鼻', 'A noun cannot be mistaken for a standalone particle');
+    h.J.tts.say('弾[ひ]けます');
+    assert.equal(spoken(h).text, 'ひけます', 'Keep the explicit reading of ambiguous kanji');
+    h.J.tts.say('話[はな]します');
+    assert.equal(spoken(h).text, 'はなします', 'Do not replace は globally within words');
+    assert.deepEqual(h.errors, []);
+  } finally { h.close(); }
+});
+
 test('newest click cancels previous playback and stale errors cannot replay an old request', async () => {
   const h = await harness();
   try {

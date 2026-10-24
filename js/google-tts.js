@@ -7,7 +7,11 @@
 
   function reading(value) {
     return String(value == null ? '' : value)
-      .replace(/([一-龯々〆〇0-9]+)\[([^\]]+)\]/g, '$2')
+      .replace(/([一-龯々〆〇0-9]+)\[([^\]]+)\]/g, (_, word, kana) => {
+        // Keep 鼻 lexical: Google can parse plain はなが as the particle は
+        // followed by なが. Other words still use their explicit course reading.
+        return word === '鼻' && kana === 'はな' ? word : kana;
+      })
       .replace(/__+/g, '、').replace(/\s+/g, ' ').trim();
   }
 
