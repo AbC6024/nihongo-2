@@ -5,20 +5,21 @@
   const bound = new WeakSet();
   let active = null;
 
-  // A bare homograph has less context than a sentence. Preserve the course
-  // reading for these isolated forms (rain vs. alighting; piano vs. bursting).
-  const isolatedKana = new Set(['降[ふ]ります', '弾[ひ]けます']);
-
   function reading(value, options) {
     options = options || {};
     const raw = String(value == null ? '' : value).trim();
-    const kanaOnly = options.reading === 'kana' || isolatedKana.has(raw);
-    let text = raw.replace(/([一-龯々〆〇0-9]+)\[([^\]]+)\]/g, (_, word, kana) =>
-      kanaOnly || word === '何' ? kana : word);
+    let text = raw.replace(/([一-龯々〆〇0-9]+)\[([^\]]+)\]/g, (_, word, kana) => {
+      if (options.lang === 'zh-TW') return word;
+      // Furigana is authoritative inside sentences as well as isolated words.
+      // Katakana makes lexical ハ (鼻/箱/入る) distinct from the particle は;
+      // do not convert the surrounding particles or guess a kanji reading.
+      return options.reading === 'kana' ? kana : kana.replace(/[ぁ-ゖ]/g,
+        char => String.fromCharCode(char.charCodeAt(0) + 0x60));
+    });
     text = text.replace(/__+/g, '、');
     if (options.lang === 'zh-TW') return text.replace(/\s+/g, ' ').trim();
     // Large spaces are the matching game's blanks; other spaces are layout,
-    // not word boundaries. Keep the actual words so Google can infer meaning.
+    // not word boundaries. Preserve the readings and visible sentence order.
     return text.replace(/[ \u3000]{2,}/g, '、').replace(/\s+/g, '');
   }
 

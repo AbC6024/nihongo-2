@@ -83,7 +83,7 @@
     state.answered = true;
     const pick = btn.dataset.o, q = state.q, ok = pick === q.a;
     // Invalid distractors are deliberately not dictionary words. Read their
-    // supplied kana; a correct form retains its kanji and lexical identity.
+    // literal kana; correct forms also follow their displayed furigana.
     if (JPQ.tts) JPQ.tts.say(JPQ.verb.displayKana(q.verb, pick), { reading: ok ? 'text' : 'kana', trigger: btn });
     state.answers.push({ q: q, pick: pick, ok: ok });
     U.$$('.opt', stage).forEach(b => {

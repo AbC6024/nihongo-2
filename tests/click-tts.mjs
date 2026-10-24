@@ -92,7 +92,7 @@ test('Google audio starts on click, uses Japanese readings and preserves the exi
     playButton(h).click();
     const audio = spoken(h);
     assert.equal(audio.lang, 'ja');
-    assert.equal(audio.text, '私は学校、行きます。', 'Keep the original words and remove only visual spacing');
+    assert.equal(audio.text, 'ワタシはガッコウ、イきます。', 'Read the supplied furigana without changing the surrounding particles');
     assert.ok(!/[\[\]_]/.test(audio.text), 'Ruby syntax and blanks cannot be read literally');
     assert.equal(h.J.speech, speech);
     assert.equal(h.synthesisCalls(), 0, 'Google playback cannot silently fall back to Web Speech');
@@ -124,11 +124,11 @@ test('standalone particle pronunciation changes only when explicitly requested',
     });
     h.J.tts.say('はなします');
     assert.equal(spoken(h).text, 'はなします', 'The beginning of a normal word is not a particle');
-    h.J.tts.say('母[はは]'); assert.equal(spoken(h).text, '母');
+    h.J.tts.say('母[はは]'); assert.equal(spoken(h).text, 'ハハ');
   } finally { h.close(); }
 });
 
-test('the shipped nose question keeps 鼻 lexical without revealing its missing particle', async () => {
+test('the shipped nose question keeps lexical ハ distinct from particles without revealing the blank', async () => {
   const h = await harness(['data.js', 'quiz.js']);
   try {
     const q = h.J.LEVELS.flatMap(level => level.qs).find(item => item.q.includes('鼻[はな]'));
@@ -136,18 +136,18 @@ test('the shipped nose question keeps 鼻 lexical without revealing its missing 
     h.J.LEVELS = [{ no: 1, title: '發音回歸', sub: '', qs: [q] }];
     h.route('#/play/quiz'); h.query('[data-lv="1"]').click();
     playButton(h).click();
-    assert.equal(spoken(h).text, '象、鼻が長いです。');
+    assert.equal(spoken(h).text, 'ゾウ、ハナがナガいです。');
     assert.equal(h.answers.length, 0, 'Listening to the question must not submit an answer');
     h.query('.opt[data-o="は"]').click();
     assert.equal(spoken(h).text, 'わ', 'The standalone topic particle still needs wa');
     h.query('#fb [data-tts-text]').click();
-    assert.equal(spoken(h).text, '象は鼻が長いです。', 'Only post-answer playback may fill the blank');
+    assert.equal(spoken(h).text, 'ゾウはハナがナガいです。', 'Only post-answer playback may fill the blank');
     h.J.tts.say('鼻[はな]', { particle: true });
-    assert.equal(spoken(h).text, '鼻', 'A noun cannot be mistaken for a standalone particle');
+    assert.equal(spoken(h).text, 'ハナ', 'A noun cannot be mistaken for a standalone particle');
     h.J.tts.say('弾[ひ]けます');
-    assert.equal(spoken(h).text, 'ひけます', 'Keep the explicit reading of ambiguous kanji');
+    assert.equal(spoken(h).text, 'ヒけます', 'Keep the explicit reading of ambiguous kanji');
     h.J.tts.say('話[はな]します');
-    assert.equal(spoken(h).text, '話します', 'Keep the lexical word instead of replacing は globally');
+    assert.equal(spoken(h).text, 'ハナします', 'Respect the displayed reading without changing lexical ハ into wa');
     assert.deepEqual(h.errors, []);
   } finally { h.close(); }
 });
@@ -174,31 +174,31 @@ test('the bread question displays and reads the same sentence without a time mod
     h.route('#/play/quiz'); h.query('[data-lv="1"]').click();
     assert.equal(playButton(h).dataset.ttsText, q.q);
     assert.equal(h.query('.q-zh').textContent, '我吃麵包。');
-    playButton(h).click(); assert.equal(spoken(h).text, 'パン、食べます。');
+    playButton(h).click(); assert.equal(spoken(h).text, 'パン、タべます。');
     h.query('.opt[data-o="を"]').click();
     h.query('#fb [data-tts-text]').click();
-    assert.equal(spoken(h).text, 'パンを食べます。');
+    assert.equal(spoken(h).text, 'パンをタべます。');
     assert.deepEqual(h.answers, [['を', true]]);
     assert.deepEqual(h.errors, []);
   } finally { h.close(); }
 });
 
-test('Japanese words retain meaning while ambiguous readings and Chinese spacing stay explicit', async () => {
+test('furigana overrides kanji in every sentence while particles and Chinese remain intact', async () => {
   const h = await harness();
   try {
     const cases = [
-      ['単語[たんご]__　勉強[べんきょう]します。', '単語、勉強します。'],
-      ['かばんの　中[なか]におかしが入[はい]っています。', 'かばんの中におかしが入っています。'],
-      ['箱[はこ]の中[なか]に猫[ねこ]がいます。', '箱の中に猫がいます。'],
-      ['母[はは]は日本語[にほんご]で話[はな]します。', '母は日本語で話します。'],
-      ['切[き]る', '切る'], ['着[き]る', '着る'],
-      ['降[ふ]ります', 'ふります'], ['降[お]ります', '降ります'],
-      ['雨[あめ]が降[ふ]ります。', '雨が降ります。'],
-      ['弾[ひ]けます', 'ひけます'],
-      ['ピアノが弾[ひ]けます。', 'ピアノが弾けます。'],
-      ['これは何[なん]ですか。', 'これはなんですか。'],
-      ['何[なに]を見[み]ますか。', 'なにを見ますか。'],
-      ['友達[ともだち]　　　映画[えいが]を見[み]る。', '友達、映画を見る。']
+      ['単語[たんご]__　勉強[べんきょう]します。', 'タンゴ、ベンキョウします。'],
+      ['かばんの　中[なか]におかしが入[はい]っています。', 'かばんのナカにおかしがハイっています。'],
+      ['箱[はこ]の中[なか]に猫[ねこ]がいます。', 'ハコのナカにネコがいます。'],
+      ['母[はは]は日本語[にほんご]で話[はな]します。', 'ハハはニホンゴでハナします。'],
+      ['切[き]る', 'キる'], ['着[き]る', 'キる'],
+      ['降[ふ]ります', 'フります'], ['降[お]ります', 'オります'],
+      ['雨[あめ]が降[ふ]ります。', 'アメがフります。'],
+      ['弾[ひ]けます', 'ヒけます'],
+      ['ピアノが弾[ひ]けます。', 'ピアノがヒけます。'],
+      ['これは何[なん]ですか。', 'これはナンですか。'],
+      ['何[なに]を見[み]ますか。', 'ナニをミますか。'],
+      ['友達[ともだち]　　　映画[えいが]を見[み]る。', 'トモダチ、エイガをミる。']
     ];
     for (const [raw, expected] of cases) {
       h.J.tts.say(raw); assert.equal(spoken(h).text, expected);
@@ -292,8 +292,8 @@ test('particle quiz reads only the visible blank prompt and the selected option 
     h.route('#/play/quiz'); h.query('[data-lv="1"]').click();
     assert.equal(h.audios.length, 0);
     playButton(h).click(); const text = spoken(h).text;
-    assert.equal(text, '先生、手紙を書きます。');
-    assert.ok(!text.includes('先生に'), 'Question playback must not fill the correct particle');
+    assert.equal(text, 'センセイ、テガミをカきます。');
+    assert.ok(!text.includes('センセイに'), 'Question playback must not fill the correct particle');
     assert.equal(h.answers.length, 0, 'Replay is not an answer');
     h.query('.opt[data-o="は"]').click();
     assert.equal(spoken(h).text, 'わ');
@@ -325,7 +325,7 @@ test('scramble reads the clicked token without revealing the complete answer', a
     h.route('#/play/scramble'); h.query('#startBtn').click();
     assert.equal(h.audios.length, 0);
     h.query('#pool [data-pool="2"]').click();
-    assert.equal(spoken(h).text, 'ひけます');
+    assert.equal(spoken(h).text, 'ヒけます');
     assert.equal(h.query('#slot').querySelectorAll('[data-pool]').length, 1);
     assert.equal(h.answers.length, 0);
     assert.ok(!spoken(h).text.includes('ピアノ'));
@@ -354,6 +354,53 @@ test('matching reads visible right-hand descriptions and blank sentences without
     assert.equal(spoken(h).text, h.J.tts.reading(p.t));
     assert.ok(!spoken(h).text.includes('それは'), 'Do not fill a hidden answer while reading a blank sentence');
     assert.deepEqual(h.errors, []);
+  } finally { h.close(); }
+});
+
+test('all 24 scramble sentences follow their rendered furigana in tokens, arrangements and full replay', async () => {
+  const h = await harness(['data.js', 'scramble.js']);
+  const displayedReading = button => {
+    const copy = button.cloneNode(true);
+    copy.querySelectorAll('ruby').forEach(ruby => {
+      const kana = ruby.querySelector('rt').textContent.replace(/[ぁ-ゖ]/g,
+        char => String.fromCharCode(char.charCodeAt(0) + 0x60));
+      ruby.replaceWith(h.document.createTextNode(kana));
+    });
+    return copy.textContent.replace(/\s+/g, '');
+  };
+  try {
+    h.route('#/play/scramble'); h.query('#startBtn').click();
+    for (let n = 0; n < h.J.SCRAMBLE.length; n++) {
+      const q = h.J.SCRAMBLE[n];
+      const expected = q.ans.map((_, i) => displayedReading(h.query(`#pool [data-pool="${i}"]`)));
+      q.ans.forEach((_, i) => {
+        h.query(`#pool [data-pool="${i}"]`).click();
+        assert.equal(spoken(h).text, expected[i], `Token ${i + 1} in sentence ${n + 1}`);
+        h.query('#sentenceAudio [data-tts-text]').click();
+        assert.equal(spoken(h).text, expected.slice(0, i + 1).join(''), 'Read only what has been placed');
+      });
+      if (n === 0) assert.equal(expected.join(''), 'ワタシはピアノがヒけます', '弾[ひ] must stay hi within the whole sentence');
+      h.query('#checkBtn').click();
+      const count = h.answers.length;
+      h.query('.fb [data-tts-text]').click();
+      assert.equal(spoken(h).text, expected.join(''), `Full replay in sentence ${n + 1}`);
+      assert.equal(h.answers.length, count, 'Listening again cannot submit an answer');
+      if (n < h.J.SCRAMBLE.length - 1) h.query('#nextBtn').click();
+    }
+    assert.deepEqual(h.errors, []);
+  } finally { h.close(); }
+});
+
+test('all 660 textbook verb forms preserve the displayed kana rather than asking Google to read kanji', async () => {
+  const h = await harness(['verb-data.js', 'verb-vocab.js']);
+  const hiragana = text => text.replace(/[ァ-ヶ]/g,
+    char => String.fromCharCode(char.charCodeAt(0) - 0x60));
+  try {
+    for (const verb of h.J.verbVocab.VERBS) for (const key of ['base', 'masu', 'te', 'nai', 'ta']) {
+      const text = h.J.tts.reading(h.J.verb.display(verb, key));
+      assert.doesNotMatch(text, /[一-龯]/, `${verb.id}/${key} cannot leave a kanji reading for Google to guess`);
+      assert.equal(hiragana(text), hiragana(h.J.verb.conjugate(verb, key)), `${verb.id}/${key}`);
+    }
   } finally { h.close(); }
 });
 
