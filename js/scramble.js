@@ -8,6 +8,11 @@
 
   function items() { return JPQ.SCRAMBLE; }
 
+  // Each reviewed order keeps the supplied tokens and their grammatical roles.
+  function answerOrders(question) {
+    return [question.ans.map((_, i) => i), ...(question.altOrders || [])];
+  }
+
   /* ---------- 說明 ---------- */
   function intro(stage) {
     JPQ.tts?.stop();
@@ -17,7 +22,7 @@
       <h2>句子重排</h2>
       <p class="section-note" style="margin-top:10px">
         看中文，把打亂的單字照正確順序點出來，組成完整的日語句子。<br>
-        連續答對會有連擊加分；卡住時可以按「提示」。
+        符合句意的不同語序也會算對。連續答對會有連擊加分；卡住時可以按「提示」。
       </p>
       <p style="font-size:13px;color:#8b91ad;margin-top:8px">共 ${items().length} 句</p>
       ${best ? `<div class="result-score" style="margin-top:18px">${best}</div><p>最好成績（答對句數）</p>` : ''}
@@ -111,16 +116,21 @@ function paintTokens(stage) {
   /* 提示：每一題只能用一次，避免一直按就把整句送完 */
   function hint(stage) {
     if (st.answered || st.hintUsed) return;
-    const i = st.cur.ans.findIndex((t, k) =>
-      !st.placed.some(p => p.i === k) && st.pool.some(x => x.i === k));
-    if (i < 0) return;
+    const order = answerOrders(st.cur).find(order => st.placed.every((p, k) =>
+      U.strip(p.t) === U.strip(st.cur.ans[order[k]])));
+    const btn = U.$('#hintBtn', stage);
+    if (!order) {
+      btn.textContent = '請先調整已排的單字，再試提示';
+      return;
+    }
+    const i = order[st.placed.length];
+    if (i === undefined) return;
     const at = st.pool.findIndex(x => x.i === i);
     if (at < 0) return;
     st.placed.push(st.pool.splice(at, 1)[0]);
     st.hintUsed = true;
     JPQ.sfx.match();
     paintTokens(stage);
-    const btn = U.$('#hintBtn', stage);
     btn.disabled = true;
     btn.textContent = '已用過提示';
   }
@@ -141,7 +151,8 @@ function check(stage) {
     if (st.answered || st.placed.length !== st.cur.ans.length) return;
     const mine = st.placed.map(p => U.strip(p.t));
     const slot = U.$('#slot', stage);
-    const ok = mine.join('|') === st.cur.ans.map(U.strip).join('|');
+    const ok = answerOrders(st.cur).some(order =>
+      mine.join('|') === order.map(i => U.strip(st.cur.ans[i])).join('|'));
 
     if (ok) {
       st.answered = true;
@@ -155,7 +166,7 @@ function check(stage) {
         <div class="fb ok show" style="text-align:center">
           <strong>正確！${U.stars(st.combo >= 3 ? 3 : 1)}</strong>
           <p>${st.cur.note || ''}</p>
-          ${JPQ.tts?.control(st.cur.ans.join(''), '聽完整句子') || ''}
+          ${JPQ.tts?.control(st.placed.map(p => p.t).join(''), '聽完整句子') || ''}
         </div>
         <div class="btn-row"><button class="btn" id="nextBtn">${st.i + 1 >= st.list.length ? '看成績 →' : '下一句 →'}</button></div>`);
       const nextBtn = U.$('#nextBtn', stage);
@@ -173,7 +184,7 @@ function check(stage) {
       const answerHTML = st.cur.ans.map(t => U.ruby(t)).join('');
       slot.insertAdjacentHTML('afterend', `
         <div class="fb no show" style="text-align:center">
-          <strong>順序還不太對，正確的寫法是：</strong>
+          <strong>這個排列還不合適，可以參考：</strong>
           <p style="font-size:19px;margin:6px 0 2px">${answerHTML}</p>
           <p>${st.cur.note || ''}</p>
           ${JPQ.tts?.control(st.cur.ans.join(''), '聽正確句子') || ''}

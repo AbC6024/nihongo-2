@@ -391,6 +391,73 @@ test('all 24 scramble sentences follow their rendered furigana in tokens, arrang
   } finally { h.close(); }
 });
 
+test('reviewed alternate scramble orders score once and replay the sentence the player arranged', async () => {
+  const h = await harness(['data.js', 'scramble.js']);
+  try {
+    const cases = Array.from(h.J.SCRAMBLE).flatMap(q => Array.from(q.altOrders || [], order => ({ q, order })));
+    assert.ok(cases.length > 0);
+    h.J.SCRAMBLE = cases.map(({ q }) => q);
+    h.route('#/play/scramble'); h.query('#startBtn').click();
+    for (const [n, { q, order }] of cases.entries()) {
+      assert.deepEqual(Array.from(order).sort((a, b) => a - b), Array.from(q.ans, (_, i) => i), 'An alternative must use every token exactly once');
+      order.forEach(i => h.query(`#pool [data-pool="${i}"]`).click());
+      h.query('#checkBtn').click();
+      assert.ok(h.query('.fb.ok'), `Accept ${q.zh}: ${order}`);
+      assert.equal(h.query('.fb.no'), null);
+      const count = h.answers.length;
+      h.query('#checkBtn').click();
+      assert.equal(h.answers.length, count, 'An alternate answer cannot score twice');
+      assert.deepEqual(h.answers.slice(-q.particles.length), Array.from(q.particles, p => [p, true]));
+      h.query('.fb [data-tts-text]').click();
+      assert.equal(spoken(h).text, h.J.tts.reading(order.map(i => q.ans[i]).join('')), 'Replay the accepted order, including its furigana');
+      if (n < cases.length - 1) h.query('#nextBtn').click();
+    }
+    assert.deepEqual(h.errors, []);
+  } finally { h.close(); }
+});
+
+test('scramble hints complete a valid alternate prefix and do not append to an invalid prefix', async () => {
+  const h = await harness(['data.js', 'scramble.js']);
+  try {
+    const train = h.J.SCRAMBLE[1];
+    h.J.SCRAMBLE = [train];
+    h.route('#/play/scramble'); h.query('#startBtn').click();
+    h.query('#pool [data-pool="1"]').click();
+    h.query('#hintBtn').click();
+    assert.deepEqual([...h.query('#slot').querySelectorAll('[data-pool]')].map(b => b.dataset.pool), ['1', '0']);
+    h.query('#pool [data-pool="2"]').click(); h.query('#checkBtn').click();
+    assert.ok(h.query('.fb.ok'), '駅に電車が着きます must also be accepted');
+
+    h.route('#/'); h.route('#/play/scramble'); h.query('#startBtn').click();
+    h.query('#pool [data-pool="2"]').click(); h.query('#hintBtn').click();
+    assert.equal(h.query('#slot').querySelectorAll('[data-pool]').length, 1, 'An invalid prefix must not get a misleading token');
+    assert.match(h.query('#hintBtn').textContent, /先調整/);
+    assert.equal(h.query('#hintBtn').disabled, false, 'Adjusting the arrangement must leave the hint available');
+    h.query('#slot [data-pool="2"]').click();
+    h.query('#hintBtn').click();
+    assert.equal(h.query('#slot [data-pool]').dataset.pool, '0');
+  } finally { h.close(); }
+});
+
+test('scramble rejects a misplaced predicate or a separated adjective and noun', async () => {
+  const h = await harness(['data.js', 'scramble.js']);
+  try {
+    const cases = [
+      { q: h.J.SCRAMBLE[1], order: [2, 0, 1] },
+      { q: h.J.SCRAMBLE[6], order: [1, 0, 2, 3] }
+    ];
+    for (const { q, order } of cases) {
+      h.J.SCRAMBLE = [q];
+      h.route('#/'); h.route('#/play/scramble'); h.query('#startBtn').click();
+      order.forEach(i => h.query(`#pool [data-pool="${i}"]`).click());
+      h.query('#checkBtn').click();
+      assert.ok(h.query('.fb.no'));
+      assert.equal(h.query('#nextBtn'), null, 'Wrong orders cannot advance or award a correct answer');
+      assert.deepEqual(h.answers.slice(-q.particles.length), Array.from(q.particles, p => [p, false]));
+    }
+  } finally { h.close(); }
+});
+
 test('all 660 textbook verb forms preserve the displayed kana rather than asking Google to read kanji', async () => {
   const h = await harness(['verb-data.js', 'verb-vocab.js']);
   const hiragana = text => text.replace(/[ァ-ヶ]/g,
