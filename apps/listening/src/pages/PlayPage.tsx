@@ -9,14 +9,13 @@ import { playSfx } from "../services/sfx";
 import { calculateAccuracy } from "../utils/scoring";
 import { speechRateConfigFrom } from "../utils/speechRate";
 import { toLocalDateKey } from "../utils/date";
-import { BUILTIN_SENTENCES } from "../data/sentences";
 import type { GameRecord } from "../types/game";
 import type { Question } from "../types/question";
 import { isSentenceQuestion } from "../types/question";
 import { useI18n } from "../i18n";
 
 interface Props {
-  mode: "word" | "sentence";
+  mode: "word";
   onExit: () => void;
   onReview: () => void;
 }
@@ -29,14 +28,13 @@ export function PlayPage({ mode, onExit, onReview }: Props) {
   const recordedRef = useRef(false);
   const [result, setResult] = useState<EngineResult | null>(null);
 
-  /** 篩選後的題庫（依難度／分類）。 */
+  /** 篩選後的題庫（依課次）。 */
   const pool = useMemo(() => {
-    const base = mode === "word" ? allWords : BUILTIN_SENTENCES;
+    const base = allWords;
     return filterQuestions(base, {
-      difficulties: settings.difficulties,
-      categories: settings.categories,
+      lessons: settings.lessons.length > 0 ? settings.lessons : [],
     });
-  }, [mode, allWords, settings.difficulties, settings.categories]);
+  }, [mode, allWords, settings.lessons]);
 
   /**
    * 這一局的題目順序。

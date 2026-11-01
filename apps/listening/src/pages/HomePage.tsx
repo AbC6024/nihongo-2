@@ -1,86 +1,66 @@
 import { useMemo, useState } from "react";
 import { useAppStore } from "../store/AppStore";
 import type { GameDuration, InputMethod } from "../types/game";
-import type { Difficulty } from "../types/question";
-import { DIFFICULTY_ORDER, DURATION_VALUES, INPUT_METHOD_VALUES } from "../utils/settings";
-import { availableCategories, availableDifficulties, filterQuestions } from "../utils/randomQuestion";
-import { BUILTIN_SENTENCES } from "../data/sentences";
-import { isDailyCompleted, getTodayBestScore } from "../utils/dailyChallenge";
-import { toLocalDateKey } from "../utils/date";
+import { DURATION_VALUES, INPUT_METHOD_VALUES } from "../utils/settings";
+import { filterQuestions } from "../utils/randomQuestion";
+import {
+  MINNA_LESSONS,
+  MINNA_WORDS,
+  LESSON_COUNTS,
+} from "../data/minnaBankLoaded";
 import { SpeechNotice } from "../components/AudioButton";
 import { Avatar } from "../components/Avatar";
-import { useI18n, LOCALE_DURATION, LOCALE_INPUT_METHOD, BRAND_TITLE } from "../i18n";
+import { useI18n, LOCALE_INPUT_METHOD, LOCALE_DURATION, BRAND_TITLE } from "../i18n";
 
 interface Props {
   onStartWord: () => void;
-  onStartSentence: () => void;
   onStartReview: () => void;
   onOpenMistakes: () => void;
-  onOpenDaily: () => void;
-  onOpenAnalytics: () => void;
   onOpenProfile: () => void;
 }
 
 export function HomePage({
   onStartWord,
-  onStartSentence,
   onStartReview,
   onOpenMistakes,
-  onOpenDaily,
-  onOpenAnalytics,
   onOpenProfile,
 }: Props) {
-  const { settings, updateSettings, mistakes, daily, allWords, profile } = useAppStore();
+  const { settings, updateSettings, mistakes, profile } = useAppStore();
   const { t, locale } = useI18n();
   const [showFilters, setShowFilters] = useState(false);
 
-  // 分類要同時看單字與句子題庫：句子題有「天災」「進階詞彙」等單字題
-  // 沒有的分類，只用 allWords 計算會讓玩家無法篩選它們。
-  const categories = useMemo(
-    () => availableCategories([...allWords, ...BUILTIN_SENTENCES]),
-    [allWords],
-  );
-  const difficulties = useMemo(() => availableDifficulties(allWords), [allWords]);
-
-  const sentencePool = useMemo(
-    () =>
-      filterQuestions(BUILTIN_SENTENCES, {
-        difficulties: settings.difficulties,
-        categories: settings.categories,
-      }),
-    [settings.difficulties, settings.categories],
-  );
-
+  // 課次篩選：依 settings.lessons 篩選題庫
   const wordPool = useMemo(
     () =>
-      filterQuestions(allWords, {
-        difficulties: settings.difficulties,
-        categories: settings.categories,
+      filterQuestions(MINNA_WORDS, {
+        lessons: settings.lessons.length > 0 ? settings.lessons : [],
       }),
-    [allWords, settings.difficulties, settings.categories],
+    [settings.lessons],
   );
 
-  const todayKey = toLocalDateKey();
-  const dailyDone = isDailyCompleted(daily, todayKey);
-  const todayBest = getTodayBestScore(daily, todayKey);
   const mistakeCount = Object.keys(mistakes).length;
 
   const inputLabels = LOCALE_INPUT_METHOD[locale];
   const durationLabel = LOCALE_DURATION[locale];
 
-  const toggleDifficulty = (difficulty: Difficulty) => {
-    const next = settings.difficulties.includes(difficulty)
-      ? settings.difficulties.filter((item) => item !== difficulty)
-      : [...settings.difficulties, difficulty];
-    updateSettings({ difficulties: next.length > 0 ? next : [difficulty] });
+  const toggleLesson = (lessonNumber: number) => {
+    const next = settings.lessons.includes(lessonNumber)
+      ? settings.lessons.filter((item) => item !== lessonNumber)
+      : [...settings.lessons, lessonNumber];
+    updateSettings({ lessons: next });
   };
 
-  const toggleCategory = (category: string) => {
-    const next = settings.categories.includes(category)
-      ? settings.categories.filter((item) => item !== category)
-      : [...settings.categories, category];
-    updateSettings({ categories: next });
+  const selectAllLessons = () => {
+    updateSettings({ lessons: MINNA_LESSONS.map((l) => l.number) });
   };
+
+  const clearAllLessons = () => {
+    updateSettings({ lessons: [] });
+  };
+
+  const hasAnyLesson = settings.lessons.length > 0;
+  const selectedLessonCount = settings.lessons.length;
+  const totalLessonCount = MINNA_LESSONS.length;
 
   return (
     <div>
@@ -99,35 +79,17 @@ export function HomePage({
       <header className="hero">
         <p className="hero__title">{BRAND_TITLE}</p>
         <p className="hero__sub">{t("tagline")}</p>
-        <div className="hero__streak">
-          <span className="chip">
-            {t("streakToday", {
-              n: daily.currentStreak > 0 ? daily.currentStreak : t("streakNotStarted"),
-            })}
-          </span>
-          <span className="chip">{t("streakBest", { n: daily.bestStreak })}</span>
-          <span className="chip">{t("streakTotalWins", { n: daily.totalDailyWins })}</span>
-          {dailyDone && todayBest !== null ? (
-            <span className="chip chip--good">
-              {t("todayDoneBest", { score: todayBest })}
-            </span>
-          ) : null}
-        </div>
       </header>
 
       <div className="mode-grid">
-        <button type="button" className="mode-card" onClick={onStartWord}>
-          <span className="mode-card__title">{t("modeWord")}</span>
-          <span className="mode-card__desc">{t("modeWordDesc")}</span>
-        </button>
         <button
           type="button"
           className="mode-card"
-          onClick={onStartSentence}
-          disabled={sentencePool.length === 0}
+          onClick={onStartWord}
+          disabled={!hasAnyLesson || wordPool.length === 0}
         >
-          <span className="mode-card__title">{t("modeSentence")}</span>
-          <span className="mode-card__desc">{t("modeSentenceDesc", { n: sentencePool.length })}</span>
+          <span className="mode-card__title">{t("modeWord")}</span>
+          <span className="mode-card__desc">{t("modeWordDesc")}</span>
         </button>
         <button
           type="button"
@@ -141,17 +103,6 @@ export function HomePage({
         <button type="button" className="mode-card" onClick={onOpenMistakes}>
           <span className="mode-card__title">{t("modeMistakes")}</span>
           <span className="mode-card__desc">{t("modeMistakesDesc", { n: mistakeCount })}</span>
-        </button>
-        <button type="button" className="mode-card" onClick={onOpenDaily}>
-          <span className="mode-card__title">{t("modeDaily")}</span>
-          <span className="mode-card__desc">
-            {t("modeDailyDesc")}
-            {dailyDone ? ` ${t("modeDailyDescDone")}` : ""}
-          </span>
-        </button>
-        <button type="button" className="mode-card" onClick={onOpenAnalytics}>
-          <span className="mode-card__title">{t("modeAnalytics")}</span>
-          <span className="mode-card__desc">{t("modeAnalyticsDesc")}</span>
         </button>
       </div>
 
@@ -194,7 +145,7 @@ export function HomePage({
 
         <div className="field">
           <span className="field__label">
-            {t("labelFilters", { words: wordPool.length, sentences: sentencePool.length })}
+            選擇課程（{wordPool.length} 題）
           </span>
           <button
             type="button"
@@ -205,38 +156,35 @@ export function HomePage({
             {showFilters ? t("collapseFilters") : t("expandFilters")}
           </button>
           {showFilters ? (
-            <div style={{ marginTop: 10 }}>
-              <div className="chip-set">
-                {DIFFICULTY_ORDER.map((difficulty) => {
-                  const available = difficulties.includes(difficulty);
-                  const active = settings.difficulties.includes(difficulty);
-                  return (
-                    <button
-                      key={difficulty}
-                      type="button"
-                      className="segmented__item"
-                      style={{
-                        flex: "0 0 auto",
-                        background: active ? "var(--accent)" : "var(--surface-alt)",
-                        color: active ? "#fff" : "var(--ink-soft)",
-                        borderColor: active ? "var(--accent)" : "var(--line)",
-                        opacity: available ? 1 : 0.5,
-                      }}
-                      aria-pressed={active}
-                      aria-label={t("labelDifficulty")}
-                      onClick={() => toggleDifficulty(difficulty)}
-                    >
-                      {available ? difficulty : t("difficultyNoItems", { level: difficulty })}
-                    </button>
-                  );
-                })}
+            <div style={{ marginTop: 10, maxHeight: 300, overflowY: "auto" }}>
+              {/* 全選／取消全選 */}
+              <div className="chip-set" style={{ marginBottom: 8, display: "flex", gap: 6, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  className="chip"
+                  onClick={selectAllLessons}
+                  disabled={selectedLessonCount === totalLessonCount}
+                >
+                  全選
+                </button>
+                <button
+                  type="button"
+                  className="chip"
+                  onClick={clearAllLessons}
+                  disabled={selectedLessonCount === 0}
+                >
+                  取消全選
+                </button>
               </div>
-              <div className="chip-set" style={{ marginTop: 8 }}>
-                {categories.map((category) => {
-                  const active = settings.categories.includes(category);
+
+              {/* 課程選擇 */}
+              <div className="chip-set">
+                {MINNA_LESSONS.map((lesson) => {
+                  const active = settings.lessons.includes(lesson.number);
+                  const count = LESSON_COUNTS[lesson.number] ?? 0;
                   return (
                     <button
-                      key={category}
+                      key={lesson.number}
                       type="button"
                       className="chip"
                       style={{
@@ -245,26 +193,18 @@ export function HomePage({
                         borderColor: active ? "var(--accent)" : "var(--line)",
                       }}
                       aria-pressed={active}
-                      aria-label={t("labelCategory")}
-                      onClick={() => toggleCategory(category)}
+                      aria-label={`${lesson.name}（${count} 題）`}
+                      onClick={() => toggleLesson(lesson.number)}
                     >
-                      {category}
+                      {lesson.name}
                     </button>
                   );
                 })}
-                {settings.categories.length > 0 ? (
-                  <button
-                    type="button"
-                    className="chip"
-                    onClick={() => updateSettings({ categories: [] })}
-                  >
-                    {t("clearCategoryFilter")}
-                  </button>
-                ) : null}
               </div>
-              {wordPool.length === 0 || sentencePool.length === 0 ? (
+
+              {!hasAnyLesson ? (
                 <p className="note" style={{ marginTop: 8 }}>
-                  {t("noQuestionsInFilter")}
+                  請至少選擇一個課程才能開始練習
                 </p>
               ) : null}
             </div>
@@ -276,13 +216,13 @@ export function HomePage({
             type="button"
             className="btn btn--primary"
             onClick={onStartWord}
-            disabled={wordPool.length === 0}
+            disabled={!hasAnyLesson || wordPool.length === 0}
             style={{ flex: 1 }}
           >
             {t("startWordMode")}
           </button>
         </div>
-        {wordPool.length === 0 ? (
+        {!hasAnyLesson || wordPool.length === 0 ? (
           <p className="note" style={{ marginTop: 8 }}>
             {t("noWordsInFilter")}
           </p>

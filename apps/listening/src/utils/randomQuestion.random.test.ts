@@ -9,20 +9,19 @@ import {
 } from "./randomQuestion";
 import type { Question } from "../types/question";
 
-function word(id: string, difficulty: Question["difficulty"] = "N5"): Question {
+function word(id: string, lesson = 1): Question {
   return {
     id,
     japanese: id,
     kana: id,
     romaji: "x",
     meaning: "x",
-    difficulty,
     script: "hiragana",
-    category: "動物",
+    category: `第${lesson}課`,
   } as Question;
 }
 
-const pool: Question[] = Array.from({ length: 20 }, (_, i) => word(`q${i}`));
+const pool: Question[] = Array.from({ length: 20 }, (_, i) => word(`q${i}`, (i % 3) + 1));
 const getId = (item: Question) => item.id;
 
 /** 可重現的偽亂數 */
@@ -82,9 +81,9 @@ describe("buildSessionQuestions（一般模式隨機出題）", () => {
   });
 
   it("只包含篩選後的題目", () => {
-    const filtered = filterQuestions(pool, { difficulties: ["N5"] });
+    const filtered = filterQuestions(pool, { lessons: [1] });
     const result = buildSessionQuestions(filtered, getId);
-    expect(result.order.every((q) => q.difficulty === "N5")).toBe(true);
+    expect(result.order.every((q) => q.category === "第1課")).toBe(true);
   });
 
   it("單一題目的題庫也能正常產生一局", () => {

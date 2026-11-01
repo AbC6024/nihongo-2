@@ -439,7 +439,7 @@ describe("遊戲內語音速度選項", () => {
     expect(after.speechSpeed).toBe(0.5);
     expect(after.inputMethod).toBe(DEFAULT_SETTINGS.inputMethod);
     expect(after.duration).toBe(DEFAULT_SETTINGS.duration);
-    expect(after.difficulties).toEqual(DEFAULT_SETTINGS.difficulties);
+    expect(after.lessons).toEqual(DEFAULT_SETTINGS.lessons);
     expect(after.reviewRevealMs).toBe(DEFAULT_SETTINGS.reviewRevealMs);
     expect(after.sfxEnabled).toBe(DEFAULT_SETTINGS.sfxEnabled);
   });

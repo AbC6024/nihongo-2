@@ -65,11 +65,9 @@ function sanitizeSettings(raw: unknown): GameSettings {
   if (raw.language === "zh-TW" || raw.language === "ja" || raw.language === "en") {
     merged.language = raw.language;
   }
-  if (Array.isArray(raw.difficulties)) {
-    const filtered = raw.difficulties.filter((d): d is GameSettings["difficulties"][number] =>
-      ["N5", "N4", "N3", "N2", "N1"].includes(String(d)),
-    );
-    if (filtered.length > 0) merged.difficulties = filtered;
+  if (Array.isArray(raw.lessons)) {
+    const filtered = raw.lessons.filter((n): n is number => typeof n === "number" && Number.isFinite(n));
+    if (filtered.length > 0) merged.lessons = filtered;
   }
   if (Array.isArray(raw.categories)) {
     merged.categories = raw.categories.filter((c): c is string => typeof c === "string");

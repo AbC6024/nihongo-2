@@ -7,6 +7,7 @@ import { speechRateConfigFrom } from "../utils/speechRate";
 import type { MistakeEntry } from "../types/game";
 import type { Question } from "../types/question";
 import { isSentenceQuestion } from "../types/question";
+import { questionsForReview } from "../data/legacyReview";
 import { useI18n, type TranslationKey } from "../i18n";
 
 interface Props {
@@ -31,7 +32,7 @@ export function MistakesPage({ onStartReview, onBack }: Props) {
 
   const speechRateConfig = useMemo(() => speechRateConfigFrom(settings), [settings]);
 
-  const byId = useMemo(() => new Map(allWords.map((item) => [item.id, item])), [allWords]);
+  const byId = useMemo(() => new Map(questionsForReview(allWords, mistakes).map((item) => [item.id, item])), [allWords, mistakes]);
 
   const rows = useMemo(() => {
     const entries = Object.values(mistakes);
@@ -116,6 +117,9 @@ export function MistakesPage({ onStartReview, onBack }: Props) {
         <p className="note" style={{ marginTop: 8 }}>
           {t("clearNote")}
         </p>
+        <p className="note" style={{ marginTop: 4, color: "var(--ink-soft)", fontSize: "0.85rem" }}>
+          {t("clearStarredNote")}
+        </p>
       </section>
 
       <section className="panel">
@@ -167,7 +171,7 @@ export function MistakesPage({ onStartReview, onBack }: Props) {
                 ) : null}
                 <p className="note">
                   {t("mistakeStats", {
-                    level: question.difficulty,
+                    level: question.difficulty ?? "—",
                     category: question.category,
                     wrong: entry.wrongCount,
                   })}

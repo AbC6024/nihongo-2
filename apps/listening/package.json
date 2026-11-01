@@ -12,7 +12,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit --pretty false",
     "test": "vitest run",
-    "validate:bank": "vitest run src/data/validateBank.test.ts"
+    "validate:bank": "vitest run src/data/minnaBank.test.ts"
   },
   "dependencies": {
     "react": "^18.3.1",

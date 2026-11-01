@@ -12,6 +12,7 @@ import { toLocalDateKey } from "../utils/date";
 import type { GameRecord } from "../types/game";
 import type { Question } from "../types/question";
 import { isSentenceQuestion } from "../types/question";
+import { questionsForReview } from "../data/legacyReview";
 import {
   buildReviewPool,
   buildWeightedReviewSequence,
@@ -45,7 +46,7 @@ export function ReviewPage({ onExit, mistakesOnly = false }: Props) {
    * 缺漏的比例會自動分配給還有題目的類別。
    */
   const pool = useMemo(() => {
-    const reviewPool = buildReviewPool(allWords, Object.values(mistakes), (item) => item.id);
+    const reviewPool = buildReviewPool(questionsForReview(allWords, mistakes), Object.values(mistakes), (item) => item.id);
     if (mistakesOnly) {
       // 僅複習錯題時：錯題本身已是優先來源，只做隨機洗牌。
       return shuffleQuestions([...reviewPool.starred, ...reviewPool.otherMistakes]);

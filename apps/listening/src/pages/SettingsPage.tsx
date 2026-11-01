@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import { useAppStore } from "../store/AppStore";
 import {
-  DIFFICULTY_ORDER,
   DURATION_VALUES,
   IMAGE_MODE_VALUES,
   INPUT_METHOD_VALUES,
@@ -21,6 +20,7 @@ import {
 import type { GameDuration, InputMethod } from "../types/game";
 import type { ImageMode } from "../types/question";
 import { useI18n, LOCALE_DURATION, LOCALE_INPUT_METHOD, type TranslationKey } from "../i18n";
+import { MINNA_LESSONS } from "../data/minnaBankLoaded";
 
 interface Props {
   onBack: () => void;
@@ -87,13 +87,13 @@ export function SettingsPage({ onBack }: Props) {
         </div>
 
         <div className="field">
-          <span className="field__label">{t("labelDefaultDifficulty")}</span>
-          <div className="chip-set">
-            {DIFFICULTY_ORDER.map((difficulty) => {
-              const active = settings.difficulties.includes(difficulty);
+          <span className="field__label">課次篩選</span>
+          <div className="chip-set" style={{ maxHeight: 200, overflowY: "auto" }}>
+            {MINNA_LESSONS.map((lesson) => {
+              const active = settings.lessons.includes(lesson.number);
               return (
                 <button
-                  key={difficulty}
+                  key={lesson.number}
                   type="button"
                   className="chip"
                   style={{
@@ -103,13 +103,13 @@ export function SettingsPage({ onBack }: Props) {
                   }}
                   aria-pressed={active}
                   onClick={() => {
-                    const next = settings.difficulties.includes(difficulty)
-                      ? settings.difficulties.filter((item) => item !== difficulty)
-                      : [...settings.difficulties, difficulty];
-                    updateSettings({ difficulties: next.length > 0 ? next : [difficulty] });
+                    const next = settings.lessons.includes(lesson.number)
+                      ? settings.lessons.filter((item) => item !== lesson.number)
+                      : [...settings.lessons, lesson.number];
+                    updateSettings({ lessons: next.length > 0 ? next : [lesson.number] });
                   }}
                 >
-                  {difficulty}
+                  {lesson.name}
                 </button>
               );
             })}

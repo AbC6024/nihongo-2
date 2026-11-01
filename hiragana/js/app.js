@@ -22,8 +22,8 @@
     /* Hero：不顯示任何分數紀錄，只說明內容 */
     var stats = [
       { label: '初階 連連看', icon: '🌸', value: '6 個關卡 · 由簡入繁' },
-      { label: '進階 翻牌記憶', icon: '🃏', value: '5 種網格 · 和風卡牌' },
-      { label: '高階 句子填空', icon: '📝', value: '15 題 · 三個難度' }
+      { label: '進階 翻牌記憶', icon: '🃏', value: '2 種網格 · 和風卡牌' },
+      { label: '高階 句子填空', icon: '📝', value: '每局 20 題 · 三個難度' }
     ].map(function (s) {
       return el('span.hero__stat', [s.icon + ' ' + s.label + '　' + s.value]);
     });
@@ -50,8 +50,8 @@
       modeCard({
         href: '#/memory', cls: 'memory', glyph: 'か',
         lv: 'LEVEL 2・進階', title: '翻牌記憶', jp: 'MEMORY FLIP GAME',
-        desc: '日系和風卡牌：圓角、3D 翻轉、青海波紋與櫻花徽記，翻開大字體平假名或羅馬字。奇數網格多一張萬用卡（或留白），偶數網格全部成對。',
-        list: ['3×3 / 4×4 / 5×5 / 6×6 / 7×7 五種網格自由選',
+        desc: '日系和風卡牌：圓角、3D 翻轉、青海波紋與櫻花徽記，翻開大字體平假名或羅馬字。2*3 與 3*4 全部成對，3*4 開局前先亮牌預覽 7 秒。',
+        list: ['2*3 / 3*4 兩種網格自由選',
                '翻開假名片會自動朗讀，邊記邊聽',
                '不配對時會停留一下，讓你看清楚兩張牌'],
         cta: '開始翻牌'
@@ -59,7 +59,7 @@
       modeCard({
         href: '#/sentence', cls: 'sentence', glyph: '文',
         lv: 'LEVEL 3・高階', title: '句子填空', jp: 'SENTENCE FILL-IN',
-        desc: '由簡入繁：先單字短語（すし、ねこ），再基礎短句（おはよう、すみません），最後完整句子（わたしはがくせいです）。🔊 可隨時聆聽日語發音，答對會自動朗讀一次。',
+        desc: '由簡入繁：先基礎單字（すし、ねこ），再進階短句（おはよう、すみません），最後完整句子（わたしはがくせいです）。🔊 可隨時聆聽日語發音，答對會自動朗讀一次。',
         list: ['兩種題型隨機出題：填平假名／填羅馬字',
                '🔊 日語發音可重複播放；答對自動朗讀整句一次',
                '助詞「は」依拼音規範寫作 ha，並附「發音 wa」提醒'],
@@ -70,7 +70,7 @@
     page.appendChild(el('p.hint-text', {
       style: { textAlign: 'center', marginTop: '26px' },
       html: '你的關卡解鎖進度會自動保存在這台裝置上，關掉頁面也不會消失。<br>' +
-            '本遊戲只保存關卡解鎖，與五十音圖、日語聽打及其他遊戲的紀錄分開。'
+            '想重新開始時，只要清除此網站的瀏覽資料即可。'
     }));
 
     appEl.appendChild(page);
@@ -169,14 +169,6 @@
   });
 
   window.addEventListener('hashchange', route);
-  window.addEventListener('pagehide', function () {
-    destroyCurrent();
-    U.closeAllModals();
-    U.Speech.stop();
-  });
-  window.addEventListener('pageshow', function (event) {
-    if (event.persisted) route();
-  });
 
   /* ======================================================== 啟動 */
   route();

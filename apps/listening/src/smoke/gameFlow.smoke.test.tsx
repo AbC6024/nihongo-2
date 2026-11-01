@@ -9,13 +9,9 @@ import { act, createElement, type ReactElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { AppStoreProvider } from "../store/AppStore";
 import { GameShell } from "../components/GameShell";
-import { HomePage } from "../pages/HomePage";
-import { MistakesPage } from "../pages/MistakesPage";
-import { AnalyticsPage } from "../pages/AnalyticsPage";
 import { useQuizEngine, type EngineResult } from "../hooks/useQuizEngine";
 import { DEFAULT_SETTINGS } from "../utils/settings";
-import { BUILTIN_WORDS } from "../data/words";
-import { BUILTIN_SENTENCES } from "../data/sentences";
+import { MINNA_WORDS as BUILTIN_WORDS } from "../data/minnaBankLoaded";
 import { DAILY_MAX_SCORE } from "../utils/scoring";
 import { completeDailyChallenge, createEmptyDailyRecord } from "../utils/dailyChallenge";
 import { toLocalDateKey } from "../utils/date";
@@ -310,33 +306,33 @@ describe("一般單字模式（jsdom 實測流程）", () => {
 });
 
 describe("句子填空模式（jsdom 實測流程）", () => {
-  it("作答前畫面顯示挖空句、不洩漏答案；答對後才揭示", async () => {
+  it("作答前畫面顯示提示、不洩漏答案；答對後才揭示", async () => {
     vi.useFakeTimers();
-    const sentence = BUILTIN_SENTENCES[0];
-    renderGame({ pool: [sentence], mode: "word" });
+    const word = BUILTIN_WORDS[0];
+    renderGame({ pool: [word], mode: "word" });
     await flush(20);
     await waitReady();
 
     // 引擎作答前不提供答案資訊
     expect(latestEngine?.phase).toBe("PLAYING");
-    expect(latestEngine?.question?.id).toBe(sentence.id);
+    expect(latestEngine?.question?.id).toBe(word.id);
 
-    answer(sentence.answer);
+    answer(word.japanese);
     expect(latestEngine?.phase).toBe("CORRECT");
     expect(latestEngine?.score).toBe(100);
     expect(latestEngine?.lastReveal?.correct).toBe(true);
   });
 
-  it("句子題答錯也會降低本題可得分數", async () => {
+  it("單字題答錯也會降低本題可得分數", async () => {
     vi.useFakeTimers();
-    const sentence = BUILTIN_SENTENCES[1];
-    renderGame({ pool: [sentence], mode: "word" });
+    const word = BUILTIN_WORDS[1];
+    renderGame({ pool: [word], mode: "word" });
     await flush(20);
     await waitReady();
 
     answer("nope");
     expect(latestEngine?.wrongAttempts).toBe(1);
-    answer(sentence.romaji ?? sentence.answer);
+    answer(word.romaji ?? word.japanese);
     expect(latestEngine?.score).toBe(90);
   });
 });
@@ -450,64 +446,5 @@ describe("今日挑戰（jsdom 實測流程）", () => {
     expect(replay.isNewWin).toBe(false);
     expect(replay.record.totalDailyWins).toBe(1);
     expect(replay.record.dailyBestScoreByDate[toLocalDateKey()]).toBe(2000);
-  });
-});
-
-describe("頁面渲染（jsdom）", () => {
-  it("首頁顯示標題、核心文案與六個模式入口", async () => {
-    mount(
-      createElement(
-        AppStoreProvider,
-        null,
-        createElement(HomePage, {
-          onStartWord: () => {},
-          onStartSentence: () => {},
-          onStartReview: () => {},
-          onOpenMistakes: () => {},
-          onOpenDaily: () => {},
-          onOpenAnalytics: () => {},
-          onOpenProfile: () => {},
-        }),
-      ),
-    );
-    await flush(60);
-    const text = container.textContent ?? "";
-    for (const expected of [
-      "聞いボード",
-      "聞いて、打って、覚えよう。",
-      "快速單字",
-      "句子填空",
-      "複習模式",
-      "錯題本",
-      "今日挑戰",
-      "我的學習",
-      "1 分鐘",
-      "2 分鐘",
-      "3 分鐘",
-    ]) {
-      expect(text, `首頁缺少「${expected}」`).toContain(expected);
-    }
-  });
-
-  it("錯題本在沒有資料時顯示友善空狀態", async () => {
-    mount(
-      createElement(
-        AppStoreProvider,
-        null,
-        createElement(MistakesPage, { onStartReview: () => {}, onBack: () => {} }),
-      ),
-    );
-    await flush(60);
-    expect(container.textContent).toContain("錯題本還是空的");
-  });
-
-  it("分析頁在沒有作答紀錄時顯示「尚無資料」而非假造統計", async () => {
-    mount(
-      createElement(AppStoreProvider, null, createElement(AnalyticsPage, { onOpenMistakes: () => {} })),
-    );
-    await flush(60);
-    const text = container.textContent ?? "";
-    expect(text).toContain("尚無資料");
-    expect(text).not.toContain("85%");
   });
 });

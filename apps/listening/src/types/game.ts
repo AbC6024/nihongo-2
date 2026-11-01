@@ -31,7 +31,8 @@ export interface QuestionAttempt {
   localDate: string;
   gameMode: GameMode;
   questionId: string;
-  difficulty: Difficulty;
+  /** 答題時的難度（《みんなの日本語》題庫未提供，可能為 undefined）。 */
+  difficulty?: Difficulty;
   category: string;
   correct: boolean;
   wrongAttempts: number;
@@ -83,7 +84,9 @@ export interface GameSettings {
   inputMethod: InputMethod;
   /** 介面語言（zh-TW / ja / en）。 */
   language: LocaleCode;
-  difficulties: Difficulty[];
+  /** 已選擇的課次編號陣列（例如 [1, 3, 5]）；空陣列表示未選擇。 */
+  lessons: number[];
+  /** 已選擇的分類（保留相容性，目前未使用）。 */
   categories: string[];
   revealCorrectMs: number;
   revealSkipMs: number;

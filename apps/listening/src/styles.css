@@ -817,6 +817,7 @@ button:disabled {
 .mistake-card--starred {
   border-color: #f3d6a4;
   background: #fffdf7;
+  box-shadow: 0 0 0 1px #f3d6a4 inset;
 }
 
 .mistake-card__top {
@@ -839,15 +840,30 @@ button:disabled {
 .star-btn {
   border: none;
   background: transparent;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   line-height: 1;
-  padding: 6px 8px;
-  color: var(--line);
+  padding: 6px 10px;
+  color: var(--ink-faint);
   min-height: 44px;
+  min-width: 44px;
+  border-radius: var(--radius);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.star-btn:hover {
+  transform: scale(1.15);
+  color: var(--star);
 }
 
 .star-btn[data-starred="true"] {
   color: var(--star);
+  background: rgba(217, 119, 6, 0.12);
+  font-weight: 700;
+}
+
+.star-btn[data-starred="true"]:hover {
+  color: #b45309;
+  background: rgba(217, 119, 6, 0.2);
 }
 
 .mistake-card__actions {

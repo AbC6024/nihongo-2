@@ -1,8 +1,8 @@
 /* ==========================================================================
-   sentence.js — 高階：句子拼湊與填空
-   模式 A：給羅馬字 + 中文 → 點選平假名填入空格
-   模式 B：給平假名 + 中文 → 點選羅馬字填入空格
-   每次開始都會重新抽題、洗牌題序與隨機挖空
+   sentence.js — 高階：單字與句子填空
+   題型 A：給羅馬字 + 中文 → 點選平假名填入空格
+   題型 B：給平假名 + 中文 → 點選羅馬字填入空格（僅能點按鈕，無鍵盤輸入）
+   每局固定抽 20 題（基礎單字 7 / 進階短句 7 / 完整句子 6），由簡入繁
    ========================================================================== */
 (function (global) {
   'use strict';
@@ -29,14 +29,12 @@
       wrongs: 0,          // 答錯題數
       hints: 0,
       cleanCount: 0,      // 一次就答對的題數
-      completed: false,
       startedAt: 0,
       ticker: null
     };
 
     var dom = {};
     var effects = U.createTimerScope();
-    var restartPending = false;
 
     /* ======================================================== 版面 */
     function buildShell() {
@@ -45,11 +43,16 @@
       page.appendChild(el('div.page-head', [
         el('h1', [el('span.emoji', { text: '📝' }), document.createTextNode('高階・句子填空')]),
         el('p.motivation', { text: D.MOTIVATION.sentence }),
-        el('p.hint-text', { text: '看著羅馬字或中文意思，把句子補完整。先點空格，再點下方的字卡填入；按「檢查」後必須完全正確才能過關！' })
+        el('div.hint-text', [
+          el('p', { text: '由簡入繁：先基礎單字（すし、ねこ），再進階短句（おはよう、すみません），最後完整句子（わたしはがくせいです）。🔊 可隨時聆聽日語發音，答對會自動朗讀一次。' }),
+          el('p', { text: '兩種題型隨機出題：填平假名／填羅馬字' }),
+          el('p', { text: '🔊 日語發音可重複播放；答對自動朗讀整句一次' }),
+          el('p', { text: '助詞「は」依拼音規範寫作 ha，並附「發音 wa」提醒' })
+        ])
       ]));
 
       dom.hud = {};
-      [['count', 'QUESTION 進度'], ['score', 'SCORE 得分'], ['mode', 'MODE 題型'], ['time', 'TIME 時間']]
+      [['count', 'QUESTION 進度'], ['score', 'SCORE 得分'], ['time', 'TIME 時間']]
         .forEach(function (d) {
           dom.hud[d[0]] = el('span.hud__value', { text: '—' });
         });
@@ -57,7 +60,6 @@
       page.appendChild(el('div.hud', [
         el('div.hud__item', [el('span.hud__label', { text: 'QUESTION 進度' }), dom.hud.count]),
         el('div.hud__item', [el('span.hud__label', { text: 'SCORE 得分' }), dom.hud.score]),
-        el('div.hud__item', [el('span.hud__label', { text: 'MODE 題型' }), dom.hud.mode]),
         el('div.hud__item', [el('span.hud__label', { text: 'TIME 時間' }), dom.hud.time])
       ]));
 
@@ -71,7 +73,7 @@
       page.appendChild(el('div.toolbar', [
         restartBtn,
         el('span.toolbar__spacer'),
-        el('span.hint-text', { text: '單字 → 基礎短句 → 完整句子，一步一步闖關；每階之內會重新洗牌 👀' })
+        el('span.hint-text', { text: '基礎單字 → 進階短句 → 完整句子，一步一步闖關；每階之內會重新洗牌 👀' })
       ]));
       page.appendChild(dom.tierBar);
 
@@ -83,7 +85,6 @@
       dom.kanaHint = el('div.kana-hint');
       dom.sentence = el('div.sentence');
       dom.bank = el('div.bank');
-      dom.extra = el('div');
       dom.result = el('div');
       dom.checkBtn = el('button.btn.btn--matcha', { type: 'button' }, '✓ 檢查答案');
       dom.hintBtn = el('button.btn.btn--sun.btn--sm', { type: 'button' }, '💡 提示 (-30)');
@@ -92,7 +93,7 @@
       dom.speakBtn = el('button.speak-btn', {
         type: 'button',
         title: '聽日語發音',
-        'aria-label': '播放本句日語發音'
+        'aria-label': '播放本題日語發音'
       }, ['🔊', el('span.speak-btn__t', { text: '聽發音' })]);
 
 
@@ -104,9 +105,8 @@
         dom.prompt,
         dom.kanaHint,
         dom.sentence,
-        el('p.bank-title', { text: '👇 先點空格，再點下方字卡填入' }),
+        el('p.bank-title', { text: '👇 先點空格，再點下方假名字卡填入' }),
         dom.bank,
-        dom.extra,
         el('div.q-actions', [dom.checkBtn, dom.hintBtn]),
         dom.result
       ]);
@@ -121,7 +121,7 @@
       dom.speakBtn.style.display = U.Speech.supported() ? '' : 'none';
     }
 
-    /** 頂端的「單字 → 短句 → 句子」進度帶 */
+    /** 頂端的「基礎單字 → 進階短句 → 完整句子」進度帶 */
     function renderTierTrack() {
       U.clear(dom.tierBar);
       [1, 2, 3].forEach(function (t) {
@@ -141,9 +141,11 @@
      每次 speak 前都會 cancel()，因此不會重複迴圈。
   ---------------------------------------------------------------------- */
     var speakTimer = null;
+    var advanceTimer = null;
 
     /** 朗讀指定句子；語速音量依規格固定 */
     function speak(text, opt) {
+      if (!effects.isActive()) return false;
       opt = opt || {};
       var ok = U.Speech.speak(text, {
         rate: opt.rate || 0.7, volume: 1,
@@ -159,37 +161,38 @@
 
     /** 手動點擊喇叭：只念本題日文，不帶中文 */
     function speakCurrent() {
-      if (!effects.isActive() || !state.item) return false;
+      if (!state.item) return false;
       return speak(state.item.q.kana);
     }
 
     /**
-     * 答對時的播放流程：先朗讀本句（日文＋中文），結束後再播一句日語鼓勵。
-     * 鼓勵語音只會播放一次，且一定在句子之後，不會互相打斷。
+     * 答對時的播放流程：只朗讀本題日文（不夾帶任何中文或額外音效），
+     * 該日文語音播放完畢後，自動切換跳轉至下一題（最後一題則結算）。
      */
     function speakResult() {
       if (!state.item) return false;
-      var answered = state.item;
       var q = state.item.q;
-      var praised = false;
-      function doPraise() {
-        if (!effects.isActive() || state.item !== answered || state.completed || praised) return;
-        praised = true;
-        U.praise('answer');
-      }
-      var ok = speak(q.kana + '。' + q.zh, {
-        rate: 0.7,
-        onend: doPraise
-      });
-      // 部分語音引擎不會觸發 onend → 備援計時器
-      effects.later(doPraise, 2600);
+      var answeredKana = q.kana;
+      var advanced = false;
+
+      var advance = function () {
+        if (!effects.isActive()) return;
+        if (advanced) return;
+        advanced = true;
+        if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; }
+        if (!state.item || state.item.q.kana !== answeredKana) return;  // 已換題就不動作
+        nextQuestion();
+      };
+
+      var ok = speak(q.kana, { rate: 0.7, onend: advance });
+      // 部分語音引擎不會觸發 onend → 備援計時器（依句長給足朗讀時間）
+      advanceTimer = setTimeout(advance, Math.max(1800, q.kana.length * 260));
       return ok;
     }
 
     /* ======================================================== 抽題 */
     function startGame() {
       if (!effects.isActive()) return;
-      state.completed = false;
       state.queue = buildQueue();
       state.index = 0;
       state.score = 0;
@@ -213,26 +216,25 @@
      * 同一階之內每次重新開始都會重新洗牌。
      */
     function buildQueue() {
-      var tiers = {};
-      D.SENTENCES.forEach(function (q) {
-        (tiers[q.tier] = tiers[q.tier] || []).push(q);
-      });
       var out = [];
-      Object.keys(tiers).sort(function (a, b) { return +a - +b; })
-        .forEach(function (t) { out = out.concat(U.shuffle(tiers[t])); });
-      return out;
+      [1, 2, 3].forEach(function (t) {
+        var pool = D.SENTENCES.filter(function (q) { return q.tier === t; });
+        var n = Math.min(D.TIER_SAMPLES[t], pool.length);
+        out = out.concat(U.shuffle(pool).slice(0, n));
+      });
+      return out;   // 由簡入繁：基礎單字 → 進階短句 → 完整句子
     }
 
     function loadQuestion() {
       effects.reset();
-      // 換題時取消尚未觸發的自動朗讀，避免念到上一題
+      // 換題時取消尚未觸發的自動朗讀／自動跳題，避免念到上一題
       if (speakTimer) { clearTimeout(speakTimer); speakTimer = null; }
+      if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; }
       U.Speech.stop();
-      dom.speakBtn.classList.remove('is-playing');
 
       var q = state.queue[state.index];
+      // 兩種題型隨機出題：填平假名（A）／填羅馬字（B）
       state.mode = Math.random() < 0.5 ? 'A' : 'B';
-      // 模式 A 以「音節」為單位（きょう / って 各算一格），模式 B 以羅馬字音節為單位
       var answer = state.mode === 'A' ? q.syll.slice() : q.romaji.slice();
 
       var blanks = pickBlanks(answer.length, U.pick(MASK_RATIOS));
@@ -270,7 +272,6 @@
       var pool = state.mode === 'A'
         ? D.SYLL_POOL.filter(function (k) { return needed.indexOf(k) < 0; })
         : D.ROMAJI_POOL.filter(function (r) { return needed.indexOf(r) < 0; });
-
       var room = Math.max(0, Math.min(MAX_TOKENS - needed.length, DISTRACTORS));
       var bank = needed.map(function (v) { return { value: v }; })
         .concat(U.sample(pool, room).map(function (v) { return { value: v }; }));
@@ -334,24 +335,6 @@
         dom.bank.appendChild(btn);
       });
 
-      /* --- 模式 B：打字輸入 --- */
-      U.clear(dom.extra);
-      dom.extra.className = '';
-      if (state.mode === 'B') {
-        var input = el('input', {
-          type: 'text', placeholder: '例如：wa', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false'
-        });
-        var go = el('button.btn.btn--indigo.btn--sm', { type: 'button' }, '填入');
-        go.addEventListener('click', function () { fillFromInput(input); });
-        input.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); fillFromInput(input); }
-        });
-        dom.extra.className = 'romaji-input';
-        dom.extra.appendChild(el('label', { text: '或直接打字：' }));
-        dom.extra.appendChild(input);
-        dom.extra.appendChild(go);
-      }
-
       /* --- 按鈕狀態 --- */
       dom.checkBtn.textContent = '✓ 檢查答案';
       dom.checkBtn.className = 'btn btn--matcha';
@@ -369,7 +352,7 @@
 
     /* ======================================================== 互動 */
     function onSlotClick(i) {
-      if (!effects.isActive() || state.completed || state.status === 'correct') return;
+      if (state.status === 'correct') return;
       var slot = state.item.slots[i];
       if (slot.given) return;
 
@@ -398,7 +381,7 @@
     }
 
     function placeToken(tk) {
-      if (!effects.isActive() || state.completed || state.status === 'correct') return;
+      if (state.status === 'correct') return;
       var t = state.tokens[tk];
       if (!t || !tokenAvailable(tk)) return;
 
@@ -411,7 +394,8 @@
       state.item.slots[i].value = t.value;
       var node = slotEl(i);
       node.textContent = t.value;
-      node.className = 'slot is-filled';
+      node.classList.remove('is-empty');
+      node.classList.add('is-filled');
 
       var next = firstEmpty();
       if (next >= 0) setActive(next);
@@ -419,6 +403,7 @@
       syncUI();
     }
 
+    /** 這個字卡是否還能被使用（干擾字永遠可用） */
 /** 這個字卡是否還能被使用（干擾字永遠可用） */
     function tokenAvailable(tk) {
       var v = state.tokens[tk].value;
@@ -434,9 +419,7 @@
 
     function syncUI() {
       qsa('.token', dom.bank).forEach(function (btn) {
-        var available = tokenAvailable(+btn.dataset.tk);
-        btn.classList.toggle('is-used', !available);
-        btn.disabled = !available || state.status === 'correct' || state.completed;
+        btn.classList.toggle('is-used', !tokenAvailable(+btn.dataset.tk));
       });
     }
 
@@ -447,28 +430,8 @@
       return -1;
     }
 
-    function fillFromInput(input) {
-      if (!effects.isActive() || state.completed || state.status === 'correct') return;
-      var val = input.value.trim().toLowerCase().replace(/[^a-z]/g, '');
-      if (!val) { U.toast('請輸入羅馬字', 'warn'); return; }
-
-      var i = state.activeSlot;
-      if (i < 0 || state.item.slots[i].given) i = firstEmpty();
-      if (i < 0) { U.toast('空格都填滿囉，按「檢查答案」✓', 'warn'); return; }
-
-      state.item.slots[i].value = val;
-      var node = slotEl(i);
-      node.textContent = val;
-      node.className = 'slot is-filled';
-      var next = firstEmpty();
-      setActive(next);
-      input.value = '';
-      syncUI();
-    }
-
     /* ======================================================== 檢核 */
     function onCheckClick() {
-      if (!effects.isActive() || state.completed) return;
       if (state.status === 'correct') return nextQuestion();
       if (state.status === 'wrong') return retryQuestion();
       checkAnswer();
@@ -496,7 +459,6 @@
       state.item.slots.forEach(function (s, i) {
         if (s.given) return;
         var node = slotEl(i);
-        node.classList.remove('is-correct', 'is-wrong');
         if (isAnswerCorrect(s.value, state.item.answer[i])) {
           node.classList.add('is-correct');
         } else {
@@ -521,20 +483,21 @@
         : '🎉 一次就全對！+' + gain + ' 分');
       state.lastWasDirty = false;
 
-      dom.checkBtn.textContent = state.index >= state.queue.length - 1 ? '🏁 看看成績' : '下一題 →';
+      dom.checkBtn.disabled = true;
+      dom.checkBtn.textContent = '🔊 播放中…';
       dom.checkBtn.className = 'btn btn--indigo';
       dom.hintBtn.disabled = true;
       syncUI();
       updateHud();
 
-      // 答對 → 自動播放一次本句（日文＋中文），接著一句日語鼓勵
+      // 答對 → 只播放一次本題日文；播放完畢自動前往下一題
       if (speakTimer) clearTimeout(speakTimer);
-      var answered = { kana: state.item.q.kana, zh: state.item.q.zh };
-      speakTimer = effects.later(function () {
+      var answered = state.item.q.kana;
+      speakTimer = setTimeout(function () {
         speakTimer = null;
-        if (!state.item || state.item.q.kana !== answered.kana) return;  // 已換題就不播
+        if (!state.item || state.item.q.kana !== answered) return;  // 已換題就不播
         speakResult();
-      }, 380);
+      }, 320);
     }
 
     function failQuestion(wrongIdx) {
@@ -573,7 +536,7 @@
     }
 
     function revealOne() {
-      if (!effects.isActive() || state.completed || state.status === 'correct') return;
+      if (state.status === 'correct') return;
       var target = -1;
       state.item.slots.forEach(function (s, i) {
         if (target < 0 && !s.given && !isAnswerCorrect(s.value, state.item.answer[i])) target = i;
@@ -585,14 +548,17 @@
       node.textContent = state.item.answer[target];
       node.className = 'slot is-revealed';
       effects.later(function () {
-        node.classList.remove('is-revealed');
+        if (node.classList.contains('is-revealed')) node.className = 'slot';
       }, 1000);
 
       state.hints += 1;
       state.lastWasDirty = true;
-      state.status = 'input';
-      dom.checkBtn.textContent = '✓ 檢查答案';
-      dom.checkBtn.className = 'btn btn--matcha';
+      if (state.status === 'wrong') {
+        state.status = 'input';
+        qsa('.slot.is-wrong', dom.sentence).forEach(function (slot) { slot.classList.remove('is-wrong'); });
+        dom.checkBtn.textContent = '✓ 檢查答案';
+        dom.checkBtn.className = 'btn btn--matcha';
+      }
       state.score = Math.max(0, state.score - 30);
       dom.result.className = 'result-note result-note--hint';
       dom.result.textContent = '💡 第 ' + (target + 1) + ' 格是「' + state.item.answer[target] + '」（-30 分）';
@@ -615,18 +581,10 @@
       if (!state.item) return;
       dom.hud.count.textContent = (state.index + 1) + ' / ' + state.queue.length;
       dom.hud.score.textContent = state.score;
-      dom.hud.mode.textContent = state.mode === 'A' ? '填平假名' : '填羅馬字';
       dom.progressBar.style.width = (state.index / state.queue.length * 100) + '%';
     }
 
     function gameComplete() {
-      if (!effects.isActive() || state.completed) return;
-      state.completed = true;
-      effects.reset();
-      speakTimer = null;
-      U.Speech.stop();
-      dom.checkBtn.disabled = true;
-      dom.hintBtn.disabled = true;
       if (state.ticker) state.ticker.stop();
       var totalMs = Date.now() - state.startedAt;
       var accuracy = Math.round(state.cleanCount / state.queue.length * 100);
@@ -657,17 +615,12 @@
     }
 
     function askRestart() {
-      if (!effects.isActive() || restartPending) return;
-      restartPending = true;
       U.confirmModal({
         emoji: '↺',
         title: '要換一批題目嗎？',
         body: '會重新從題庫抽題並打亂順序，目前分數將歸零。',
         okLabel: '重新抽題'
-      }).then(function (ok) {
-        restartPending = false;
-        if (ok && effects.isActive()) startGame();
-      });
+      }).then(function (ok) { if (ok) startGame(); });
     }
 
     /* ======================================================== 啟動 */
@@ -677,9 +630,9 @@
     return {
       destroy: function () {
         effects.destroy();
-        state.completed = true;
         if (state.ticker) state.ticker.stop();
-        speakTimer = null;
+        if (speakTimer) clearTimeout(speakTimer);
+        if (advanceTimer) clearTimeout(advanceTimer);
         U.Speech.stop();
       }
     };

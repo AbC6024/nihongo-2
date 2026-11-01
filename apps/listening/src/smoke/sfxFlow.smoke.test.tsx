@@ -17,7 +17,7 @@ import { GameShell } from "../components/GameShell";
 import { SettingsPage } from "../pages/SettingsPage";
 import { useQuizEngine } from "../hooks/useQuizEngine";
 import { DEFAULT_SETTINGS } from "../utils/settings";
-import { BUILTIN_WORDS } from "../data/words";
+import { MINNA_WORDS as BUILTIN_WORDS } from "../data/minnaBankLoaded";
 import { playSfx, resetSfxState, type SfxName } from "../services/sfx";
 import type { GameSettings } from "../types/game";
 import type { Question, WordQuestion } from "../types/question";

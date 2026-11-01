@@ -9,7 +9,7 @@ import {
 } from "react";
 import type { DailyRecord, GameRecord, GameSettings, MistakeEntry, QuestionAttempt } from "../types/game";
 import type { WordQuestion } from "../types/question";
-import { BUILTIN_WORDS } from "../data/words";
+import { MINNA_WORDS } from "../data/minnaBankLoaded";
 import { warmUpSfx } from "../services/sfx";
 import { serializeBackup, mergeBackup, type BackupSource } from "../services/backup";
 import {
@@ -214,9 +214,14 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const clearMistakes = useCallback(() => {
-    setMistakes(() => {
-      saveMistakes({});
-      return {};
+    setMistakes((prev) => {
+      // 只移除未標記星號的錯題，已標記星號的題目保留。
+      const next: Record<string, MistakeEntry> = {};
+      for (const [key, entry] of Object.entries(prev)) {
+        if (entry.starred) next[key] = entry;
+      }
+      saveMistakes(next);
+      return next;
     });
   }, []);
 
@@ -318,8 +323,8 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const allWords = useMemo(() => {
-    const builtinIds = new Set(BUILTIN_WORDS.map((word) => word.id));
-    return [...BUILTIN_WORDS, ...customWords.filter((word) => !builtinIds.has(word.id))];
+    const builtinIds = new Set(MINNA_WORDS.map((word) => word.id));
+    return [...MINNA_WORDS, ...customWords.filter((word) => !builtinIds.has(word.id))];
   }, [customWords]);
 
   const value = useMemo<AppStore | null>(() => {

@@ -185,7 +185,7 @@ export function GameShell({
 
       <div className="card">
         <p className="card__eyebrow">
-          {blankLabel} · {question.difficulty} · {question.category}
+          {[blankLabel, question.difficulty, question.category].filter(Boolean).join(" · ")}
         </p>
         {renderCard(question)}
         <div className="btn-row" style={{ justifyContent: "center", marginTop: 14 }}>

@@ -54,8 +54,7 @@ export function DailyPage({ onExit }: Props) {
    */
   const dailyIds = useMemo(() => {
     const filtered = filterQuestions(allWords, {
-      difficulties: settings.difficulties,
-      categories: settings.categories,
+      lessons: settings.lessons.length > 0 ? settings.lessons : [],
     });
     return getDailyQuestionIds(
       daily,
@@ -65,7 +64,7 @@ export function DailyPage({ onExit }: Props) {
       false,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allWords, settings.difficulties, settings.categories, dateKey, sessionIndex]);
+  }, [allWords, settings.lessons, dateKey, sessionIndex]);
 
   /**
    * 保存當局抽到的題目 ID（除錯與資料備份用；**不會**鎖定下次抽題）。

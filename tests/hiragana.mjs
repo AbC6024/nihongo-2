@@ -30,6 +30,7 @@ function harness(random = 0.99) {
   const { document } = window;
   const timers = new Map();
   const spoken = [];
+  const utterances = [];
   let nextTimer = 0;
   let now = 1_000_000;
   const schedule = (fn, ms, interval, args) => {
@@ -50,7 +51,7 @@ function harness(random = 0.99) {
     getVoices: () => [{ lang: 'ja-JP' }],
     addEventListener() {},
     cancel() {},
-    speak: utterance => spoken.push(utterance.text)
+    speak: utterance => { spoken.push(utterance.text); utterances.push(utterance); }
   };
   window.HTMLCanvasElement.prototype.getContext = () => null;
   Object.entries(existingProgress).forEach(([key, value]) => window.localStorage.setItem(key, value));
@@ -97,7 +98,7 @@ function harness(random = 0.99) {
     preserveProgress();
   }
   return {
-    window, document, query, all, advance, route, button, spoken, timers, errors,
+    window, document, query, all, advance, route, button, spoken, utterances, timers, errors,
     preserveProgress, clean, close: () => dom.window.close()
   };
 }
@@ -277,71 +278,44 @@ test('final matching ignores rapid duplicate clicks while its window is being re
   } finally { h.close(); }
 });
 
-for (const size of [3, 4, 5, 6, 7]) {
-  test(`memory ${size}×${size} renders the right pairs, preview, and odd-card option`, () => {
+for (const [rows, cols, preview] of [[2, 3, false], [3, 4, true]]) {
+  test(`memory ${rows}×${cols} has complete pairs and the updated preview rules`, () => {
     const h = harness();
     try {
       h.route('memory');
-      h.query(`.size-opt[data-size="${size}"]`).click();
-      const pairs = Math.floor(size * size / 2);
+      assert.equal(h.all('.size-opt').length, 2);
+      h.query(`.size-opt[data-size="${rows}x${cols}"]`).click();
+      const pairs = rows * cols / 2;
       const cards = memoryCards(h);
-      assert.equal(cards.length, size * size);
-      assert.equal(cards.filter(card => card.bonus).length, size % 2);
+      assert.equal(cards.length, rows * cols);
+      assert.equal(cards.filter(card => card.bonus).length, 0);
       assert.equal(cards.filter(card => card.romaji).length, pairs);
-      const kana = cards.filter(card => !card.bonus && !card.romaji);
-      assert.equal(kana.length, pairs);
+      const kana = cards.filter(card => !card.romaji);
       assert.equal(new Set(kana.map(card => card.value)).size, pairs);
-      kana.forEach(card => {
-        assert.equal(cards.filter(other => other.romaji && other.value === h.window.KanaData.romajiOf(card.value)).length, 1);
-      });
-      if (size >= 5) {
+      kana.forEach(card => assert.equal(cards.filter(other => other.romaji && other.value === h.window.KanaData.romajiOf(card.value)).length, 1));
+      assert.equal(h.query('.memory-board').getAttribute('aria-rowcount'), String(rows));
+      assert.equal(h.query('.memory-board').getAttribute('aria-colcount'), String(cols));
+      if (preview) {
         assert.ok(cards.every(card => card.button.disabled && card.button.classList.contains('is-preview')));
-        h.advance(7000);
-        assert.ok(cards.every(card => !card.button.disabled && !card.button.classList.contains('is-preview')));
+        h.advance(6999);
+        assert.ok(cards.every(card => card.button.disabled));
+        h.advance(1);
       }
-      if (size % 2) {
-        h.button('萬用卡：開').click();
-        assert.equal(memoryCards(h).length, pairs * 2);
-        assert.equal(h.all('.mcard--blank').length, 1);
-        assert.equal(memoryCards(h).filter(card => card.bonus).length, 0);
-        h.button('萬用卡：關').click();
-        assert.equal(memoryCards(h).length, size * size);
-        assert.equal(h.all('.mcard--blank').length, 0);
-      }
+      assert.ok(cards.every(card => !card.button.disabled && !card.button.classList.contains('is-preview')));
+      solveMemory(h);
+      h.advance(700);
+      assert.match(h.query('.modal__title').textContent, /配對完成/);
+      assert.equal(h.all('.mcard.is-done').length, rows * cols);
       h.clean();
     } finally { h.close(); }
   });
 }
 
-test('memory wildcard resolves a complete pair and leaves every remaining pair solvable', () => {
-  const h = harness();
-  try {
-    h.route('memory');
-    h.query('.size-opt[data-size="3"]').click();
-    const cards = memoryCards(h);
-    const wild = cards.find(card => card.bonus);
-    const kana = cards.find(card => !card.bonus && !card.romaji);
-    wild.button.click();
-    kana.button.click();
-    h.advance(620);
-    assert.equal(h.all('.mcard.is-done').length, 3, 'A wildcard completes itself, the chosen card, and its partner');
-    cards.filter(card => !card.bonus && !card.romaji && !card.button.classList.contains('is-done')).forEach(card => {
-      card.button.click();
-      cards.find(other => other.romaji && other.value === h.window.KanaData.romajiOf(card.value)).button.click();
-      h.advance(620);
-    });
-    h.advance(700);
-    assert.match(h.query('.modal__title').textContent, /配對完成/);
-    assert.equal(h.all('.mcard.is-done').length, 9);
-    h.clean();
-  } finally { h.close(); }
-});
-
 test('leaving memory before its delayed completion cannot open a modal on another route', () => {
   const h = harness();
   try {
     h.route('memory');
-    h.query('.size-opt[data-size="3"]').click();
+    h.query('.size-opt[data-size="2x3"]').click();
     solveMemory(h);
     assert.equal(h.query('.modal-backdrop'), null);
     h.route('sentence');
@@ -359,7 +333,7 @@ test('memory mismatch stays visible, locks other cards, and cannot settle into a
   const h = harness();
   try {
     h.route('memory');
-    h.query('.size-opt[data-size="3"]').click();
+    h.query('.size-opt[data-size="2x3"]').click();
     const cards = memoryCards(h).filter(card => !card.bonus);
     const a = cards.find(card => !card.romaji);
     const b = cards.find(card => card.romaji && card.value !== h.window.KanaData.romajiOf(a.value));
@@ -381,21 +355,21 @@ test('memory mismatch stays visible, locks other cards, and cannot settle into a
     h.advance(1300);
     assert.equal(h.all('.mcard.is-done').length, 0, 'An old pair callback must not complete cards in a new game');
     assert.equal(h.all('.hud__value')[0].textContent, '0');
-    assert.equal(h.all('.hud__value')[1].textContent, '0 / 4');
+    assert.equal(h.all('.hud__value')[1].textContent, '0 / 3');
     h.clean();
   } finally { h.close(); }
 });
 
 for (const [random, expectedKanaMode] of [[0.01, true], [0.99, false]]) {
-  test(`sentence ${expectedKanaMode ? 'kana' : 'romaji'} prompts can retry and complete all 15 questions`, () => {
+  test(`sentence ${expectedKanaMode ? 'kana' : 'romaji'} prompts can retry and complete all 20 sampled questions`, () => {
     const h = harness(random);
     try {
       h.route('sentence');
       const seen = [];
-      for (let index = 0; index < 15; index++) {
+      for (let index = 0; index < 20; index++) {
         const { item, kanaMode, answers } = question(h);
         assert.equal(kanaMode, expectedKanaMode);
-        assert.equal(item.tier, Math.floor(index / 5) + 1, 'Difficulty should progress from words to complete sentences');
+        assert.equal(item.tier, index < 7 ? 1 : index < 14 ? 2 : 3, 'Difficulty should progress from words to complete sentences');
         seen.push(item.kana);
         assert.ok(h.query('.q-prompt em').textContent);
         check(h).click();
@@ -419,32 +393,35 @@ for (const [random, expectedKanaMode] of [[0.01, true], [0.99, false]]) {
         assert.deepEqual(h.errors, []);
         check(h).click();
       }
-      assert.equal(new Set(seen).size, 15);
+      assert.equal(new Set(seen).size, 20);
       assert.match(h.query('.modal__title').textContent, /全部答完/);
       const accuracy = h.all('.modal__stat').find(node => node.querySelector('span').textContent === '一次答對率');
-      assert.equal(accuracy.querySelector('b').textContent, '93%', 'The retried question must be excluded from first-try accuracy');
+      assert.equal(accuracy.querySelector('b').textContent, '95%', 'The retried question must be excluded from first-try accuracy');
       h.clean();
     } finally { h.close(); }
   });
 }
 
-test('changing sentence questions or routes cancels pending answer speech', () => {
+test('leaving a sentence cancels pending answer audio and its automatic advance', () => {
   const h = harness();
   try {
     h.route('sentence');
     fillSentence(h, question(h).answers);
     check(h).click();
-    check(h).click();
+    h.route('memory');
     let spokenBefore = h.spoken.length;
-    h.advance(5000);
-    assert.equal(h.spoken.length, spokenBefore, 'Advancing immediately must cancel old answer speech');
+    h.advance(10000);
+    assert.equal(h.spoken.length, spokenBefore, 'Leaving before playback must cancel the answer audio');
+    h.route('sentence');
     fillSentence(h, question(h).answers);
     check(h).click();
-    h.advance(400); // The answer has spoken; its praise is still pending.
+    h.advance(320);
+    const oldEnd = h.utterances.at(-1).onend;
     h.route('memory');
     spokenBefore = h.spoken.length;
-    h.advance(5000);
-    assert.equal(h.spoken.length, spokenBefore, 'Leaving must cancel the delayed encouragement too');
+    oldEnd();
+    h.advance(10000);
+    assert.equal(h.spoken.length, spokenBefore, 'An old audio callback cannot advance or speak on another route');
     assert.equal(h.query('.modal-backdrop'), null);
     h.clean();
   } finally { h.close(); }
@@ -458,9 +435,9 @@ test('sentence hint after a wrong answer repairs that slot and allows the answer
     fillSentence(h, answers);
     const slot = h.query('.slot:not(.slot--given)');
     slot.click();
-    const input = h.query('.romaji-input input');
-    input.value = 'zzz';
-    h.button('填入', '.romaji-input button').click();
+    const wrong = h.all('.token').find(node => !answers.includes(node.textContent));
+    assert.ok(wrong);
+    wrong.click();
     check(h).click();
     assert.ok(h.query('.slot.is-wrong'));
     h.button('提示 (-30)').click();

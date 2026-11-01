@@ -14,7 +14,8 @@ export interface WordQuestion {
   kana: string;
   romaji: string;
   meaning: string;
-  difficulty: Difficulty;
+  /** 難度（N5～N1）。《みんなの日本語》題庫未提供，留為 undefined。 */
+  difficulty?: Difficulty;
   script: ScriptType;
   category: string;
   partOfSpeech?: string;

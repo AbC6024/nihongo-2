@@ -1,12 +1,12 @@
 import type { GameDuration, GameSettings, InputMethod, LocaleCode } from "../types/game";
-import type { Difficulty, ImageMode } from "../types/question";
+import type { ImageMode } from "../types/question";
 import type { SpeechSpeedMultiplier } from "./speechRate";
 
 export const DEFAULT_SETTINGS: GameSettings = {
   duration: 180,
   inputMethod: "romaji",
   language: "zh-TW" as LocaleCode,
-  difficulties: ["N5", "N4", "N3", "N2", "N1"],
+  lessons: [],
   categories: [],
   revealCorrectMs: 1000,
   revealSkipMs: 900,
@@ -26,8 +26,6 @@ export const DEFAULT_SETTINGS: GameSettings = {
 export const DURATION_VALUES: GameDuration[] = [60, 120, 180];
 
 export const REVIEW_REVEAL_SECONDS = 10;
-
-export const DIFFICULTY_ORDER: Difficulty[] = ["N5", "N4", "N3", "N2", "N1"];
 
 /**
  * 輸入方式與其他選項的顯示文字改由 i18n 集中管理，

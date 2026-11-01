@@ -1,12 +1,12 @@
-import type { Difficulty, Question } from "../types/question";
+import type { Question } from "../types/question";
 import type { MistakeEntry } from "../types/game";
-import { canonicalCategory, sortCategories } from "./categories";
+import { canonicalCategory, lessonNumberFromCategory, sortCategories } from "./categories";
 import { shuffleWithRandom } from "./date";
 
 /**
  * 集中管理的抽題邏輯。
  *
- * 所有遊戲模式（單字／句子／複習／今日挑戰）都必須透過這裡取題，
+ * 所有遊戲模式（單字／複習／今日挑戰）都必須透過這裡取題，
  * 不可以在各元件裡各自實作隨機。
  *
  * 三個關鍵規則：
@@ -19,30 +19,34 @@ import { shuffleWithRandom } from "./date";
 export const RECENT_HISTORY_SIZE = 5;
 
 export interface FilterOptions {
-  difficulties?: Difficulty[];
+  /** 已選擇的課次編號陣列；空陣列表示不篩選課次。 */
+  lessons?: number[];
+  /** 已選擇的分類名稱；空陣列表示不篩選分類。 */
   categories?: string[];
 }
 
 /**
- * 分類排序的單一來源在 `./categories`，這裡只保留轉出，
- * 讓舊的 import 路徑 `randomQuestion.CATEGORY_ORDER` 仍然可用。
+ * 篩選題目。
+ *
+ * - 按課次篩選：從 `category` 欄位（例如 "第1課"）提取課次數字比對。
+ * - 按分類篩選：以 `canonicalCategory` 正規化後比對。
  */
-export { CATEGORY_ORDER } from "./categories";
-
 export function filterQuestions(
   questions: Question[],
   options: FilterOptions = {},
 ): Question[] {
-  const difficulties =
-    options.difficulties && options.difficulties.length > 0 ? new Set(options.difficulties) : null;
+  const lessons =
+    options.lessons && options.lessons.length > 0 ? new Set(options.lessons) : null;
   const categories =
     options.categories && options.categories.length > 0
       ? new Set(options.categories.map((category) => canonicalCategory(category)))
       : null;
 
   return questions.filter((question) => {
-    if (difficulties && !difficulties.has(question.difficulty)) return false;
-    // 題目分類也正規化，讓舊題庫與玩家匯入的自訂分類跟新分類表一致。
+    if (lessons) {
+      const lessonNum = lessonNumberFromCategory(question.category);
+      if (!lessons.has(lessonNum)) return false;
+    }
     if (categories && !categories.has(canonicalCategory(question.category))) return false;
     return true;
   });
@@ -50,11 +54,6 @@ export function filterQuestions(
 
 export function availableCategories(questions: Question[]): string[] {
   return sortCategories(questions.map((question) => question.category));
-}
-
-export function availableDifficulties(questions: Question[]): Difficulty[] {
-  const order: Difficulty[] = ["N5", "N4", "N3", "N2", "N1"];
-  return order.filter((difficulty) => questions.some((question) => question.difficulty === difficulty));
 }
 
 export interface PickResult<T> {
@@ -207,11 +206,10 @@ export interface SessionQuestions<T> {
 }
 
 /**
- * 一般模式（單字／句子）的一局題目順序。
+ * 一般模式（單字）的一局題目順序。
  *
  * - 從完整題庫隨機洗牌，題目數足夠時整局不重複。
- * - 題庫不足時會在洗牌後循環補足（與原本的循環行為一致），
- *   但順序仍然是隨機的。
+ * - 題庫不足時會在洗牌後循環補足，但順序仍然是隨機的。
  * - 只在開始新局時呼叫一次，結果由呼叫端保存。
  */
 export function buildSessionQuestions<T>(
@@ -233,7 +231,7 @@ export function buildSessionQuestions<T>(
 }
 
 export interface DailyCompositionInput {
-  /** 一般題庫（已套用難度／分類篩選）。 */
+  /** 一般題庫（已套用課次／分類篩選）。 */
   generalIds: string[];
   /** 錯題／複習題庫 ID。 */
   mistakeIds: string[];

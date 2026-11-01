@@ -1,99 +1,81 @@
 /**
  * 題目分類（category）的單一來源。
  *
- * 設計重點：
- * 1. 全專案只維護一份分類清單，避免出現「交通」與「交通與旅行」這種
- *    語意重疊卻無法合併的篩選鈕。
- * 2. 舊題庫、玩家匯入的自訂詞彙，以及舊版本存進 localStorage 的
- *    `settings.categories`，都會透過 `canonicalCategory()` 轉成新分類，
- *    因此升級後舊資料不會突然篩不到題目。
+ * 本次更新後，分類改為《みんなの日本語》的課次（例如 "第1課"、「第2課"）。
+ * 分類清單從題庫資料中自動建立，不再硬編碼。
+ *
+ * 舊版本的分類名（例如 "交通"、"食物"）會透過別名對照轉成課次，
+ * 但本次題庫已全面替換，舊分類主要為相容性保留。
  */
 
-/** 正式分類（顯示順序即玩家看到的順序）。 */
-export const CATEGORY_ORDER = [
-  "日常生活",
-  "交通與旅行",
-  "食物與飲食",
-  "動物與自然生態",
-  "學校與工作",
-  "居家與健康",
-  "情緒與溝通",
-  "科技與數位生活",
-  "天氣與環境",
-  "抽象詞彙與進階表現",
-  "慣用表現",
-  "口語與俚語",
-  "新聞・書面語",
-] as const;
+/** 從分類名稱中提取課次數字（例如 "第1課" → 1）。無法解析時回傳 -1。 */
+export function lessonNumberFromCategory(category: string): number {
+  const match = category.match(/^第(\d+)課$/);
+  return match ? Number(match[1]) : -1;
+}
 
-export type Category = (typeof CATEGORY_ORDER)[number];
+/** 依課次數字由小到大排序；非課次分類排在最後並依名稱排序。 */
+export function sortCategories(categories: readonly string[]): string[] {
+  const lessons = Array.from(categories)
+    .filter((c) => /^第\d+課$/.test(c))
+    .sort((a, b) => lessonNumberFromCategory(a) - lessonNumberFromCategory(b));
+  const custom = Array.from(categories)
+    .filter((c) => !/^第\d+課$/.test(c))
+    .sort((a, b) => a.localeCompare(b, "zh-Hant"));
+  return [...lessons, ...custom];
+}
+
+/** 所有課次的特殊標記。 */
+export const ALL_LESSONS = "全部課次";
+
+/** 判斷分類是否為課次格式。 */
+export function isLessonCategory(category: string): boolean {
+  return /^第\d+課$/.test(category);
+}
 
 /** 未登錄的自訂詞彙沿用既有預設分類。 */
-export const FALLBACK_CATEGORY = "抽象詞彙與進階表現";
+export const FALLBACK_CATEGORY = "第1課";
 
-const CATEGORY_SET: ReadonlySet<string> = new Set(CATEGORY_ORDER);
+const CATEGORY_SET: ReadonlySet<string> = new Set<string>();
 
-/**
- * 舊分類名 → 正式分類名。
- *
- * 涵蓋三種來源：
- * - v1 題庫用的簡稱（交通／食物／動物／校園／工作／慣用語）
- * - 本次題庫沿用規格書的簡稱（學校／健康／情緒／溝通／科技／天氣／
- *   天災／環境／進階詞彙／口語）
- * - 慣用表現題庫的原始分類（四字熟語、口語／俚語）
- */
-export const CATEGORY_ALIASES: Readonly<Record<string, Category>> = {
-  // v1 題庫簡稱
-  交通: "交通與旅行",
-  食物: "食物與飲食",
-  動物: "動物與自然生態",
-  校園: "學校與工作",
-  工作: "學校與工作",
-  慣用語: "慣用表現",
-  // 本次題庫簡稱
-  學校: "學校與工作",
-  健康: "居家與健康",
-  情緒: "情緒與溝通",
-  溝通: "情緒與溝通",
-  科技: "科技與數位生活",
-  天氣: "天氣與環境",
-  天災: "天氣與環境",
-  環境: "天氣與環境",
-  進階詞彙: "抽象詞彙與進階表現",
-  抽象詞彙: "抽象詞彙與進階表現",
-  口語: "口語與俚語",
-  // 慣用表現題庫原始分類
-  四字熟語: "慣用表現",
-  "口語／俚語": "口語與俚語",
-  // 匯入器的預設分類
+/** 舊分類名 → 新分類名（相容性用）。 */
+export const CATEGORY_ALIASES: Readonly<Record<string, string>> = {
+  交通: "第2課",
+  食物: "第3課",
+  動物: "第2課",
+  校園: "第1課",
+  工作: "第1課",
+  慣用語: "第8課",
+  學校: "第1課",
+  健康: "第4課",
+  情緒: "第9課",
+  溝通: "第9課",
+  科技: "第5課",
+  天氣: "第6課",
+  天災: "第6課",
+  環境: "第6課",
+  進階詞彙: "第8課",
+  抽象詞彙: "第8課",
+  口語: "第9課",
+  四字熟語: "第8課",
+  "口語／俚語": "第9課",
   未分類: FALLBACK_CATEGORY,
 };
 
-/** 轉成正式分類；無法對應時視為未登錄分類。 */
-export function canonicalCategory(raw: string | null | undefined): Category {
+/** 轉成正式分類；無法對應時視為預設分類。 */
+export function canonicalCategory(raw: string | null | undefined): string {
   if (typeof raw !== "string") return FALLBACK_CATEGORY;
   const trimmed = raw.trim();
   if (!trimmed) return FALLBACK_CATEGORY;
-  if (CATEGORY_SET.has(trimmed)) return trimmed as Category;
+  if (CATEGORY_SET.has(trimmed)) return trimmed;
   const alias = CATEGORY_ALIASES[trimmed];
   if (alias) return alias;
-  // 未登錄的自訂分類原樣保留，不要默默改掉玩家自己的分類名稱。
-  return trimmed as Category;
+  return trimmed;
 }
 
 /** 批次轉換設定裡的分類陣列，並去重。 */
-export function canonicalCategories(raw: readonly string[]): Category[] {
-  const seen = new Set<Category>();
+export function canonicalCategories(raw: readonly string[]): string[] {
+  const seen = new Set<string>();
   for (const item of raw) seen.add(canonicalCategory(item));
   return Array.from(seen);
-}
-
-/** 依正式分類排序；未登錄的自訂分類排在最後並依名稱排序。 */
-export function sortCategories(categories: readonly string[]): string[] {
-  const seen = new Set(categories.map((category) => canonicalCategory(category)));
-  const known = CATEGORY_ORDER.filter((category) => seen.has(category));
-  const custom = Array.from(seen)
-    .filter((category) => !CATEGORY_SET.has(category))
-    .sort((a, b) => a.localeCompare(b, "zh-Hant"));
-  return [...known, ...custom];
 }

@@ -6,7 +6,6 @@ import type {
   MistakeEntry,
   QuestionAttempt,
 } from "../types/game";
-import type { Difficulty } from "../types/question";
 import { createDefaultProfile, sanitizeProfile, type PlayerProfile } from "./profile";
 import { createEmptyDailyRecord } from "../utils/dailyChallenge";
 import { canonicalCategories } from "../utils/categories";
@@ -127,11 +126,9 @@ function sanitizeSettings(raw: unknown): GameSettings {
   if (raw.language === "zh-TW" || raw.language === "ja" || raw.language === "en") {
     merged.language = raw.language;
   }
-  if (Array.isArray(raw.difficulties)) {
-    const filtered = raw.difficulties.filter((d): d is Difficulty =>
-      VALID_DIFFICULTIES.includes(d as string),
-    );
-    merged.difficulties = filtered.length > 0 ? (filtered as Difficulty[]) : [...DEFAULT_SETTINGS.difficulties];
+  if (Array.isArray(raw.lessons)) {
+    const filtered = raw.lessons.filter((n): n is number => typeof n === "number" && Number.isFinite(n));
+    merged.lessons = filtered.length > 0 ? filtered : [...DEFAULT_SETTINGS.lessons];
   }
   if (Array.isArray(raw.categories)) {
     // 舊版本存下的分類名（例如「交通」）會轉成新分類表（例如「交通與旅行」），
@@ -221,7 +218,7 @@ function isAttempt(value: unknown): value is QuestionAttempt {
     isRecord(value) &&
     typeof value.questionId === "string" &&
     typeof value.timestamp === "string" &&
-    VALID_DIFFICULTIES.includes(value.difficulty as string) &&
+    (value.difficulty === undefined || VALID_DIFFICULTIES.includes(value.difficulty as string)) &&
     typeof value.correct === "boolean"
   );
 }

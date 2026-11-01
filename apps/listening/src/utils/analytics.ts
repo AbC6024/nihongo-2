@@ -131,7 +131,7 @@ export function buildAnalytics(input: AnalyticsInput): AnalyticsSummary {
   const wrongByQuestion = new Map<string, { wrongCount: number; skipCount: number }>();
 
   for (const attempt of attempts) {
-    pushAggregate(levelMap, attempt.difficulty, attempt);
+    pushAggregate(levelMap, attempt.difficulty ?? "—", attempt);
     pushAggregate(categoryMap, attempt.category, attempt);
     pushAggregate(modeMap, attempt.gameMode, attempt);
     const entry = wrongByQuestion.get(attempt.questionId) ?? { wrongCount: 0, skipCount: 0 };

@@ -3,9 +3,7 @@ import { AppStoreProvider, useAppStore } from "./store/AppStore";
 import { HomePage } from "./pages/HomePage";
 import { PlayPage } from "./pages/PlayPage";
 import { ReviewPage } from "./pages/ReviewPage";
-import { DailyPage } from "./pages/DailyPage";
 import { MistakesPage } from "./pages/MistakesPage";
-import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { ImportPage } from "./pages/ImportPage";
 import { ProfilePage } from "./pages/ProfilePage";
@@ -20,12 +18,9 @@ import "./site-theme.css";
 export type Route =
   | { name: "home" }
   | { name: "word" }
-  | { name: "sentence" }
   | { name: "review" }
   | { name: "reviewMistakes" }
   | { name: "mistakes" }
-  | { name: "daily" }
-  | { name: "analytics" }
   | { name: "settings" }
   | { name: "import" }
   | { name: "profile" };
@@ -33,12 +28,9 @@ export type Route =
 const ROUTE_NAMES: Route["name"][] = [
   "home",
   "word",
-  "sentence",
   "review",
   "reviewMistakes",
   "mistakes",
-  "daily",
-  "analytics",
   "settings",
   "import",
   "profile",
@@ -96,7 +88,6 @@ function Shell() {
 
   const narrow =
     route.name !== "home" &&
-    route.name !== "analytics" &&
     route.name !== "mistakes";
 
   return (
@@ -114,36 +105,12 @@ function Shell() {
       </header>
 
       <nav className="listening-tools" aria-label={t("settingsAndData")}>
-        <a
-          href="#/home"
-          aria-current={route.name === "home" ? "page" : undefined}
-          onClick={(event) => {
-            event.preventDefault();
-            goHome();
-          }}
-        >
-          {BRAND_TITLE}
-        </a>
-        <a
-          href="#/settings"
-          aria-current={route.name === "settings" ? "page" : undefined}
-          onClick={(event) => {
-            event.preventDefault();
-            navigate({ name: "settings" });
-          }}
-        >
-          {t("gameSettings")}
-        </a>
-        <a
-          href="#/import"
-          aria-current={route.name === "import" ? "page" : undefined}
-          onClick={(event) => {
-            event.preventDefault();
-            navigate({ name: "import" });
-          }}
-        >
-          {t("profileTabImport")}
-        </a>
+        <a href="#/home" aria-current={route.name === "home" ? "page" : undefined}
+          onClick={event => { event.preventDefault(); goHome(); }}>{BRAND_TITLE}</a>
+        <a href="#/settings" aria-current={route.name === "settings" ? "page" : undefined}
+          onClick={event => { event.preventDefault(); navigate({ name: "settings" }); }}>{t("gameSettings")}</a>
+        <a href="#/import" aria-current={route.name === "import" ? "page" : undefined}
+          onClick={event => { event.preventDefault(); navigate({ name: "import" }); }}>{t("profileTabImport")}</a>
       </nav>
 
       <main className={`page${narrow ? " page--narrow" : ""}`}>
@@ -152,11 +119,8 @@ function Shell() {
         {route.name === "home" ? (
           <HomePage
             onStartWord={() => navigate({ name: "word" })}
-            onStartSentence={() => navigate({ name: "sentence" })}
             onStartReview={startReview}
             onOpenMistakes={() => navigate({ name: "mistakes" })}
-            onOpenDaily={() => navigate({ name: "daily" })}
-            onOpenAnalytics={() => navigate({ name: "analytics" })}
             onOpenProfile={() => navigate({ name: "profile" })}
           />
         ) : null}
@@ -165,15 +129,6 @@ function Shell() {
           <PlayPage
             key="word"
             mode="word"
-            onExit={goHome}
-            onReview={() => navigate({ name: "reviewMistakes" })}
-          />
-        ) : null}
-
-        {route.name === "sentence" ? (
-          <PlayPage
-            key="sentence"
-            mode="sentence"
             onExit={goHome}
             onReview={() => navigate({ name: "reviewMistakes" })}
           />
@@ -189,14 +144,6 @@ function Shell() {
 
         {route.name === "mistakes" ? (
           <MistakesPage onStartReview={startReview} onBack={goHome} />
-        ) : null}
-
-        {route.name === "daily" ? (
-          <DailyPage key="daily" onExit={goHome} />
-        ) : null}
-
-        {route.name === "analytics" ? (
-          <AnalyticsPage onOpenMistakes={() => navigate({ name: "mistakes" })} />
         ) : null}
 
         {route.name === "settings" ? (

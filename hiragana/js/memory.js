@@ -1,6 +1,6 @@
 /* ==========================================================================
    memory.js — 進階：翻牌記憶遊戲
-   網格：3×3（4 組+萬用卡）／5×5（12 組+萬用卡）／7×7（24 組+萬用卡）
+   網格：2×3（3 組）／3×4（6 組）
    規則：每次翻兩張，一張平假名 + 一張對應羅馬字即配對成功並留下
    ========================================================================== */
 (function (global) {
@@ -8,8 +8,6 @@
 
   var U = global.App.utils;
   var el = U.el, qsa = U.qsa;
-
-  var BONUS = { type: 'bonus', kana: '★', romaji: 'wild' };
 
   /* 配對失敗後的停頓時間（毫秒）：讓玩家有足夠時間看清楚兩張牌 */
   var MISMATCH_DELAY = 1300;
@@ -20,7 +18,7 @@
     var D = global.KanaData;
     var SIZES = D.MEMORY_SIZES;
 
-    /* 預覽階段的倒數秒數（5×5 以上才會先亮牌） */
+    /* 預覽階段的倒數秒數（3×4 才會先亮牌） */
     var PREVIEW_SEC = 7;
 
     var state = {
@@ -36,8 +34,6 @@
       previewEndsAt: 0,
       phase: 'idle',     // idle | preview | play | done
       lock: false,
-      bonusUsed: false,
-      wildcard: true,    // 奇數網格：true = 萬用卡，false = 留白（偶數張全成對）
       score: 0
     };
 
@@ -51,23 +47,27 @@
       page.appendChild(el('div.page-head', [
         el('h1', [el('span.emoji', { text: '🃏' }), document.createTextNode('進階・翻牌記憶')]),
         el('p.motivation', { text: D.MOTIVATION.memory }),
-        el('p.hint-text', { text: '每次翻開兩張卡：一張是平假名、一張是對應的羅馬字就能配對成功。配對成功會亮起固定，不符則會停留一下再蓋回，讓你看清楚。' })
+        el('div.hint-text', [
+          el('p', { text: '日系和風卡牌：圓角、3D 翻轉、青海波紋與櫻花徽記，翻開大字體平假名或羅馬字。' }),
+          el('p', { text: '2*3 / 3*4 兩種網格自由選' }),
+          el('p', { text: '翻開假名片會自動朗讀，邊記邊聽' }),
+          el('p', { text: '不配對時會停留一下，讓你看清楚兩張牌' })
+        ])
       ]));
 
-      /* 難度選擇：奇數網格 3/5/7 需一格萬用卡（或留白）；偶數網格 4/6 全部成對 */
+      /* 難度選擇：僅提供 2×3 與 3×4 兩種網格，全部成對 */
       dom.picker = el('div.size-picker');
       SIZES.forEach(function (s) {
-        var cells = s.size * s.size;
-        var bonus = cells % 2 === 1;
+        var cells = s.rows * s.cols;
         var preview = el('div.size-opt__grid');
-        preview.style.gridTemplateColumns = 'repeat(' + s.size + ', auto)';
+        preview.style.gridTemplateColumns = 'repeat(' + s.cols + ', auto)';
         preview.style.justifyContent = 'center';
         for (var i = 0; i < cells; i++) {
-          preview.appendChild(el('span.size-opt__cell' + (bonus && i === cells - 1 ? '.is-bonus' : '')));
+          preview.appendChild(el('span.size-opt__cell'));
         }
 
         var opt = el('button.size-opt', {
-          type: 'button', dataset: { size: s.size },
+          type: 'button', dataset: { size: s.rows + 'x' + s.cols },
           'aria-label': s.label + '，' + s.desc
         }, [
           preview,
@@ -81,7 +81,7 @@
 
       dom.sizePanel = el('div.panel', [
         el('p.hint-text', {
-          text: '👇 先選擇要挑戰的網格大小（3/5/7 為奇數格，含一張萬用卡或留白；4/6 為偶數格，全部成對）：',
+          text: '👇 先選擇要挑戰的網格大小，全部卡牌皆成對：',
           style: { margin: '0 0 14px' }
         }),
         dom.picker
@@ -117,18 +117,9 @@
       dom.changeBtn = el('button.btn.btn--sm', { type: 'button' }, '⚙ 換網格大小');
       dom.changeBtn.addEventListener('click', showPicker);
 
-      /* 奇數網格的第 9 格：萬用卡 or 空白格 */
-      dom.wildBtn = el('button.btn.btn--sm', { type: 'button' });
-      dom.wildBtn.addEventListener('click', function () {
-        state.wildcard = !state.wildcard;
-        renderWildToggle();
-        if (state.config) startGame(state.config);
-      });
-
       dom.gameBar = el('div.toolbar', [
         dom.restartBtn,
         dom.changeBtn,
-        dom.wildBtn,
         el('span.toolbar__spacer'),
         el('span.hint-text', { text: '目標：用最少的步數記住所有配對 💡' })
       ]);
@@ -147,7 +138,7 @@
       if (!effects.isActive()) return;
       state.config = cfg;
       U.qsa('.size-opt', dom.picker).forEach(function (o) {
-        o.classList.toggle('is-active', +o.dataset.size === cfg.size);
+        o.classList.toggle('is-active', o.dataset.size === cfg.rows + 'x' + cfg.cols);
       });
       startGame(cfg);
     }
@@ -164,19 +155,8 @@
     }
 
     /* ======================================================== 開局 */
-    /** 該網格是否為奇數格（需要一格萬用卡或留白） */
-    function needsOddSlot(cfg) { return (cfg.size * cfg.size) % 2 === 1; }
-
-    /** 5×5 以上先預覽牌面（記住位置再開始） */
+    /** 3×4 啟用預覽牌面（記住位置再開始） */
     function hasPreview(cfg) { return cfg.preview === true; }
-
-    function renderWildToggle() {
-      var odd = state.config ? needsOddSlot(state.config) : false;
-      dom.wildBtn.style.display = odd ? '' : 'none';
-      if (!odd) return;
-      dom.wildBtn.textContent = state.wildcard ? '★ 萬用卡：開' : '★ 萬用卡：關（改用空白格）';
-      dom.wildBtn.className = 'btn btn--sm' + (state.wildcard ? ' btn--sun' : ' btn--ghost');
-    }
 
     function stopTimers() {
       effects.reset();
@@ -250,21 +230,15 @@
         state.cards.push({ type: 'kana', kana: p.k, romaji: p.r, pid: p.r });
         state.cards.push({ type: 'romaji', kana: p.k, romaji: p.r, pid: p.r });
       });
-      // 奇數網格的最後一格：萬用卡 or 留白（偶數張，全部成對）
-      if (needsOddSlot(cfg) && state.wildcard) {
-        state.cards.push(Object.assign({ pid: 'bonus' }, BONUS));
-      }
       state.cards = U.shuffle(state.cards);
 
       state.flips = [];
       state.matched = 0;
       state.moves = 0;
-      state.bonusUsed = false;
       state.lock = false;
       state.startedAt = Date.now();
 
       renderBoard();
-      renderWildToggle();
       updateHud();
 
       if (hasPreview(cfg)) {
@@ -280,18 +254,17 @@
 
     function renderBoard() {
       U.clear(dom.board);
-      dom.board.className = 'memory-board mcard--' + state.config.size;
-      dom.board.style.gridTemplateColumns = 'repeat(' + state.config.size + ', 1fr)';
-      dom.board.style.maxWidth = Math.min(680, state.config.size * 96) + 'px';
-      dom.board.setAttribute('aria-rowcount', state.config.size);
+      dom.board.className = 'memory-board mcard--' + state.config.rows + 'x' + state.config.cols;
+      dom.board.style.gridTemplateColumns = 'repeat(' + state.config.cols + ', 1fr)';
+      dom.board.style.maxWidth = Math.min(680, state.config.cols * 96) + 'px';
+      dom.board.setAttribute('aria-rowcount', state.config.rows);
+      dom.board.setAttribute('aria-colcount', state.config.cols);
 
       state.cards.forEach(function (card, i) {
-        var label = card.type === 'kana' ? card.kana
-          : (card.type === 'romaji' ? card.romaji : '★');
+        var label = card.type === 'kana' ? card.kana : card.romaji;
 
         var front = el('span.mcard__face.mcard__front' +
-          (card.type === 'romaji' ? '.mcard__front--romaji' : '') +
-          (card.type === 'bonus' ? '.mcard__front--bonus' : ''),
+          (card.type === 'romaji' ? '.mcard__front--romaji' : ''),
           { text: label });
 
         var btn = el('button.mcard', {
@@ -308,11 +281,6 @@
         btn.addEventListener('click', function () { flip(i, btn); });
         dom.board.appendChild(btn);
       });
-
-      // 奇數網格關閉萬用卡時，保留最後一格空白，讓牌數為偶數、全部成對
-      if (needsOddSlot(state.config) && !state.wildcard) {
-        dom.board.appendChild(el('div.mcard--blank', { 'aria-hidden': 'true' }));
-      }
     }
 
     /* ======================================================== 翻牌 */
@@ -343,7 +311,7 @@
     function cardLabel(card) {
       if (card.type === 'kana') return card.kana;
       if (card.type === 'romaji') return card.romaji;
-      return '萬用卡';
+      return '';
     }
 
     function cardButton(i) {
@@ -381,13 +349,11 @@
     function resolvePair() {
       var a = state.flips[0], b = state.flips[1];
 
-      // 萬用卡：不消耗翻開的那張，而是直接揭出它的夥伴，牌面永遠有解
-      if (a.card.type === 'bonus' || b.card.type === 'bonus') return resolveBonus(a, b);
       if (isMatch(a.card, b.card)) return lockPair(a, b);
       return releasePair(a, b);
     }
 
-    /** 配對成功：兩張留下來，並給一句日語鼓勵 */
+    /** 配對成功：兩張留下來 */
     function lockPair(a, b) {
       settle(function () {
         markDone(a);
@@ -407,34 +373,9 @@
       }, MISMATCH_DELAY);
     }
 
-    /** 萬用卡：翻開的卡與它的夥伴自動一起配對，萬用卡本身也結算 */
-    function resolveBonus(a, b) {
-      var bonus = a.card.type === 'bonus' ? a : b;
-      var other = bonus === a ? b : a;
-
-      var partner = null;
-      for (var i = 0; i < state.cards.length; i++) {
-        if (i !== other.i && state.cards[i].pid === other.card.pid) {
-          partner = { i: i, btn: cardButton(i), card: state.cards[i] };
-          break;
-        }
-      }
-
-      U.toast('★ 萬用卡發動！直接幫你配對成功', 'ok', 1600);
-
-      settle(function () {
-        bonus.btn.classList.add('is-done');
-        bonus.btn.setAttribute('aria-label', '萬用卡（已使用）');
-        markDone(other);
-        markDone(partner);
-        state.matched += 1;
-        state.bonusUsed = true;
-      }, MATCH_DELAY);
-    }
-
     /** 配對判定：一張假名 + 一張羅馬字且讀音相同 */
     function isMatch(a, b) {
-      return a.pid === b.pid && a.pid !== 'bonus' && a.type !== b.type;
+      return a.pid === b.pid && a.type !== b.type;
     }
 
     function updateHud() {
@@ -459,23 +400,20 @@
       var base = state.config.pairs * 100;
       var movePenalty = state.moves * 12;
       var timeBonus = Math.max(0, 300 - Math.round(totalMs / 500));
-      var bonusBonus = state.bonusUsed ? 50 : 0;
-      var finalScore = Math.max(100, base - movePenalty + timeBonus + bonusBonus);
+      var finalScore = Math.max(100, base - movePenalty + timeBonus);
       // 不保存任何分數紀錄，只在結算畫面顯示這一局的表现
 
       // 整局完成 → 播放一次開朗結束語音
       U.praise('stage', { ms: 3000 });
 
       U.modal({
-        emoji: state.config.size >= 7 ? '👑' : '🏆',
+        emoji: '🏆',
         title: '配對完成！',
         body: '網格 <b>' + state.config.label + '</b>' +
-              (bonusBonus ? '　萬用卡發揮了作用 ⭐' : '') +
               (state.moves <= state.config.pairs ? '<br>完美步數！一個多余的記憶都沒有 🎯' : ''),
         stats: [
           { value: state.moves, label: '使用步數' },
           { value: state.matched + ' / ' + state.config.pairs, label: '配對組合' },
-          { value: bonusBonus ? '已使用' : '未使用', label: '萬用卡' },
           { value: U.fmtTime(totalMs), label: '總用時' }
         ],
         buttons: [

@@ -190,6 +190,8 @@ button, input { font-family: inherit; }
   content: none;
 }
 .page-head .hint-text { margin-top: 6px !important; }
+.page-head .hint-text p { margin: 3px 0 0; }
+.page-head .hint-text p:first-child { margin-top: 0; }
 .hero__lead {
   position: relative;
   font-size: clamp(17px, 3.2vw, 25px) !important;
@@ -636,18 +638,11 @@ button, input { font-family: inherit; }
 }
 
 /* --- 各種網格尺寸的字級（加大字號，初學者清晰易讀） --- */
-.mcard--3 .mcard__front { font-size: clamp(26px, 7vw, 46px); }
-.mcard--4 .mcard__front { font-size: clamp(22px, 5.5vw, 40px); }
-.mcard--5 .mcard__front { font-size: clamp(20px, 4.6vw, 36px); }
-.mcard--6 .mcard__front { font-size: clamp(16px, 3.6vw, 28px); }
-.mcard--7 .mcard__front { font-size: clamp(18px, 4vw, 32px); }
-.mcard--3 .mcard__front--romaji,
-.mcard--4 .mcard__front--romaji,
-.mcard--5 .mcard__front--romaji { font-size: clamp(13px, 2.6vw, 24px); }
-.mcard--6 .mcard__front--romaji,
-.mcard--7 .mcard__front--romaji { font-size: clamp(11px, 2.2vw, 18px); }
-.mcard--6 .mcard__emblem,
-.mcard--7 .mcard__emblem { font-size: clamp(11px, 2vw, 17px); }
+.mcard--2x3 .mcard__front { font-size: clamp(28px, 7vw, 48px); }
+.mcard--3x4 .mcard__front { font-size: clamp(20px, 4.6vw, 34px); }
+.mcard--2x3 .mcard__front--romaji,
+.mcard--3x4 .mcard__front--romaji { font-size: clamp(13px, 2.6vw, 22px); }
+.mcard--3x4 .mcard__emblem { font-size: clamp(11px, 2vw, 17px); }
 
 /* --- 右上角懸浮計時器（預覽倒數 / 通關計時） --- */
 .timer-float {

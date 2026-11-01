@@ -39,14 +39,16 @@ export const ja: Translations = {
   labelDuration: "時間",
   labelInputMethod: "入力方式",
   labelGameLanguage: "ゲームの言語",
-  labelFilters: "問題の絞り込み（単語 {words} 件 / 文 {sentences} 問）",
-  expandFilters: "絞り込みを開く（JLPT レベル / 主題）",
+  labelFilters: "課を選択（現在 {words} 問利用可能）",
+  selectLesson: "課を選択",
+  allLessons: "すべての課",
+  expandFilters: "練習する課を選択（第1～12課）",
   collapseFilters: "絞り込みを閉じる",
   labelDifficulty: "難易度",
   labelCategory: "問題カテゴリ",
   clearCategoryFilter: "主題の絞り込みを解除",
   noQuestionsInFilter: "この条件では問題が足りません。条件をゆるめてください。",
-  noWordsInFilter: "利用できる単語がありません。JLPT レベルや主題を変更してください。",
+  noWordsInFilter: "課の選択を開き、練習する課を1つ以上選んでください。",
   difficultyNoItems: "{level}（問題なし）",
   startWordMode: "単語モードを開始",
   settingsAndData: "設定とデータ",
@@ -201,6 +203,7 @@ export const ja: Translations = {
   clearAllMistakes: "すべて削除",
   confirmClearAll: "{n} 件すべて削除",
   clearNote: "誤答を削除しても、プレイ履歴と統計は削除されません。",
+  clearStarredNote: "星マークを付けた単語は削除されません",
   sortLabel: "並び順",
   sortRecent: "最近ミスした順",
   sortWrong: "ミスが多い順",
@@ -231,7 +234,7 @@ export const ja: Translations = {
   noReviewableDesc:
     "間違いノートの問題が現在の問題にないため、復習できません。",
   emptyPoolTitle: "この条件では問題がありません",
-  emptyPoolDesc: "ホームに戻り、JLPT レベルや主題を変更してください。",
+  emptyPoolDesc: "ホームに戻り、練習する課を選んでください。",
 
   // ---------- 今日のチャレンジ ----------
   dailyDoneBanner:

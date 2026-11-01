@@ -215,7 +215,7 @@ describe("二、切換語言立即生效並保留設定", () => {
     const settings = JSON.parse(window.localStorage.getItem("niiki.settings") as string);
     expect(settings.inputMethod).toBe("romaji");
     expect(settings.duration).toBe(180);
-    expect(settings.difficulties).toEqual(["N5", "N4", "N3", "N2", "N1"]);
+    expect(Array.isArray(settings.lessons)).toBe(true);
     expect(settings.sfxEnabled).toBe(true);
     expect(settings.shortWordRateMultiplier).toBe(0.75);
   });
