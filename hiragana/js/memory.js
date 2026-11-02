@@ -45,7 +45,7 @@
       var page = el('div');
 
       page.appendChild(el('div.page-head', [
-        el('h1', [el('span.emoji', { text: '🃏' }), document.createTextNode('進階・翻牌記憶')]),
+        el('h1', [el('span.emoji', { text: '🃏' }), document.createTextNode('翻牌記憶')]),
         el('p.motivation', { text: D.MOTIVATION.memory }),
         el('div.hint-text', [
           el('p', { text: '日系和風卡牌：圓角、3D 翻轉、青海波紋與櫻花徽記，翻開大字體平假名或羅馬字。' }),

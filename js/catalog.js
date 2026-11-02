@@ -10,7 +10,7 @@ JPQ.CATALOG = [
     slug: 'particles',
     status: 'live',
     thumb: 'link',
-    title: '助詞大冒險',
+    title: '助詞',
     titleEn: 'Particles',
     href: 'particles.html',
     desc: '看句子填空，選出正確的 は・が・の・を・に・で・と・も。',
@@ -20,17 +20,17 @@ JPQ.CATALOG = [
     slug: 'gojuon',
     status: 'live',
     thumb: 'kana',
-    title: '五十音圖',
+    title: '五十音',
     titleEn: 'Kana Quest',
     href: 'gojuon.html',
-    desc: '看字選音、看音選字、聽音辨識、配對記憶，四種玩法都能切換平假名、片假名與 N5 單字。',
-    detail: ['四種玩法', '三種字集', '記憶配對', '完整五十音表']
+    desc: '先平假名、再片假名。從選音、辨字、聽音與配對開始，再挑戰翻牌記憶和句子填空。',
+    detail: ['六種玩法', '先平假名後片假名', '翻牌與填空', '完整五十音表']
   },
   {
     slug: 'conjugation',
     status: 'live',
     thumb: 'verb',
-    title: '動詞活用',
+    title: '活用',
     titleEn: 'Verbs',
     href: 'conjugation.html',
     desc: '從台灣版《大家的日本語》初級Ⅰ、Ⅱ第 1～25 課的動詞隨機抽題，可選冊別與變化，附中文說明。',
@@ -40,21 +40,11 @@ JPQ.CATALOG = [
     slug: 'listening',
     status: 'live',
     thumb: 'listen',
-    title: '日語聽打',
+    title: '聽打',
     titleEn: 'Kii Board',
     href: 'listening/',
     desc: '聞いボード：依《大家的日本語》第 1～12 課選字練習聽打，搭配錯題複習與個人學習紀錄。',
     detail: ['第 1～12 課', '單字聽打', '錯題複習', '個人學習紀錄']
-  },
-  {
-    slug: 'hiragana',
-    status: 'live',
-    thumb: 'cards',
-    title: '五十音大冒險',
-    titleEn: 'Hiragana Adventure',
-    href: 'hiragana/',
-    desc: '先認字連連看，再挑戰翻牌記憶，最後用平假名與羅馬字完成句子填空，循序練熟基礎五十音。',
-    detail: ['6 關連連看', '2 種翻牌網格', '每局 20 題填空', '日語朗讀']
   },
   {
     slug: 'katakana-words', status: 'live', thumb: 'kana',
@@ -64,8 +54,12 @@ JPQ.CATALOG = [
   },
   {
     slug: 'n5-reading', status: 'live', thumb: 'quiz',
-    title: 'N5閱讀', titleEn: 'N5 Reading', href: 'n5_reading_game.html',
+    title: '閱讀', titleEn: 'N5 Reading', href: 'n5_reading_game.html',
     desc: '閱讀日常生活短文，找出句子中的關鍵資訊，答後附中文翻譯與解說。',
     detail: ['20 篇短文', '每輪 10 題', '中文翻譯', '答案解說']
   }
 ];
+
+// The same six categories drive the home cards, header and footer.
+const categoryOrder = ['gojuon', 'particles', 'katakana-words', 'listening', 'conjugation', 'n5-reading'];
+JPQ.CATALOG.sort((a, b) => categoryOrder.indexOf(a.slug) - categoryOrder.indexOf(b.slug));

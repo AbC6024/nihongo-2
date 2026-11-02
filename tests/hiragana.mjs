@@ -3,9 +3,10 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { JSDOM, VirtualConsole } from 'jsdom';
 
-const gameRoot = new URL('../hiragana/', import.meta.url);
-const html = readFileSync(new URL('index.html', gameRoot), 'utf8');
-const scripts = ['utils', 'data', 'matching', 'memory', 'sentence', 'app'];
+const gameRoot = new URL('../', import.meta.url);
+const html = readFileSync(new URL('gojuon.html', gameRoot), 'utf8');
+const scripts = ['js/core.js', 'js/catalog.js', 'js/site.js', 'js/kana-data.js', 'js/vocab-data.js', 'js/gojuon.js',
+  'hiragana/js/utils.js', 'hiragana/js/data.js', 'hiragana/js/memory.js', 'hiragana/js/sentence.js', 'js/kana-extra.js', 'js/home.js'];
 const existingProgress = {
   'jpq.progress.v1': '{"levels":{"1":3,"verb-study-v2-1":2},"records":{"kana-read-best":80}}',
   'jpq.nick.speed': 'Existing player',
@@ -21,7 +22,7 @@ function harness(random = 0.99) {
   const virtualConsole = new VirtualConsole();
   virtualConsole.on('jsdomError', error => errors.push(error));
   const dom = new JSDOM(html, {
-    url: 'https://nihongo.test/hiragana/',
+    url: 'https://nihongo.test/gojuon.html',
     runScripts: 'outside-only',
     pretendToBeVisual: true,
     virtualConsole
@@ -55,7 +56,12 @@ function harness(random = 0.99) {
   };
   window.HTMLCanvasElement.prototype.getContext = () => null;
   Object.entries(existingProgress).forEach(([key, value]) => window.localStorage.setItem(key, value));
-  scripts.forEach(name => window.eval(readFileSync(new URL(`js/${name}.js`, gameRoot), 'utf8') + `\n//# sourceURL=hiragana/js/${name}.js`));
+  scripts.forEach(name => window.eval(readFileSync(new URL(name, gameRoot), 'utf8') + '\n//# sourceURL=' + name));
+  window.JPQ.store.load();
+  window.JPQ.hud.init();
+  window.JPQ.sfx = { click() {}, correct() {}, wrong() {}, levelup() {} };
+  window.JPQ.site.mountChrome('gojuon');
+  window.JPQ.home.render();
 
   const query = selector => document.querySelector(selector);
   const all = selector => Array.from(document.querySelectorAll(selector));
@@ -75,9 +81,9 @@ function harness(random = 0.99) {
     }
     now = target;
   }
-  function route(key = '') {
-    dom.reconfigure({ url: `https://nihongo.test/hiragana/#/${key}` });
-    window.dispatchEvent(new window.HashChangeEvent('hashchange'));
+  function route(key = '', pool = 'hiragana') {
+    dom.reconfigure({ url: `https://nihongo.test/gojuon.html#/${key ? 'play/kana-' + key + (pool ? '/' + pool : '') : ''}` });
+    window.JPQ.router();
   }
   function button(text, selector = 'button') {
     const result = all(selector).find(node => node.textContent.includes(text));
@@ -151,6 +157,39 @@ function solveMemory(h) {
   });
 }
 
+test('merged kana portal orders six categories and offers hiragana before katakana without duplicate matching', () => {
+  const h = harness();
+  try {
+    assert.deepEqual(Array.from(h.window.JPQ.CATALOG, game => game.title), ['五十音', '助詞', '片假名單字', '聽打', '活用', '閱讀']);
+    assert.deepEqual(h.all('.site-menu a').slice(1, -1).map(a => a.textContent), ['五十音', '助詞', '片假名單字', '聽打', '活用', '閱讀']);
+    assert.deepEqual(h.all('.kana-path').map(section => section.dataset.script), ['hiragana', 'katakana']);
+    assert.equal(h.all('.kana-path[data-script="hiragana"] .pane').length, 6);
+    assert.equal(h.all('.kana-path[data-script="katakana"] .pane').length, 4);
+    assert.equal(h.query('a[href*="/matching"]'), null);
+    assert.ok(!h.query('#gameGrid').textContent.includes('連連看'));
+    assert.equal(h.query('script[src*="matching.js"]'), null);
+    h.route('read', '');
+    assert.equal(h.query('[data-pool].on').dataset.pool, 'hiragana');
+    assert.deepEqual(h.all('[data-pool]').map(button => button.dataset.pool), ['hiragana', 'katakana', 'vocabulary']);
+    h.route('read', 'katakana');
+    assert.equal(h.query('[data-pool].on').dataset.pool, 'katakana');
+    assert.match(h.query('.kana-big').textContent, /^[\u30a0-\u30ff]+$/u);
+    h.route('match', 'hiragana');
+    assert.equal(h.query('[data-pool].on').dataset.pool, 'hiragana');
+    h.clean();
+  } finally { h.close(); }
+});
+
+test('old adventure bookmarks lead to the merged modes and preserve other progress', () => {
+  const source = readFileSync(new URL('hiragana/js/app.js', gameRoot), 'utf8');
+  for (const [hash, expected] of [['', '#/'], ['#/memory', '#/play/kana-memory/hiragana'], ['#/sentence', '#/play/kana-sentence/hiragana'], ['#/matching', '#/play/kana-match/hiragana']]) {
+    let target;
+    const run = new Function('location', source);
+    run({ hash, replace(url) { target = url; } });
+    assert.equal(target, '../gojuon.html' + expected);
+  }
+});
+
 test('hiragana data covers all 46 basic kana without ambiguous matching pairs', () => {
   const h = harness();
   try {
@@ -165,115 +204,6 @@ test('hiragana data covers all 46 basic kana without ambiguous matching pairs', 
     assert.equal(D.kanaEquivalent('し', 'す'), false, 'Different sounds must not pass a sentence answer');
     assert.equal(D.kanaEquivalent('て', 'で'), false, 'Voiced and unvoiced kana must remain distinct');
     assert.equal(D.romajiEquivalent('shi', 'su'), false);
-    h.clean();
-  } finally { h.close(); }
-});
-
-test('matching plays all five stages, unlocks each next stage, then reviews every basic kana once', () => {
-  const h = harness();
-  try {
-    const D = h.window.KanaData;
-    const stageSizes = [10, 10, 10, 8, 8, 46];
-    for (let stage = 0; stage < 6; stage++) {
-      h.route('matching');
-      const options = h.all('.stage-opt');
-      assert.equal(options.length, 6);
-      assert.equal(options[stage].disabled, false);
-      if (stage < 5) assert.equal(options[stage + 1].disabled, true);
-      options[stage].click();
-      if (stage === 0) {
-        const left = h.query('.tile[data-side="left"]');
-        left.click();
-        h.all('.tile[data-side="right"]').find(node => node.dataset.k !== left.dataset.k).click();
-        h.advance(520);
-      }
-      const played = [];
-      let attempts = 0;
-      while (!h.query('.modal-backdrop')) {
-        assert.ok(++attempts < 120, 'Every matching stage must finish');
-        const left = h.query('.tile[data-side="left"]:not(.is-matched)');
-        if (!left) { h.advance(1400); continue; }
-        const kana = left.dataset.k;
-        const right = h.all('.tile[data-side="right"]').find(node => node.dataset.k === kana);
-        left.click();
-        right.click();
-        assert.ok(left.classList.contains('is-matched'), `Pair ${kana} must be accepted`);
-        played.push(kana);
-        h.advance(620);
-        if (stage === 5 && played.length < 42) {
-          assert.equal(h.all('.tile[data-side="left"]').length, 5, 'Final review must refill its five-pair window');
-        }
-      }
-      assert.equal(played.length, stageSizes[stage], `Stage ${stage + 1} must exercise each intended pair`);
-      assert.equal(new Set(played).size, stageSizes[stage], 'Matched kana must not reappear in the same stage');
-      assert.equal(JSON.parse(h.window.localStorage.getItem(D.MATCHING_UNLOCK_KEY)), Math.min(stage + 2, 6));
-      if (stage === 0) {
-        const mistakes = h.all('.modal__stat').find(node => node.querySelector('span').textContent === '本關失誤');
-        assert.equal(mistakes.querySelector('b').textContent, '1 次', 'A first-batch mistake must survive into the whole-stage summary');
-      }
-      if (stage === 5) {
-        assert.deepEqual(played.toSorted(), Array.from(D.BASIC_POOL, item => item.k).toSorted());
-        assert.match(h.query('.modal__title').textContent, /全部制霸/);
-        assert.equal(h.all('.hud__value')[3].textContent, '0');
-      }
-    }
-    h.clean();
-    h.route('matching');
-    assert.ok(h.all('.stage-opt').every(option => !option.disabled), 'Unlock progress survives remounting');
-    h.clean();
-  } finally { h.close(); }
-});
-
-test('matching restart and stage picker cancel a pending next-batch transition', () => {
-  const h = harness();
-  try {
-    function finishBatch() {
-      for (let pair = 0; pair < 5; pair++) {
-        const left = h.query('.tile[data-side="left"]:not(.is-matched)');
-        const right = h.all('.tile[data-side="right"]').find(node => node.dataset.k === left.dataset.k);
-        left.click();
-        right.click();
-        h.advance(620);
-      }
-    }
-    h.route('matching');
-    h.query('.stage-opt').click();
-    finishBatch();
-    h.button('重玩本關').click();
-    h.advance(1500);
-    assert.equal(h.all('.hud__value')[2].textContent, '1 / 2', 'A restarted stage must stay in its new first batch');
-    assert.equal(h.all('.tile[data-side="left"]:not(.is-matched)').length, 5);
-    finishBatch();
-    h.button('換關卡').click();
-    h.advance(1500);
-    assert.notEqual(h.query('.stage-list').parentElement.style.display, 'none');
-    assert.equal(h.query('.match-board').parentElement.parentElement.style.display, 'none');
-    assert.equal(h.query('.modal-backdrop'), null);
-    h.clean();
-  } finally { h.close(); }
-});
-
-test('final matching ignores rapid duplicate clicks while its window is being replaced', () => {
-  const h = harness();
-  try {
-    h.window.localStorage.setItem(h.window.KanaData.MATCHING_UNLOCK_KEY, '6');
-    h.route('matching');
-    h.query('.stage-opt[data-stage="5"]').click();
-    const left = h.query('.tile[data-side="left"]');
-    const right = h.all('.tile[data-side="right"]').find(node => node.dataset.k === left.dataset.k);
-    left.click();
-    right.click();
-    left.click();
-    right.click();
-    h.window.dispatchEvent(new h.window.Event('resize'));
-    h.advance(230);
-    const other = h.all('.tile[data-side="left"]').find(node => node !== left);
-    other.click();
-    h.all('.tile[data-side="right"]').find(node => node.dataset.k === other.dataset.k).click();
-    h.advance(390);
-    assert.equal(h.all('.hud__value')[0].textContent, '100', 'The in-flight pair may only score once');
-    assert.equal(h.all('.hud__value')[3].textContent, '45');
-    assert.equal(h.all('.tile[data-side="left"]').length, 5);
     h.clean();
   } finally { h.close(); }
 });

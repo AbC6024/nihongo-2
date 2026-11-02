@@ -162,7 +162,7 @@
   function modal(o) {
     o = o || {};
     var backdrop = el('div.modal-backdrop');
-    var box = el('div.modal' + (o.wide ? '.modal--wide' : ''), { role: 'dialog', 'aria-modal': 'true' });
+    var box = el('div.adventure-dialog' + (o.wide ? '.adventure-dialog--wide' : ''), { role: 'dialog', 'aria-modal': 'true' });
     var closed = false;
     var focusTimer;
 
@@ -230,7 +230,7 @@
 
     focusTimer = setTimeout(function () {
       if (closed) return;
-      var f = qs('.modal .btn', box);
+      var f = qs('.adventure-dialog .btn', box);
       if (f) f.focus();
     }, 60);
     return handle;

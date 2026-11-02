@@ -529,7 +529,7 @@ function validateSeoAssets() {
     ['gojuon.html', `${publicOrigin}/gojuon.html`],
     ['conjugation.html', `${publicOrigin}/conjugation.html`],
     ['listening/index.html', `${publicOrigin}/listening/`],
-    ['hiragana/index.html', `${publicOrigin}/hiragana/`],
+    ['hiragana/index.html', `${publicOrigin}/gojuon.html`],
     ['katakana_game.html', `${publicOrigin}/katakana_game.html`],
     ['n5_reading_game.html', `${publicOrigin}/n5_reading_game.html`]
   ];
@@ -547,7 +547,7 @@ function validateSeoAssets() {
   assert(robots.includes(`Sitemap: ${publicOrigin}/sitemap.xml`));
 
   const sitemap = fs.readFileSync(path.join(ROOT, 'sitemap.xml'), 'utf8');
-  pages.forEach(([, url]) => assert(sitemap.includes(`<loc>${url}</loc>`), `Sitemap is missing ${url}`));
+  pages.filter(([file]) => file !== 'hiragana/index.html').forEach(([, url]) => assert(sitemap.includes(`<loc>${url}</loc>`), `Sitemap is missing ${url}`));
 }
 
 /* 用最小 DOM stub 載入遊戲檔，確認每款玩法都帶齊首頁卡片與 HUD 需要的欄位 */
@@ -644,7 +644,7 @@ function validateStaticBuild() {
   assert(adventure.includes('../listening/'), 'The new game must preserve the listening navigation entry');
   assert(adventure.includes('五十音大冒險'));
   assert(!adventure.includes('fonts.googleapis.com'), 'The new game must use local fonts');
-  ['js/utils.js', 'js/data.js', 'js/matching.js', 'js/memory.js', 'js/sentence.js', 'js/app.js', 'css/style.css', 'css/site-theme.css']
+  ['js/utils.js', 'js/data.js', 'js/memory.js', 'js/sentence.js', 'js/app.js', 'css/style.css', 'css/site-theme.css']
     .forEach(file => assert(fs.existsSync(path.join(ROOT, 'dist/hiragana', file)), `Adventure build is missing ${file}`));
 }
 

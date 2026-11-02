@@ -41,7 +41,7 @@
       var page = el('div');
 
       page.appendChild(el('div.page-head', [
-        el('h1', [el('span.emoji', { text: '📝' }), document.createTextNode('高階・句子填空')]),
+        el('h1', [el('span.emoji', { text: '📝' }), document.createTextNode('句子填空')]),
         el('p.motivation', { text: D.MOTIVATION.sentence }),
         el('div.hint-text', [
           el('p', { text: '由簡入繁：先基礎單字（すし、ねこ），再進階短句（おはよう、すみません），最後完整句子（わたしはがくせいです）。🔊 可隨時聆聽日語發音，答對會自動朗讀一次。' }),

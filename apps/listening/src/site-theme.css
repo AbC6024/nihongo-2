@@ -195,3 +195,9 @@ body {
     font-size: 0.8125rem;
   }
 }
+
+.learning-site-brand { font-size:22px; }
+.learning-site-nav a { font-size:1rem; font-weight:750; color:var(--ink); }
+.learning-site-nav a[aria-current="page"] { background:#f6e6dd; font-weight:800; box-shadow:inset 0 -3px #a83b32; }
+.topbar__title, .hero__title { font-weight:800; }
+@media(max-width:600px) { .learning-site-nav a { font-size:0.9375rem; } }

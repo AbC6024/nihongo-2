@@ -39,6 +39,16 @@
   }
 
   function gamesHTML() {
+    if (JPQ.kanaSections) return JPQ.kanaSections.map(section => `
+      <section class="kana-path" data-script="${section.pool}">
+        <h3 class="kana-path-title">${section.title}</h3>
+        <p class="section-note">${section.desc}</p>
+        <div class="game-bars">${section.games.map(key => {
+          const g = JPQ.games[key];
+          return cardHTML({ status: 'live', title: g.card.title, titleEn: g.card.tag,
+            thumb: g.card.thumb, desc: g.card.desc, href: '#/play/' + key + '/' + section.pool });
+        }).join('')}</div>
+      </section>`).join('');
     return Object.keys(JPQ.games).map(k => {
       const g = JPQ.games[k];
       return cardHTML({

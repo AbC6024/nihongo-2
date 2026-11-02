@@ -66,7 +66,7 @@ JPQ.site = {
       </a>
       <nav class="site-menu" aria-label="主選單">
         <ul>
-          ${items.map(p => `<li><a href="${p.href}"${active === p.id ? ' class="on"' : ''}>${p.label}</a></li>`).join('')}
+          ${items.map(p => `<li><a href="${p.href}"${active === p.id ? ' class="on" aria-current="page"' : ''}>${p.label}</a></li>`).join('')}
         </ul>
       </nav>
       <div class="header-tools">

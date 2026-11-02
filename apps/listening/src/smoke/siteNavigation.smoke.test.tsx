@@ -29,20 +29,19 @@ async function click(selector: string) {
 }
 
 describe("merged site navigation", () => {
-  it("links to all original games and Hiragana Adventure from the listening subdirectory", () => {
+  it("links to the six learning categories in the requested order", () => {
     const links = Array.from(container.querySelectorAll(".learning-site-nav a"));
     expect(links.map((link) => link.getAttribute("href"))).toEqual([
       "../index.html",
-      "../particles.html",
       "../gojuon.html",
-      "../conjugation.html",
-      "../hiragana/",
+      "../particles.html",
       "../katakana_game.html",
-      "../n5_reading_game.html",
       "#/home",
+      "../conjugation.html",
+      "../n5_reading_game.html",
     ]);
-    expect(links[links.length - 1]?.getAttribute("aria-current")).toBe("page");
-    expect(container.querySelector('.learning-site-nav a[href="../hiragana/"]')?.textContent).toBe("五十音大冒險");
+    expect(links[4]?.getAttribute("aria-current")).toBe("page");
+    expect(container.querySelector('.learning-site-nav a[href="../gojuon.html"]')?.textContent).toBe("五十音");
     expect(container.querySelector(".learning-site-brand")?.getAttribute("href")).toBe("../index.html");
   });
 
@@ -74,7 +73,7 @@ describe("merged site navigation", () => {
       select.dispatchEvent(new Event("change", { bubbles: true }));
     });
     expect(container.querySelector(".learning-site-nav")?.getAttribute("aria-label")).toBe("Site navigation");
-    expect(container.querySelector('.learning-site-nav a[href="../hiragana/"]')?.textContent).toBe("Hiragana Adventure");
+    expect(container.querySelector('.learning-site-nav a[href="../gojuon.html"]')?.textContent).toBe("Kana");
     expect(container.querySelector(".learning-site-footer")?.textContent).toContain("does not automatically sync");
     expect(container.querySelector(".learning-site-footer a")?.textContent).toBe("Data sources and licenses");
 
@@ -83,6 +82,6 @@ describe("merged site navigation", () => {
       select.value = "ja";
       select.dispatchEvent(new Event("change", { bubbles: true }));
     });
-    expect(container.querySelector('.learning-site-nav a[href="../hiragana/"]')?.textContent).toBe("ひらがな冒険");
+    expect(container.querySelector('.learning-site-nav a[href="../gojuon.html"]')?.textContent).toBe("五十音");
   });
 });

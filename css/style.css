@@ -1404,3 +1404,19 @@ rt{
   .pane-go{justify-self:center}
   .pane-note{top:12px;right:12px}
 }
+
+/* Six learning categories: clear labels and a visible current location. */
+.site-menu a { font-family:inherit; font-size:17px; font-weight:750; letter-spacing:.04em; color:var(--ink); min-height:48px; }
+.site-menu a.on { font-weight:800; background:rgba(168,59,50,.08); border-bottom-width:3px; }
+.site-menu a:focus-visible { outline:3px solid var(--brand); outline-offset:2px; }
+.logo-games { font-size:32px; font-weight:800; }
+.portal-head h1 { font-size:clamp(36px,6vw,52px); font-weight:800; }
+.pane-title { font-size:28px; font-weight:800; letter-spacing:.08em; }
+.pane-title em { color:var(--ink-2); }
+.kana-path + .kana-path { margin-top:48px; }
+.kana-path-title { font-size:clamp(26px,4vw,34px); color:var(--ink); font-weight:800; border-left:5px solid var(--shu); padding-left:14px; margin:24px 0 12px; }
+@media(max-width:640px) {
+  .site-menu ul { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:4px; }
+  .site-menu a { font-size:15px; padding:10px 3px; letter-spacing:0; white-space:normal; }
+  .pane-title { font-size:25px; }
+}

@@ -5,13 +5,12 @@ const SITE_COPY = {
     navigation: "全站導覽",
     brand: "遊戲學日語",
     home: "首頁",
-    particles: "助詞大冒險",
+    particles: "助詞",
     kana: "五十音",
-    hiragana: "五十音大冒險",
     katakanaWords: "片假名單字",
-    reading: "N5閱讀",
-    verbs: "動詞活用",
-    listening: "聽打練習",
+    reading: "閱讀",
+    verbs: "活用",
+    listening: "聽打",
     localProgress: "聽打紀錄保存在此瀏覽器，不會自動同步到其他裝置。",
     sources: "資料來源與授權",
   },
@@ -21,7 +20,6 @@ const SITE_COPY = {
     home: "ホーム",
     particles: "助詞大冒險",
     kana: "五十音",
-    hiragana: "ひらがな冒険",
     katakanaWords: "カタカナ単語",
     reading: "N5読解",
     verbs: "動詞活用",
@@ -35,7 +33,6 @@ const SITE_COPY = {
     home: "Home",
     particles: "Particles",
     kana: "Kana",
-    hiragana: "Hiragana Adventure",
     katakanaWords: "Katakana Words",
     reading: "N5 Reading",
     verbs: "Verb forms",
@@ -50,11 +47,11 @@ export function SiteNavigation({ onOpenListening }: { onOpenListening: () => voi
   const copy = SITE_COPY[locale];
   const links = [
     { href: "../index.html", label: copy.home },
-    { href: "../particles.html", label: copy.particles },
     { href: "../gojuon.html", label: copy.kana },
-    { href: "../conjugation.html", label: copy.verbs },
-    { href: "../hiragana/", label: copy.hiragana },
+    { href: "../particles.html", label: copy.particles },
     { href: "../katakana_game.html", label: copy.katakanaWords },
+    { href: "#/home", label: copy.listening },
+    { href: "../conjugation.html", label: copy.verbs },
     { href: "../n5_reading_game.html", label: copy.reading },
   ];
 
@@ -67,18 +64,14 @@ export function SiteNavigation({ onOpenListening }: { onOpenListening: () => voi
         </a>
         <nav className="learning-site-nav" aria-label={copy.navigation}>
           {links.map((link) => (
-            <a key={link.href} href={link.href}>{link.label}</a>
+            <a key={link.href} href={link.href}
+              aria-current={link.href === "#/home" ? "page" : undefined}
+              onClick={link.href === "#/home" ? (event) => {
+                event.preventDefault();
+                onOpenListening();
+              } : undefined}
+            >{link.label}</a>
           ))}
-          <a
-            href="#/home"
-            aria-current="page"
-            onClick={(event) => {
-              event.preventDefault();
-              onOpenListening();
-            }}
-          >
-            {copy.listening}
-          </a>
         </nav>
       </div>
     </header>

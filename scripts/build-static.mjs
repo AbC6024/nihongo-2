@@ -11,7 +11,7 @@ const publicFiles = ['robots.txt', 'sitemap.xml'];
 // Update entry pages too: Node and GitHub Pages serve these tracked files directly.
 // Content versions prevent an older cached catalog from hiding newly added games.
 function versionLocalAssets(html, directory = projectRoot) {
-  return html.replace(/\b(src|href)=(['"])((?:\.\/)?(?:js|css)\/[^'"?#]+)([^'"]*)\2/g,
+  return html.replace(/\b(src|href)=(['"])((?:\.\/)?(?:hiragana\/)?(?:js|css)\/[^'"?#]+)([^'"]*)\2/g,
     (match, attribute, quote, relativePath, suffix) => {
       if (!/\.(?:js|css)$/.test(relativePath)) return match;
       const content = fs.readFileSync(path.join(directory, relativePath), 'utf8').replace(/\r\n/g, '\n');

@@ -22,7 +22,7 @@
     padding: 24px 16px;
   }
   .app { width: 100%; max-width: 560px; }
-  h1 { font-size: 22px; color: #2c3e50; margin: 0 0 4px; text-align: center; }
+  h1 { font-size: clamp(28px, 5vw, 36px); color: #2c3e50; margin: 0 0 4px; text-align: center; }
   .sub { text-align: center; color: #7f8c9b; font-size: 13px; margin-bottom: 22px; }
   .card {
     background: #fff; border-radius: 18px; padding: 26px 22px;
@@ -101,7 +101,7 @@
   }
   .ghost:hover { background: #f7fbff; }
   .game-nav { display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;justify-content:center;margin:0 0 20px;padding:12px;border-radius:12px;background:rgba(255,255,255,.8); }
-  .game-nav a { color:#37536e;font-size:13px;text-decoration:none;padding:5px 2px; }
+  .game-nav a { color:#37536e;font-size:16px;font-weight:700;text-decoration:none;padding:8px 5px;min-height:44px;display:inline-flex;align-items:center; }
   .game-nav a:hover,.game-nav a:focus-visible { text-decoration:underline; }
   .game-nav a[aria-current="page"] { font-weight:bold;color:#1f7565; }
   .game-nav a:focus-visible,button:focus-visible { outline:2px solid #2f80c8;outline-offset:3px; }
@@ -109,8 +109,8 @@
 </head>
 <body>
 <div class="app">
-<nav class="game-nav" aria-label="遊戲導覽"><a href="index.html">← 網站首頁</a><a href="katakana_game.html" aria-current="page">片假名單字</a><a href="n5_reading_game.html">N5閱讀</a><a href="listening/">日語聽打</a></nav>
-  <h1>片假名單字遊戲</h1>
+<nav class="game-nav" aria-label="遊戲導覽"><a href="index.html">首頁</a><a href="gojuon.html">五十音</a><a href="particles.html">助詞</a><a href="katakana_game.html" aria-current="page">片假名單字</a><a href="listening/">聽打</a><a href="conjugation.html">活用</a><a href="n5_reading_game.html">閱讀</a></nav>
+  <h1>片假名單字</h1>
   <div class="sub">大家的日本語 第 1–12 課 · 片假名單字</div>
 
   <!-- ===== 開始 ===== -->

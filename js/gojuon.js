@@ -10,9 +10,14 @@
   const speech = JPQ.speech;
 
   /* ---------------- 共用介面狀態（在四款玩法之間保留） ---------------- */
-  const ui = { pool: 'katakana', quizRounds: 10, matchPairs: 5 };
+  const ui = { pool: 'hiragana', quizRounds: 10, matchPairs: 5 };
 
-  const POOL_KEYS = ['katakana', 'hiragana', 'vocabulary'];
+  const POOL_KEYS = ['hiragana', 'katakana', 'vocabulary'];
+
+  function selectRoutePool() {
+    const requested = location.hash.split('/')[3];
+    if (POOL_KEYS.includes(requested)) ui.pool = requested;
+  }
 
   const ROUND_SETS = {
     quiz: [{ v: 10, label: '10 題' }, { v: 20, label: '20 題' }, { v: 0, label: '全部' }],
@@ -505,7 +510,7 @@
         const v = JPQ.store.record(def.name + '-best');
         return v ? `最佳 <b>${v}</b> 分` : '';
       },
-      mount: def.mount,
+      mount: function (stage) { selectRoutePool(); def.mount(stage); },
       unmount: def.unmount
     });
   }
@@ -521,4 +526,11 @@
 
   reg({ ...matchGame(), icon: '🧩', color: '#c4a8f2', thumb: 'cards',
         tag: '記憶練習', desc: '左右兩欄配對，全部配對成功就過關。' });
+
+  JPQ.kanaSections = [
+    { pool: 'hiragana', title: '① 平假名', desc: '先從「あいうえお」開始，練熟讀音與字形，再挑戰翻牌和填空。',
+      games: ['kana-read', 'kana-write', 'kana-listen', 'kana-match', 'kana-memory', 'kana-sentence'] },
+    { pool: 'katakana', title: '② 片假名', desc: '平假名熟悉後，再用「アイウエオ」練習相同的讀音與不同的字形。',
+      games: ['kana-read', 'kana-write', 'kana-listen', 'kana-match'] }
+  ];
 })(window);
