@@ -90,6 +90,7 @@ export function GameShell({
   // 桌面快捷鍵：Enter 送出（由輸入框處理），Space 只在非編輯元素時重播音聲。
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (event.repeat || event.isComposing || event.keyCode === 229) return;
       if (event.key === "Escape") {
         if (exitConfirmRef.current) {
           setExitConfirm(false);
@@ -107,6 +108,7 @@ export function GameShell({
         }
         return;
       }
+      if (exitConfirmRef.current) return;
       if (event.code === "Space" || event.key === " ") {
         // 焦點在可編輯欄位時不觸發，避免干擾輸入空格
         if (isEditableTarget(event.target)) return;
@@ -117,10 +119,15 @@ export function GameShell({
         return;
       }
       if (event.key === "Enter" && !isEditableTarget(event.target)) {
-        // 遊戲結束或答案結算中：Enter 不得重複提交或重複計分。
+        // 遊戲結束或準備中：Enter 不得重複提交或重複計分。
         if (phase === "GAME_OVER" || phase === "READY") return;
+        // 答案揭示中（CORRECT / SKIPPED）：再次按下 Enter 進入下一題。
         if (phase === "CORRECT" || phase === "SKIPPED") {
-          if (question && engine.isSettled(question.id)) return;
+          if (question && engine.isSettled(question.id)) {
+            event.preventDefault();
+            engine.nextQuestion();
+            return;
+          }
         }
         event.preventDefault();
         engine.submit();

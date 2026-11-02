@@ -7,6 +7,7 @@ import type {
 } from "../types/game";
 import { createEmptyDailyRecord } from "../utils/dailyChallenge";
 import { DEFAULT_SETTINGS } from "../utils/settings";
+import { isSpeechSpeed } from "../utils/speechRate";
 
 /**
  * 本機資料備份（JSON 匯出／匯入）。
@@ -76,7 +77,7 @@ function sanitizeSettings(raw: unknown): GameSettings {
   if (typeof raw.sfxVolume === "number" && Number.isFinite(raw.sfxVolume)) {
     merged.sfxVolume = Math.min(1, Math.max(0, raw.sfxVolume));
   }
-  if (raw.speechSpeed === 1 || raw.speechSpeed === 0.5) {
+  if (isSpeechSpeed(raw.speechSpeed)) {
     merged.speechSpeed = raw.speechSpeed;
   }
   if (typeof raw.shortWordSlowSpeech === "boolean") merged.shortWordSlowSpeech = raw.shortWordSlowSpeech;

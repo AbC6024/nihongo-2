@@ -2,8 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_SPEECH_RATE_CONFIG,
   DEFAULT_SPEECH_SPEED,
-  SPEED_FAST_LABEL,
-  SPEED_SLOW_LABEL,
   SPEECH_SPEED_MULTIPLIERS,
   clampRate,
   describeRate,
@@ -53,20 +51,22 @@ describe("預設設定", () => {
     expect(DEFAULT_SPEECH_RATE_CONFIG.shortWordRateMultiplier).toBe(0.75);
   });
 
-  it("只有 1 與 0.5 兩個選項", () => {
-    expect(SPEECH_SPEED_MULTIPLIERS).toEqual([1, 0.5]);
+  it("只有 1、0.5 與 0.25 三個選項", () => {
+    expect(SPEECH_SPEED_MULTIPLIERS).toEqual([1, 0.5, 0.25]);
   });
 
-  it("倍率文字統一為 1.0× 與 0.5×", () => {
-    expect(speechSpeedLabel(1)).toBe(SPEED_FAST_LABEL);
+  it("倍率文字統一為 1.0×、0.5× 與 0.25×", () => {
     expect(speechSpeedLabel(1)).toBe("1.0×");
-    expect(speechSpeedLabel(0.5)).toBe(SPEED_SLOW_LABEL);
     expect(speechSpeedLabel(0.5)).toBe("0.5×");
+    expect(speechSpeedLabel(0.25)).toBe("0.25×");
   });
 
-  it("isSpeechSpeed 只接受 1 與 0.5", () => {
+  it("isSpeechSpeed 接受 1、0.5 與 0.25", () => {
     expect(isSpeechSpeed(1)).toBe(true);
     expect(isSpeechSpeed(0.5)).toBe(true);
+    expect(isSpeechSpeed(0.25)).toBe(true);
+    expect(isSpeechSpeed(0.75)).toBe(false);
+    expect(isSpeechSpeed(2)).toBe(false);
     expect(isSpeechSpeed(0.75)).toBe(false);
     expect(isSpeechSpeed("fast")).toBe(false);
     expect(isSpeechSpeed(undefined)).toBe(false);
@@ -124,7 +124,7 @@ describe("慢速 0.5×：0.5 是最終速度", () => {
   });
 
   it("無效的速度值安全回到正常速度", () => {
-    const bad = config({ speedMultiplier: 0.25 as never });
+    const bad = config({ speedMultiplier: 0.75 as never });
     expect(resolveSpeechRate(word("猫", "ねこ"), bad).rate).toBeCloseTo(0.95 * 0.75, 5);
   });
 

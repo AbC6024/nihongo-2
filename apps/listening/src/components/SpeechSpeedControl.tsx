@@ -52,7 +52,11 @@ export function SpeechSpeedControl({ settings, onChange }: Props) {
               onClick={() => onChange(speed)}
             >
               <span className="speech-speed__name">
-                {speed === 1 ? t("speechSpeedNormal") : t("speechSpeedSlow")}
+                {speed === 1
+                  ? t("speechSpeedNormal")
+                  : speed === 0.5
+                  ? t("speechSpeedSlow")
+                  : t("speechSpeedVerySlow")}
               </span>
               <span className="speech-speed__value">
                 {speechSpeedLabel(speed)}

@@ -78,6 +78,17 @@ function word(kana: string, extra: Partial<WordQuestion> = {}): WordQuestion {
 }
 
 describe("playQuestionAudio 語速", () => {
+  it("uses the supplied kana and the exact 0.25 rate for a kanji word", async () => {
+    await playQuestionAudio(word("はな", { japanese: "鼻" }), {
+      useAudioFiles: false,
+      speechRateConfig: { ...DEFAULT_SPEECH_RATE_CONFIG, speedMultiplier: 0.25 },
+    });
+    expect(spoken[spoken.length - 1]).toEqual({ text: "はな", rate: 0.25 });
+  });
+
+  it("prefers complete sentence kana over kanji and the blank answer reading", () => {
+    expect(speechTextFor({ id: "kana-sentence", sentence: "私は本を読みます。", displaySentence: "私は＿＿＿を読みます。", answer: "本", kana: "ほん", fullSentenceKana: "わたしはほんをよみます。", difficulty: "N5", category: "c", answerType: "word" })).toBe("わたしはほんをよみます。");
+  });
   it("短單字使用 75% 基準語速", async () => {
     await playQuestionAudio(word("ねこ"), { useAudioFiles: false });
     expect(spoken).toHaveLength(1);

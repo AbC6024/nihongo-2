@@ -16,21 +16,24 @@ import { countQuestionMora } from "./mora";
  */
 
 /** 可選的語音速度倍率。 */
-export const SPEECH_SPEED_MULTIPLIERS = [1, 0.5] as const;
+export const SPEECH_SPEED_MULTIPLIERS = [1, 0.5, 0.25] as const;
 export type SpeechSpeedMultiplier = (typeof SPEECH_SPEED_MULTIPLIERS)[number];
 
 export const DEFAULT_SPEECH_SPEED: SpeechSpeedMultiplier = 1;
 
 export function isSpeechSpeed(value: unknown): value is SpeechSpeedMultiplier {
-  return value === 1 || value === 0.5;
+  return value === 1 || value === 0.5 || value === 0.25;
 }
 
 export const SPEED_FAST_LABEL = "1.0×";
 export const SPEED_SLOW_LABEL = "0.5×";
+export const SPEED_VERY_SLOW_LABEL = "0.25×";
 
 /** 顯示用文字，三種語言格式相同（數字倍率統一）。 */
 export function speechSpeedLabel(multiplier: SpeechSpeedMultiplier): string {
-  return multiplier === 1 ? SPEED_FAST_LABEL : SPEED_SLOW_LABEL;
+  if (multiplier === 1) return SPEED_FAST_LABEL;
+  if (multiplier === 0.5) return SPEED_SLOW_LABEL;
+  return SPEED_VERY_SLOW_LABEL;
 }
 
 export interface ShortWordRules {
@@ -121,9 +124,10 @@ export function resolveSpeechRate(
     };
   }
 
-  // 慢速模式：0.5× 是最終速度，不再套用任何額外倍率。
+  // 慢速模式（0.5×、0.25×）：最終播放速度，不再套用任何額外倍率。
+  // 使用 clampRate（0.1～10）而非 clampPreferred（0.5～2），避免 0.25× 被錯誤夾限到 0.5×。
   if (speedMultiplier !== DEFAULT_SPEECH_SPEED) {
-    return { rate: clampPreferred(speedMultiplier), moraCount: 0, rule: "slow-mode" };
+    return { rate: clampRate(speedMultiplier), moraCount: 0, rule: "slow-mode" };
   }
 
   const moraCount = isSentence(question) ? 0 : countQuestionMora(question);

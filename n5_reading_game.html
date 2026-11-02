@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>N5閱讀理解｜遊戲學日語</title>
+<meta name="description" content="20篇日語短文每輪抽10題，練習片假名與閱讀理解，附中文翻譯及答案解說。">
+<link rel="canonical" href="https://nihongo-2-static.onrender.com/n5_reading_game.html">
+<meta property="og:title" content="N5閱讀理解｜遊戲學日語">
+<meta property="og:description" content="20篇日語短文每輪抽10題，練習片假名與閱讀理解，附中文翻譯及答案解說。">
+<meta property="og:url" content="https://nihongo-2-static.onrender.com/n5_reading_game.html">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"N5閱讀理解｜遊戲學日語","url":"https://nihongo-2-static.onrender.com/n5_reading_game.html","applicationCategory":"EducationalApplication","operatingSystem":"Web","inLanguage":["zh-Hant","ja"]}
+</script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Microsoft JhengHei", "Yu Gothic", "Meiryo", sans-serif;
+    background: linear-gradient(160deg, #eef7f4 0%, #eef2fb 100%);
+    min-height: 100vh; margin: 0; display: flex; justify-content: center;
+    padding: 24px 16px;
+  }
+  .app { width: 100%; max-width: 620px; }
+  h1 { font-size: 22px; color: #23423c; margin: 0 0 4px; text-align: center; }
+  .sub { text-align: center; color: #7f8c9b; font-size: 13px; margin-bottom: 20px; }
+  .card {
+    background: #fff; border-radius: 18px; padding: 24px 22px;
+    box-shadow: 0 10px 30px rgba(35, 66, 60, .09);
+  }
+  .hidden { display: none !important; }
+  .big-btn {
+    width: 100%; border: none; border-radius: 12px; padding: 15px;
+    background: linear-gradient(135deg, #2bb59a, #1f8f7a); color: #fff;
+    font-size: 17px; font-weight: bold; cursor: pointer; letter-spacing: 1px;
+  }
+  .big-btn:hover { filter: brightness(1.06); }
+  .ghost { background: #fff; color: #2b6058; border: 1.5px solid #cfe3df; }
+  .ghost:hover { background: #f4fbf9; }
+
+  /* 開始畫面 */
+  .intro { font-size: 14px; color: #4a5b58; line-height: 1.9; margin: 0 0 18px; }
+  .intro b { color: #1f8f7a; }
+  .tips { background: #f4faf8; border-radius: 12px; padding: 14px 16px; font-size: 13px; color: #556; line-height: 1.8; margin-bottom: 22px; }
+  .tips div { margin-bottom: 4px; }
+
+  /* 答題 */
+  .topbar { display: flex; justify-content: space-between; font-size: 13px; color: #708090; margin-bottom: 8px; }
+  .topbar b { color: #1f8f7a; }
+  .bar { height: 6px; background: #e6f2ef; border-radius: 99px; overflow: hidden; margin-bottom: 20px; }
+  .bar > i { display: block; height: 100%; width: 0; background: #4cc0a8; border-radius: 99px; transition: width .3s; }
+
+  .passage {
+    background: #f8fbfa; border: 1px solid #e3efec; border-radius: 14px;
+    padding: 18px 18px; font-family: "Yu Gothic", "Meiryo", "Microsoft JhengHei", sans-serif;
+    font-size: 19px; line-height: 2.05; color: #24322f; margin-bottom: 10px;
+    letter-spacing: .5px;
+  }
+  .kata { color: #12806a; font-weight: bold; }
+  .trans {
+    display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed #d5e5e1;
+    font-family: "Microsoft JhengHei", sans-serif; font-size: 13px; line-height: 1.8;
+    color: #6b7f7b; letter-spacing: 0;
+  }
+  .trans.show { display: block; }
+  .peek {
+    display: block; margin: 0 0 18px auto; background: none; border: none; cursor: pointer;
+    color: #7faaa0; font-size: 12px; text-decoration: underline; padding: 2px 4px;
+  }
+  .q {
+    font-family: "Yu Gothic", "Meiryo", sans-serif;
+    font-size: 17px; color: #22342f; font-weight: bold; line-height: 1.7;
+    margin: 4px 0 14px; padding-left: 12px; border-left: 4px solid #4cc0a8;
+  }
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 480px) { .options { grid-template-columns: 1fr; } .passage { font-size: 17px; } }
+  .opt {
+    border: 1.5px solid #dfebe8; background: #fff; border-radius: 12px;
+    padding: 13px 12px; font-size: 16px; color: #2c3e50; cursor: pointer;
+    font-family: "Yu Gothic", "Meiryo", "Microsoft JhengHei", sans-serif;
+    transition: .12s; min-height: 56px; text-align: left; line-height: 1.5;
+  }
+  .opt:hover:not(.locked) { border-color: #7fd0bf; background: #f7fdfb; }
+  .opt .num { display: inline-block; font-size: 11px; color: #a8b6c6; margin-right: 6px; font-family: sans-serif; }
+  .opt.correct { background: #e2f7ef; border-color: #45b98f; color: #16704f; }
+  .opt.wrong { background: #fdeaea; border-color: #e07979; color: #b03030; }
+  .opt.locked { cursor: default; }
+
+  .feedback { margin-top: 18px; padding: 16px; border-radius: 12px; font-size: 13.5px; line-height: 1.85; display: none; }
+  .feedback.show { display: block; }
+  .feedback.ok { background: #effaf5; border: 1px solid #c9ecdd; }
+  .feedback.no { background: #fdf2f2; border: 1px solid #f3d6d6; }
+  .fb-head { font-weight: bold; font-size: 15px; margin-bottom: 6px; }
+  .feedback.ok .fb-head { color: #1d8f66; }
+  .feedback.no .fb-head { color: #c24545; }
+  .fb-row { color: #4a5b58; }
+  .fb-row b { color: #23423c; }
+  .next { margin-top: 14px; }
+
+  /* 結果 */
+  .result-title { text-align: center; font-size: 20px; color: #23423c; margin: 4px 0 6px; }
+  .score-big { text-align: center; font-size: 54px; font-weight: bold; color: #1f8f7a; line-height: 1.1; }
+  .score-big small { font-size: 20px; color: #9aa7b6; font-weight: normal; }
+  .grade { text-align: center; color: #708090; font-size: 14px; margin: 6px 0 20px; }
+  .review h3 { font-size: 14px; color: #55647a; margin: 0 0 10px; }
+  .review-item { padding: 11px 13px; background: #f7fafd; border-radius: 9px; margin-bottom: 8px; font-size: 13px; color: #55647a; line-height: 1.7; }
+  .review-item .rq { color: #37536e; }
+  .review-item .ra { color: #1d8f66; font-weight: bold; margin-top: 2px; }
+  .actions { display: flex; gap: 10px; margin-top: 20px; }
+  .actions .big-btn { flex: 1; }
+  .game-nav { display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;justify-content:center;margin:0 0 20px;padding:12px;border-radius:12px;background:rgba(255,255,255,.8); }
+  .game-nav a { color:#37536e;font-size:13px;text-decoration:none;padding:5px 2px; }
+  .game-nav a:hover,.game-nav a:focus-visible { text-decoration:underline; }
+  .game-nav a[aria-current="page"] { font-weight:bold;color:#1f7565; }
+  .game-nav a:focus-visible,button:focus-visible { outline:2px solid #2f80c8;outline-offset:3px; }
+</style>
+</head>
+<body>
+<div class="app">
+<nav class="game-nav" aria-label="遊戲導覽"><a href="index.html">← 網站首頁</a><a href="katakana_game.html">片假名單字</a><a href="n5_reading_game.html" aria-current="page">N5閱讀</a><a href="listening/">日語聽打</a></nav>
+  <h1>N5 閱讀理解</h1>
+  <div class="sub">短文學片假名 · 讀完再作答</div>
+
+  <!-- ===== 開始 ===== -->
+  <section id="screen-start" class="card">
+    <p class="intro">
+      每題是一段 <b>N5 程度的短文</b>，內容以<b>片假名</b>單字為主（外來語、地名、物品）。
+      讀完短文後，回答下面的問題。
+    </p>
+    <div class="tips">
+      <div>📖 每回合隨機 <b>10 題</b>，共 20 題題庫</div>
+      <div>🟩 綠色字就是片假名，先試著唸出來</div>
+      <div>💡 答完會顯示中文翻譯與解說</div>
+      <div>⌨️ 可用鍵盤 1–4 作答</div>
+    </div>
+    <button class="big-btn" id="startBtn">開始閱讀</button>
+  </section>
+
+  <!-- ===== 答題 ===== -->
+  <section id="screen-quiz" class="card hidden">
+    <div class="topbar">
+      <span>第 <b id="qNo">1</b> / <span id="qTotal">10</span> 題</span>
+      <span>答對 <b id="okNo">0</b> 題</span>
+    </div>
+    <div class="bar"><i id="barFill"></i></div>
+
+    <div class="passage" id="passage"></div>
+    <div class="trans" id="trans"></div>
+    <button class="peek" id="peekBtn">顯示中文翻譯</button>
+
+    <div class="q" id="question"></div>
+    <div class="options" id="options"></div>
+
+    <div class="feedback" id="feedback">
+      <div class="fb-head" id="fbHead"></div>
+      <div class="fb-row" id="fbBody"></div>
+      <button class="big-btn next" id="nextBtn">下一題 →</button>
+    </div>
+  </section>
+
+  <!-- ===== 結果 ===== -->
+  <section id="screen-result" class="card hidden">
+    <div class="result-title">閱讀測驗結束</div>
+    <div class="score-big"><span id="finalScore">0</span><small> / <span id="finalTotal">10</span></small></div>
+    <div class="grade" id="grade"></div>
+    <div class="review" id="review"></div>
+    <div class="actions">
+      <button class="big-btn ghost" id="againBtn">再讀一次</button>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ===== 題庫：N5 短文閱讀，片假名為主 ===== */
+const QUIZ = [
+  {
+    p: "わたしは まいにち あさ ７じに おきます。それから、コーヒーを のみます。パンは たべません。",
+    q: "この ひとは あさ なにを のみますか。",
+    o: ["コーヒー", "ミルク", "ジュース", "おちゃ"], a: 0,
+    tr: "我每天早上 7 點起床。然後喝咖啡。不吃麵包。",
+    why: "文中說「コーヒーを のみます」，所以喝的是咖啡。其他飲料都沒有提到。"
+  },
+  {
+    p: "きのう、ともだちと デパートへ いきました。デパートで シャツと くつを かいました。",
+    q: "デパートで なにを かいましたか。",
+    o: ["シャツと くつ", "シャツと ぼうし", "くつと かばん", "かばんと ぼうし"], a: 0,
+    tr: "昨天和朋友去了百貨公司。在百貨公司買了襯衫和鞋子。",
+    why: "「シャツと くつを かいました」＝買了襯衫和鞋子。ぼうし（帽子）和 かばん（包包）沒有出現。"
+  },
+  {
+    p: "わたしの へやは ３かいです。この ビルに エレベーターが あります。でも、エレベーターは とても おそいです。",
+    q: "へやは なんかいですか。",
+    o: ["１かい", "２かい", "３かい", "４かい"], a: 2,
+    tr: "我的房間在 3 樓。這棟大樓有電梯。但是電梯非常慢。",
+    why: "「わたしの へやは ３かいです」直接說明房間在 3 樓。"
+  },
+  {
+    p: "あしたは テストです。だから、こんばんは テレビを みません。べんきょうします。",
+    q: "こんばん なにを しますか。",
+    o: ["テレビを みます", "べんきょうします", "えいがを みます", "はやく ねます"], a: 1,
+    tr: "明天有考試。所以今晚不看電視，要唸書。",
+    why: "「テレビを みません。べんきょうします」＝不看電視，去唸書。"
+  },
+  {
+    p: "リンさんは インドネシアじん です。いま とうきょうの だいがくで にほんごを べんきょうしています。",
+    q: "リンさんは どこで にほんごを べんきょうしていますか。",
+    o: ["インドネシアの だいがく", "とうきょうの だいがく", "おおさかの だいがく", "にほんの かいしゃ"], a: 1,
+    tr: "小林是印尼人。現在在東京的大學學日語。",
+    why: "「とうきょうの だいがくで」＝在東京的大學。インドネシア 是她的國籍，不是讀書地點。"
+  },
+  {
+    p: "スーパーは えきの となりに あります。スーパーの まえに パンやさんが あります。",
+    q: "スーパーは どこに ありますか。",
+    o: ["えきの まえ", "えきの となり", "えきの うしろ", "パンやさんの となり"], a: 1,
+    tr: "超市在車站旁邊。超市前面有一家麵包店。",
+    why: "「スーパーは えきの となりに あります」＝超市在車站旁邊。"
+  },
+  {
+    p: "わたしは あさごはんに パンと たまごを たべました。ミルクは のみませんでした。",
+    q: "あさごはんに なにを のみませんでしたか。",
+    o: ["ミルク", "コーヒー", "ジュース", "おちゃ"], a: 0,
+    tr: "早餐吃了麵包和蛋。沒有喝牛奶。",
+    why: "「ミルクは のみませんでした」＝沒有喝牛奶。注意題目問的是「沒有喝」的東西。"
+  },
+  {
+    p: "きょうは あめですから、バスで かいしゃへ いきます。タクシーは たかいですから、つかいません。",
+    q: "どうして タクシーを つかいませんか。",
+    o: ["あめですから", "たかいですから", "いそがしいですから", "バスが きらいですから"], a: 1,
+    tr: "今天下雨，所以搭公車去公司。計程車很貴，所以不搭。",
+    why: "「タクシーは たかいですから、つかいません」＝因為計程車很貴，所以不搭。"
+  },
+  {
+    p: "パーティーは ７じからです。わたしは ６じはんに ホテルへ いきます。",
+    q: "なんじに ホテルへ いきますか。",
+    o: ["６じ", "６じはん", "７じ", "７じはん"], a: 1,
+    tr: "派對從 7 點開始。我 6 點半去飯店。",
+    why: "「６じはんに ホテルへ いきます」＝6 點半去飯店。7 點是派對開始時間。"
+  },
+  {
+    p: "わたしの かぞくは ４にんです。ちちと ははと あねと わたしです。あねは ホテルで はたらいています。",
+    q: "あねは どこで はたらいていますか。",
+    o: ["デパート", "ホテル", "レストラン", "スーパー"], a: 1,
+    tr: "我家有四個人：爸爸、媽媽、姊姊和我。姊姊在飯店工作。",
+    why: "「あねは ホテルで はたらいています」＝姊姊在飯店工作。"
+  },
+  {
+    p: "この みせの ケーキは ひとつ ３００えんです。コーヒーは ２００えんです。",
+    q: "ケーキを ひとつと コーヒーを ひとつ かいます。いくらですか。",
+    o: ["３００えん", "４００えん", "５００えん", "６００えん"], a: 2,
+    tr: "這家店的蛋糕一個 300 日圓，咖啡 200 日圓。",
+    why: "300 ＋ 200 ＝ 500 日圓。"
+  },
+  {
+    p: "わたしは まいにち でんしゃで がっこうへ いきます。でも、あしたは やすみですから、がっこうへ いきません。",
+    q: "あした がっこうへ いきますか。",
+    o: ["はい、いきます", "いいえ、いきません", "はい、でんしゃで いきます", "いいえ、バスで いきます"], a: 1,
+    tr: "我每天搭電車去學校。但是明天放假，所以不去學校。",
+    why: "「あしたは やすみですから、がっこうへ いきません」＝明天不去。"
+  },
+  {
+    p: "ともだちに かさを かしました。ともだちは「ありがとう」と いいました。",
+    q: "ともだちに なにを かしましたか。",
+    o: ["ほん", "かさ", "かばん", "おかね"], a: 1,
+    tr: "我把傘借給朋友。朋友說了「謝謝」。",
+    why: "「かさを かしました」＝借出的是傘（かさ）。"
+  },
+  {
+    p: "わたしが るすの あいだに、ともだちが きました。テーブルの うえに プレゼントが ありました。",
+    q: "プレゼントは どこに ありましたか。",
+    o: ["テーブルの した", "テーブルの うえ", "ドアの まえ", "いすの うえ"], a: 1,
+    tr: "我不在家的時候，朋友來了。桌上有禮物。",
+    why: "「テーブルの うえに プレゼントが ありました」＝禮物在桌上。"
+  },
+  {
+    p: "まいあさ、ジョンさんは ７じに おきます。シャワーを あびてから、パンを たべます。それから、でんしゃに のります。",
+    q: "ジョンさんは パンを たべてから、なにを しますか。",
+    o: ["シャワーを あびます", "でんしゃに のります", "あさごはんを つくります", "テレビを みます"], a: 1,
+    tr: "約翰每天早上 7 點起床。洗完澡後吃麵包。然後搭電車。",
+    why: "順序是：起床 → 洗澡 → 吃麵包 → 搭電車。所以吃完麵包之後是「でんしゃに のります」。"
+  },
+  {
+    p: "きのう、ともだちと えいがを みました。えいがは ２じから ４じまで でした。とても おもしろかったです。",
+    q: "えいがは なんじから なんじまで でしたか。",
+    o: ["１じから ３じまで", "２じから ４じまで", "３じから ５じまで", "４じから ６じまで"], a: 1,
+    tr: "昨天和朋友看了電影。電影從 2 點到 4 點。非常有趣。",
+    why: "「２じから ４じまで」＝從 2 點到 4 點。"
+  },
+  {
+    p: "わたしは くだものが すきです。でも、バナナは あまり すきじゃありません。りんごが いちばん すきです。",
+    q: "なにが いちばん すきですか。",
+    o: ["バナナ", "りんご", "みかん", "いちご"], a: 1,
+    tr: "我喜歡水果。但是不太喜歡香蕉。最喜歡蘋果。",
+    why: "「りんごが いちばん すきです」＝最喜歡蘋果。バナナ 是不太喜歡的。"
+  },
+  {
+    p: "わたしは アルバイトを しています。まいにち よる ７じから １０じまで レストランで はたらきます。",
+    q: "なんじまで はたらきますか。",
+    o: ["７じまで", "８じまで", "９じまで", "１０じまで"], a: 3,
+    tr: "我在打工。每天晚上 7 點到 10 點在餐廳工作。",
+    why: "「７じから １０じまで」＝工作到 10 點。"
+  },
+  {
+    p: "この みちを まっすぐ いくと、えきが あります。えきの ちかくに コンビニが あります。",
+    q: "みちを まっすぐ いくと、なにが ありますか。",
+    o: ["コンビニ", "えき", "ホテル", "スーパー"], a: 1,
+    tr: "沿著這條路直走，就會到車站。車站附近有便利商店。",
+    why: "「まっすぐ いくと、えきが あります」＝直走會看到車站。コンビニ 在車站「附近」，不是直走的終點。"
+  },
+  {
+    p: "あしたは ともだちの たんじょうびです。わたしは デパートで プレゼントを かいました。",
+    q: "どうして プレゼントを かいましたか。",
+    o: ["ともだちの たんじょうびですから", "テストが ありますから", "パーティーが ありますから", "あたらしい くつが ほしいですから"], a: 0,
+    tr: "明天是朋友的生日。我在百貨公司買了禮物。",
+    why: "「あしたは ともだちの たんじょうびです」＝明天是朋友生日，所以買禮物。"
+  }
+];
+
+const ROUND_SIZE = 10;
+
+const $ = id => document.getElementById(id);
+const shuffle = a => {
+  const r = a.slice();
+  for (let i = r.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [r[i], r[j]] = [r[j], r[i]];
+  }
+  return r;
+};
+/* 把片假名標色（先跳脫 HTML 再處理） */
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const markKata = s => esc(s).replace(/[\u30A0-\u30FF\u30FC]+/g, m => `<span class="kata">${m}</span>`);
+
+let state = { queue: [], index: 0, correct: 0, wrong: [], locked: false, peeked: false };
+
+/* ---------- 開始 ---------- */
+function startRound() {
+  state.queue = shuffle(QUIZ).slice(0, ROUND_SIZE);
+  state.index = 0;
+  state.correct = 0;
+  state.wrong = [];
+  $("qTotal").textContent = state.queue.length;
+  show("quiz");
+  renderQuestion();
+}
+
+/* ---------- 出題 ---------- */
+function renderQuestion() {
+  state.locked = false;
+  state.peeked = false;
+  const q = state.queue[state.index];
+
+  $("qNo").textContent = state.index + 1;
+  $("okNo").textContent = state.correct;
+  $("barFill").style.width = (state.index / state.queue.length * 100) + "%";
+
+  $("passage").innerHTML = markKata(q.p);
+  $("trans").innerHTML = q.tr;
+  $("trans").classList.remove("show");
+  $("peekBtn").textContent = "顯示中文翻譯";
+
+  $("question").innerHTML = markKata(q.q);
+
+  const order = shuffle(q.o.map((text, i) => ({ text, i })));
+  $("options").innerHTML = order.map((o, n) =>
+    `<button class="opt" data-i="${o.i}"><span class="num">${n + 1}</span>${markKata(o.text)}</button>`
+  ).join("");
+
+  $("feedback").className = "feedback";
+  $("feedback").classList.remove("show");
+}
+
+/* ---------- 作答 ---------- */
+$("options").addEventListener("click", e => {
+  const btn = e.target.closest(".opt");
+  if (btn) answer(Number(btn.dataset.i));
+});
+
+function answer(chosen) {
+  if (state.locked) return;
+  state.locked = true;
+  const q = state.queue[state.index];
+  const isRight = chosen === q.a;
+
+  document.querySelectorAll(".opt").forEach(b => {
+    b.classList.add("locked");
+    const i = Number(b.dataset.i);
+    if (i === q.a) b.classList.add("correct");
+    if (!isRight && i === chosen) b.classList.add("wrong");
+  });
+
+  if (isRight) {
+    state.correct++;
+    $("fbHead").textContent = "⭕ 答對了！";
+    $("feedback").className = "feedback ok show";
+  } else {
+    state.wrong.push(q);
+    $("fbHead").textContent = "❌ 答錯了，正確答案是：" + q.o[q.a];
+    $("feedback").className = "feedback no show";
+  }
+
+  $("fbBody").innerHTML =
+    `<div class="fb-row"><b>中文翻譯：</b>${q.tr}</div>` +
+    `<div class="fb-row"><b>解說：</b>${q.why}</div>`;
+
+  $("okNo").textContent = state.correct;
+  $("barFill").style.width = ((state.index + 1) / state.queue.length * 100) + "%";
+
+  if (state.index === state.queue.length - 1) $("nextBtn").textContent = "看結果 →";
+  else $("nextBtn").textContent = "下一題 →";
+}
+
+$("nextBtn").addEventListener("click", () => {
+  if (!state.locked || $("screen-quiz").classList.contains("hidden")) return;
+  state.index++;
+  if (state.index >= state.queue.length) showResult();
+  else renderQuestion();
+});
+
+/* ---------- 翻譯提示 ---------- */
+$("peekBtn").addEventListener("click", () => {
+  const t = $("trans");
+  const on = t.classList.toggle("show");
+  $("peekBtn").textContent = on ? "隱藏中文翻譯" : "顯示中文翻譯";
+});
+
+/* ---------- 結果 ---------- */
+function showResult() {
+  $("finalScore").textContent = state.correct;
+  $("finalTotal").textContent = state.queue.length;
+  const pct = state.correct / state.queue.length;
+  $("grade").textContent =
+    pct === 1 ? "全部正確！N5 閱讀難不倒你 🎉" :
+    pct >= 0.8 ? "很不錯！再讀幾篇就更穩了。" :
+    pct >= 0.5 ? "有抓到重點，但細節再看一次會更好。" :
+    "別急，先看中文翻譯，再回頭讀一次短文吧 💪";
+
+  if (state.wrong.length) {
+    $("review").innerHTML =
+      `<h3>再看一次（${state.wrong.length} 題）</h3>` +
+      state.wrong.map(q =>
+        `<div class="review-item">
+           <div class="rq">${markKata(q.q)}</div>
+           <div class="ra">✓ ${markKata(q.o[q.a])}</div>
+         </div>`).join("");
+  } else {
+    $("review").innerHTML = "";
+  }
+  show("result");
+}
+
+/* ---------- 畫面 ---------- */
+function show(name) {
+  ["start", "quiz", "result"].forEach(n =>
+    $("screen-" + n).classList.toggle("hidden", n !== name));
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+$("startBtn").addEventListener("click", startRound);
+$("againBtn").addEventListener("click", startRound);
+
+/* ---------- 鍵盤 ---------- */
+document.addEventListener("keydown", e => {
+  if (e.repeat || e.isComposing || e.ctrlKey || e.altKey || e.metaKey || e.target.closest?.("input,textarea,select,[contenteditable=true]")) return;
+  if ($("screen-quiz").classList.contains("hidden")) return;
+  if (!state.locked) {
+    const n = Number(e.key);
+    if (n >= 1 && n <= 4) {
+      const btn = document.querySelectorAll(".opt")[n - 1];
+      if (btn) btn.click();
+    }
+  } else if (e.key === "Enter") {
+    $("nextBtn").click();
+  }
+});
+</script>
+</body>
+</html>

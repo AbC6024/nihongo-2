@@ -8,6 +8,8 @@ const SITE_COPY = {
     particles: "助詞大冒險",
     kana: "五十音",
     hiragana: "五十音大冒險",
+    katakanaWords: "片假名單字",
+    reading: "N5閱讀",
     verbs: "動詞活用",
     listening: "聽打練習",
     localProgress: "聽打紀錄保存在此瀏覽器，不會自動同步到其他裝置。",
@@ -20,6 +22,8 @@ const SITE_COPY = {
     particles: "助詞大冒險",
     kana: "五十音",
     hiragana: "ひらがな冒険",
+    katakanaWords: "カタカナ単語",
+    reading: "N5読解",
     verbs: "動詞活用",
     listening: "聞き取り練習",
     localProgress: "聞き取りの学習記録はこのブラウザーに保存され、他の端末には自動同期されません。",
@@ -32,6 +36,8 @@ const SITE_COPY = {
     particles: "Particles",
     kana: "Kana",
     hiragana: "Hiragana Adventure",
+    katakanaWords: "Katakana Words",
+    reading: "N5 Reading",
     verbs: "Verb forms",
     listening: "Listening",
     localProgress: "Listening progress is saved in this browser and does not automatically sync across devices.",
@@ -48,6 +54,8 @@ export function SiteNavigation({ onOpenListening }: { onOpenListening: () => voi
     { href: "../gojuon.html", label: copy.kana },
     { href: "../conjugation.html", label: copy.verbs },
     { href: "../hiragana/", label: copy.hiragana },
+    { href: "../katakana_game.html", label: copy.katakanaWords },
+    { href: "../n5_reading_game.html", label: copy.reading },
   ];
 
   return (

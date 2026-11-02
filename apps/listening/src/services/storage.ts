@@ -10,6 +10,7 @@ import { createDefaultProfile, sanitizeProfile, type PlayerProfile } from "./pro
 import { createEmptyDailyRecord } from "../utils/dailyChallenge";
 import { canonicalCategories } from "../utils/categories";
 import { DEFAULT_SETTINGS } from "../utils/settings";
+import { isSpeechSpeed } from "../utils/speechRate";
 
 export const STORAGE_SCHEMA_VERSION = 3;
 
@@ -172,8 +173,8 @@ function sanitizeSettings(raw: unknown): GameSettings {
   if (typeof raw.sfxVolume === "number" && Number.isFinite(raw.sfxVolume)) {
     merged.sfxVolume = Math.min(1, Math.max(0, raw.sfxVolume));
   }
-  // 語音速度：只接受 1 或 0.5，其他值（含舊資料缺漏）回到正常速度。
-  if (raw.speechSpeed === 1 || raw.speechSpeed === 0.5) {
+  // 與遊戲內提供的語速一致，保留極慢速設定。
+  if (isSpeechSpeed(raw.speechSpeed)) {
     merged.speechSpeed = raw.speechSpeed;
   }
   return merged;

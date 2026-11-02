@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useAppStore } from "../store/AppStore";
 import { StarButton } from "../components/StarButton";
 import { AudioButton } from "../components/AudioButton";
-import { playText } from "../services/speech";
+import { playText, speechTextFor } from "../services/speech";
 import { speechRateConfigFrom } from "../utils/speechRate";
 import type { MistakeEntry } from "../types/game";
 import type { Question } from "../types/question";
@@ -56,7 +56,7 @@ export function MistakesPage({ onStartReview, onBack }: Props) {
   const totalCount = Object.keys(mistakes).length;
 
   const speak = (question: Question) =>
-    playText(isSentenceQuestion(question) ? question.sentence : question.japanese, {
+    playText(speechTextFor(question), {
       speechRateConfig,
     });
 

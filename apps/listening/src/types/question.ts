@@ -47,6 +47,8 @@ export interface SentenceQuestion {
   answer: string;
   kana?: string;
   romaji?: string;
+  /** 完整句子的假名讀音（用於 TTS 語音播放，避免漢字多音字讀錯）。 */
+  fullSentenceKana?: string;
   acceptedAnswers?: string[];
   meaning?: string;
   difficulty: Difficulty;

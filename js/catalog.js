@@ -55,5 +55,17 @@ JPQ.CATALOG = [
     href: 'hiragana/',
     desc: '先認字連連看，再挑戰翻牌記憶，最後用平假名與羅馬字完成句子填空，循序練熟基礎五十音。',
     detail: ['6 關連連看', '2 種翻牌網格', '每局 20 題填空', '日語朗讀']
+  },
+  {
+    slug: 'katakana-words', status: 'live', thumb: 'kana',
+    title: '片假名單字', titleEn: 'Katakana Words', href: 'katakana_game.html',
+    desc: '從《大家的日本語》第 1～12 課片假名單字練習中文意思與日文對應，可選課次或混合出題。',
+    detail: ['每輪 10 題', '三種出題模式', '第 1～12 課', '單字發音']
+  },
+  {
+    slug: 'n5-reading', status: 'live', thumb: 'quiz',
+    title: 'N5閱讀', titleEn: 'N5 Reading', href: 'n5_reading_game.html',
+    desc: '閱讀日常生活短文，找出句子中的關鍵資訊，答後附中文翻譯與解說。',
+    detail: ['20 篇短文', '每輪 10 題', '中文翻譯', '答案解說']
   }
 ];

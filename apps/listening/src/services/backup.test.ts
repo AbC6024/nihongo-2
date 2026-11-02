@@ -38,6 +38,11 @@ function mistake(id: string, overrides: Partial<MistakeEntry> = {}): MistakeEntr
 }
 
 describe("createBackup / serializeBackup", () => {
+  it("round-trips the quarter-speed setting through backup export and import", () => {
+    const parsed = parseBackup(serializeBackup(source({ settings: { ...DEFAULT_SETTINGS, speechSpeed: 0.25 } })));
+    expect(parsed.ok).toBe(true);
+    expect(parsed.data?.settings.speechSpeed).toBe(0.25);
+  });
   it("包含格式與版本資訊", () => {
     const backup = createBackup(source({ mistakes: { a: mistake("a") } }));
     expect(backup.format).toBe(BACKUP_FORMAT);

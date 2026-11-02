@@ -529,7 +529,9 @@ function validateSeoAssets() {
     ['gojuon.html', `${publicOrigin}/gojuon.html`],
     ['conjugation.html', `${publicOrigin}/conjugation.html`],
     ['listening/index.html', `${publicOrigin}/listening/`],
-    ['hiragana/index.html', `${publicOrigin}/hiragana/`]
+    ['hiragana/index.html', `${publicOrigin}/hiragana/`],
+    ['katakana_game.html', `${publicOrigin}/katakana_game.html`],
+    ['n5_reading_game.html', `${publicOrigin}/n5_reading_game.html`]
   ];
 
   pages.forEach(([file, canonical]) => {

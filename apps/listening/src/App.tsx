@@ -139,7 +139,7 @@ function Shell() {
         ) : null}
 
         {route.name === "reviewMistakes" ? (
-          <ReviewPage key="reviewMistakes" mistakesOnly onExit={goHome} />
+          <ReviewPage key="reviewMistakes" _mistakesOnly onExit={goHome} />
         ) : null}
 
         {route.name === "mistakes" ? (

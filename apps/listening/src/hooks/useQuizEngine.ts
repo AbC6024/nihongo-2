@@ -40,6 +40,8 @@ export interface EngineCallbacks {
 }
 
 export interface EngineConfig {
+  /** Empty review pools must not start a countdown or record an empty round. */
+  enabled?: boolean;
   mode: GameMode;
   settings: GameSettings;
   /** 依序要出的題目（今日挑戰與複習模式傳入；一般模式傳入篩選後的題庫）。 */
@@ -93,6 +95,7 @@ export function useQuizEngine(
   speak: (question: Question) => Promise<unknown>,
 ): EngineApi {
   const {
+    enabled = true,
     mode,
     settings,
     questions,
@@ -275,7 +278,7 @@ export function useQuizEngine(
   enterQuestionRef.current = enterQuestion;
 
   useEffect(() => {
-    if (phase !== "READY") return undefined;
+    if (!enabled || phase !== "READY") return undefined;
     const session = sessionIdRef.current;
     let step = 0;
     setReadyCount(READY_STEPS[0]);
@@ -292,7 +295,7 @@ export function useQuizEngine(
       }
     }, 800);
     return () => window.clearInterval(timer);
-  }, [phase, autoSpeak]);
+  }, [phase, autoSpeak, enabled]);
 
   const finalizeRef = useRef(finalize);
   finalizeRef.current = finalize;

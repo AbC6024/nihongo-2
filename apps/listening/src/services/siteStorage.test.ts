@@ -5,6 +5,10 @@ import { DEFAULT_SETTINGS } from "../utils/settings";
 afterEach(() => window.localStorage.clear());
 
 describe("shared-site progress isolation", () => {
+  it("retains the new quarter-speed setting when the page is reopened", () => {
+    saveSettings({ ...DEFAULT_SETTINGS, speechSpeed: 0.25 });
+    expect(loadSnapshot().settings.speechSpeed).toBe(0.25);
+  });
   it("loads existing listening preferences while preserving the original games", () => {
     const progress = JSON.stringify({levels:{1:3}, records:{speed:100}});
     window.localStorage.setItem('jpq.progress.v1', progress);

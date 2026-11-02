@@ -108,8 +108,9 @@ export const en: Translations = {
   speechSpeedLabel: "Speech Speed",
   speechSpeedNormal: "Normal Speed",
   speechSpeedSlow: "Slow",
+  speechSpeedVerySlow: "Very Slow",
   speechSpeedHint:
-    "Slow 0.5× is the final playback speed and is not stacked with the 0.75× short-word rule. Changes apply from the next question audio.",
+    "Speech Speed: 1.0× Normal, 0.5× Slow, 0.25× Very Slow. Slow and Very Slow are final speeds and are not stacked with the 0.75× short-word rule. Changes apply from the next question audio.",
   // ---------- Sound effects ----------
   sfxSection: "Sound Effects",
   sfxToggle: "Answer feedback sounds",
@@ -155,7 +156,7 @@ export const en: Translations = {
   exitContinue: "Keep playing",
   exitLeave: "Leave round",
   shortcutsHint:
-    "Shortcuts: Enter submit · Space replay (not while typing) · Esc leave round",
+    "Shortcuts: Enter submit · Space replay (not while typing) · Esc leave round · Press Enter again after a correct answer to go to the next question.",
   reviewWrongHint: "Review Mode never deducts points. Try the same question again.",
   wordWrongHint: "Replay the audio and try again.",
   dailyWrongHint: "A miss costs nothing. Keep going, or skip after 3 misses (0 points).",

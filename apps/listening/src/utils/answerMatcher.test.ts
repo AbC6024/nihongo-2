@@ -93,6 +93,39 @@ describe("isAnswerCorrect", () => {
     // 完整句子不能當成答案
     expect(isAnswerCorrect("昨日、友達とラーメンを食べました。", sentence)).toBe(false);
   });
+
+  it("包含「な」的答案：必須完整輸入「な」，不可省略", () => {
+    const shizukana = {
+      japanese: "静かな",
+      kana: "しずかな",
+      romaji: "shizukana",
+      meaning: "寧靜的",
+    };
+    const shizuka = {
+      japanese: "静か",
+      kana: "しずか",
+      romaji: "shizuka",
+      meaning: "寧靜",
+    };
+
+    // 完整輸入「な」：正確
+    expect(isAnswerCorrect("しずかな", shizukana)).toBe(true);
+    expect(isAnswerCorrect("shizukana", shizukana)).toBe(true);
+    expect(isAnswerCorrect("静かな", shizukana)).toBe(true);
+
+    // 省略「な」：錯誤
+    expect(isAnswerCorrect("しずか", shizukana)).toBe(false);
+    expect(isAnswerCorrect("shizuka", shizukana)).toBe(false);
+    expect(isAnswerCorrect("静か", shizukana)).toBe(false);
+
+    // 本來就不含「な」的答案：正確輸入應判定正確
+    expect(isAnswerCorrect("しずか", shizuka)).toBe(true);
+    expect(isAnswerCorrect("shizuka", shizuka)).toBe(true);
+    expect(isAnswerCorrect("静か", shizuka)).toBe(true);
+
+    // 不含「な」的答案不可匹配需要「な」的題目
+    expect(isAnswerCorrect("しずか", shizukana)).toBe(false);
+  });
 });
 
 describe("buildAcceptedSet", () => {

@@ -179,7 +179,7 @@ export function SettingsPage({ onBack }: Props) {
                 aria-pressed={settings.speechSpeed === speed}
                 onClick={() => updateSettings({ speechSpeed: speed })}
               >
-                {speed === 1 ? t("speechSpeedNormal") : t("speechSpeedSlow")}（{speechSpeedLabel(speed)}）
+                {speed === 1 ? t("speechSpeedNormal") : speed === 0.5 ? t("speechSpeedSlow") : t("speechSpeedVerySlow")}（{speechSpeedLabel(speed)}）
               </button>
             ))}
           </div>

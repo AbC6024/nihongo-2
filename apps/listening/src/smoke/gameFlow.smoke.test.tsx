@@ -166,6 +166,22 @@ afterEach(() => {
 });
 
 describe("一般單字模式（jsdom 實測流程）", () => {
+  it("答對後 Enter 可立即換題，長按及舊換題計時器不會跳過題目", async () => {
+    vi.useFakeTimers();
+    renderGame({ pool: BUILTIN_WORDS.slice(0, 3) });
+    await flush(20); await waitReady();
+    const firstId = latestEngine?.question?.id;
+    answer(currentWord().romaji);
+    act(() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", repeat: true })));
+    expect(latestEngine?.question?.id).toBe(firstId);
+    act(() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" })));
+    const secondId = latestEngine?.question?.id;
+    expect(secondId).not.toBe(firstId);
+    await tick(1200);
+    expect(latestEngine?.question?.id).toBe(secondId);
+    expect(latestEngine?.answeredCount).toBe(1);
+    expect(latestEngine?.score).toBe(100);
+  });
   it("第一次答對 +100", async () => {
     renderGame({ pool: [BUILTIN_WORDS[0]] });
     await flush();

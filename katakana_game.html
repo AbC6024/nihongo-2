@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>片假名單字｜遊戲學日語</title>
+<meta name="description" content="從《大家的日本語》第1～12課片假名單字抽10題，可選中文、片假名或混合模式。">
+<link rel="canonical" href="https://nihongo-2-static.onrender.com/katakana_game.html">
+<meta property="og:title" content="片假名單字｜遊戲學日語">
+<meta property="og:description" content="從《大家的日本語》第1～12課片假名單字抽10題，可選中文、片假名或混合模式。">
+<meta property="og:url" content="https://nihongo-2-static.onrender.com/katakana_game.html">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"片假名單字｜遊戲學日語","url":"https://nihongo-2-static.onrender.com/katakana_game.html","applicationCategory":"EducationalApplication","operatingSystem":"Web","inLanguage":["zh-Hant","ja"]}
+</script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Microsoft JhengHei", "Yu Gothic", sans-serif;
+    background: linear-gradient(160deg, #eef4fb 0%, #f7f0fa 100%);
+    min-height: 100vh; margin: 0; display: flex; justify-content: center;
+    padding: 24px 16px;
+  }
+  .app { width: 100%; max-width: 560px; }
+  h1 { font-size: 22px; color: #2c3e50; margin: 0 0 4px; text-align: center; }
+  .sub { text-align: center; color: #7f8c9b; font-size: 13px; margin-bottom: 22px; }
+  .card {
+    background: #fff; border-radius: 18px; padding: 26px 22px;
+    box-shadow: 0 10px 30px rgba(44, 62, 80, .08);
+  }
+  .hidden { display: none !important; }
+
+  .label { font-size: 14px; color: #55647a; margin: 0 0 10px; font-weight: bold; }
+  .lessons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+  .chip {
+    border: 1.5px solid #cfe0f0; background: #fff; color: #37536e;
+    border-radius: 999px; padding: 8px 14px; font-size: 14px; cursor: pointer;
+    transition: .15s;
+  }
+  .chip:hover { border-color: #7fb2dd; }
+  .chip.on { background: #2f80c8; border-color: #2f80c8; color: #fff; }
+  .modes { display: flex; flex-direction: column; gap: 8px; margin-bottom: 26px; }
+  .mode {
+    display: flex; align-items: center; gap: 10px; border: 1.5px solid #e2e9f1;
+    border-radius: 12px; padding: 12px 14px; cursor: pointer; font-size: 14px; color: #37536e;
+  }
+  .mode.on { border-color: #2f80c8; background: #f2f8fe; }
+  .mode input { accent-color: #2f80c8; }
+  .big-btn {
+    width: 100%; border: none; border-radius: 12px; padding: 15px;
+    background: linear-gradient(135deg, #3498db, #2f80c8); color: #fff;
+    font-size: 17px; font-weight: bold; cursor: pointer; letter-spacing: 1px;
+  }
+  .big-btn:hover { filter: brightness(1.06); }
+  .hint { text-align: center; color: #9aa7b6; font-size: 12px; margin-top: 12px; }
+
+  .topbar { display: flex; justify-content: space-between; font-size: 13px; color: #708090; margin-bottom: 8px; }
+  .topbar b { color: #2f80c8; }
+  .bar { height: 6px; background: #eaf1f8; border-radius: 99px; overflow: hidden; margin-bottom: 26px; }
+  .bar > i { display: block; height: 100%; width: 0; background: #54b3e8; border-radius: 99px; transition: width .3s; }
+  .prompt { text-align: center; font-size: 13px; color: #8b98a8; margin-bottom: 6px; }
+  .word {
+    text-align: center; font-size: 54px; font-weight: bold; color: #274b6d;
+    margin: 4px 0 6px; letter-spacing: 2px; line-height: 1.25; word-break: break-word;
+  }
+  .speak {
+    display: block; margin: 0 auto 24px; border: none; background: #eef4fb;
+    color: #2f80c8; border-radius: 999px; padding: 6px 16px; font-size: 13px; cursor: pointer;
+  }
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .opt {
+    border: 1.5px solid #dbe6f1; background: #fff; border-radius: 12px;
+    padding: 14px 10px; font-size: 16px; color: #2c3e50; cursor: pointer;
+    font-family: inherit; transition: .12s; min-height: 56px;
+  }
+  .opt:hover:not(.locked) { border-color: #7fb2dd; background: #f7fbff; }
+  .opt .num { display: block; font-size: 11px; color: #a8b6c6; margin-bottom: 2px; }
+  .opt.correct { background: #e6f7ec; border-color: #4bb870; color: #1d7a42; }
+  .opt.wrong { background: #fdeaea; border-color: #e07979; color: #b03030; }
+  .opt.locked { cursor: default; }
+  .feedback { text-align: center; font-size: 15px; font-weight: bold; height: 24px; margin-top: 16px; }
+  .feedback.ok { color: #24945a; }
+  .feedback.no { color: #cf3f3f; }
+
+  .result-title { text-align: center; font-size: 20px; color: #2c3e50; margin: 4px 0 6px; }
+  .score-big { text-align: center; font-size: 56px; font-weight: bold; color: #2f80c8; line-height: 1.1; }
+  .score-big small { font-size: 20px; color: #9aa7b6; font-weight: normal; }
+  .grade { text-align: center; color: #708090; font-size: 14px; margin: 6px 0 22px; }
+  .review { margin-bottom: 22px; }
+  .review h3 { font-size: 14px; color: #55647a; margin: 0 0 10px; }
+  .review-item {
+    display: flex; justify-content: space-between; gap: 12px;
+    padding: 9px 12px; background: #f7fafd; border-radius: 8px; font-size: 14px;
+    margin-bottom: 6px; color: #37536e;
+  }
+  .review-item b { color: #274b6d; font-size: 15px; }
+  .actions { display: flex; gap: 10px; }
+  .actions .big-btn { flex: 1; }
+  .ghost {
+    background: #fff; color: #37536e; border: 1.5px solid #dbe6f1;
+  }
+  .ghost:hover { background: #f7fbff; }
+  .game-nav { display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;justify-content:center;margin:0 0 20px;padding:12px;border-radius:12px;background:rgba(255,255,255,.8); }
+  .game-nav a { color:#37536e;font-size:13px;text-decoration:none;padding:5px 2px; }
+  .game-nav a:hover,.game-nav a:focus-visible { text-decoration:underline; }
+  .game-nav a[aria-current="page"] { font-weight:bold;color:#1f7565; }
+  .game-nav a:focus-visible,button:focus-visible { outline:2px solid #2f80c8;outline-offset:3px; }
+</style>
+</head>
+<body>
+<div class="app">
+<nav class="game-nav" aria-label="遊戲導覽"><a href="index.html">← 網站首頁</a><a href="katakana_game.html" aria-current="page">片假名單字</a><a href="n5_reading_game.html">N5閱讀</a><a href="listening/">日語聽打</a></nav>
+  <h1>片假名單字遊戲</h1>
+  <div class="sub">大家的日本語 第 1–12 課 · 片假名單字</div>
+
+  <!-- ===== 開始 ===== -->
+  <section id="screen-start" class="card">
+    <p class="label">選擇範圍</p>
+    <div class="lessons" id="lessonList"></div>
+
+    <p class="label">選擇模式</p>
+    <div class="modes">
+      <label class="mode on"><input type="radio" name="mode" value="k2z" checked> 看片假名 → 選中文意思</label>
+      <label class="mode"><input type="radio" name="mode" value="z2k"> 看中文意思 → 選片假名</label>
+      <label class="mode"><input type="radio" name="mode" value="mix"> 混合出題</label>
+    </div>
+
+    <button class="big-btn" id="startBtn">開始遊戲</button>
+    <div class="hint">每回合 10 題 · 可用鍵盤 1–4 作答</div>
+  </section>
+
+  <!-- ===== 答題 ===== -->
+  <section id="screen-quiz" class="card hidden">
+    <div class="topbar">
+      <span>第 <b id="qNo">1</b> / <span id="qTotal">10</span> 題</span>
+      <span>答對 <b id="okNo">0</b> 題</span>
+    </div>
+    <div class="bar"><i id="barFill"></i></div>
+
+    <div class="prompt" id="prompt">這個片假名是什麼意思？</div>
+    <div class="word" id="word">アメリカ</div>
+    <button class="speak" id="speakBtn">🔊 聽發音</button>
+
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+  </section>
+
+  <!-- ===== 結果 ===== -->
+  <section id="screen-result" class="card hidden">
+    <div class="result-title">本回合結束</div>
+    <div class="score-big"><span id="finalScore">0</span><small> / <span id="finalTotal">10</span></small></div>
+    <div class="grade" id="grade"></div>
+    <div class="review" id="review"></div>
+    <div class="actions">
+      <button class="big-btn ghost" id="backBtn">換範圍</button>
+      <button class="big-btn" id="againBtn">再玩一次</button>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ===== 題庫：大家的日本語 第 1–12 課的片假名單字 ===== */
+const WORDS = [
+  // 第 1 課
+  { k: "アメリカ", z: "美國", l: 1 },
+  { k: "イギリス", z: "英國", l: 1 },
+  { k: "インド", z: "印度", l: 1 },
+  { k: "インドネシア", z: "印尼", l: 1 },
+  { k: "タイ", z: "泰國", l: 1 },
+  { k: "ドイツ", z: "德國", l: 1 },
+  { k: "ブラジル", z: "巴西", l: 1 },
+  // 第 2 課
+  { k: "ノート", z: "筆記本", l: 2 },
+  { k: "カード", z: "卡片", l: 2 },
+  { k: "ボールペン", z: "原子筆", l: 2 },
+  { k: "シャープペンシル", z: "自動鉛筆", l: 2 },
+  { k: "シーディー", z: "CD、光碟", l: 2 },
+  { k: "テレビ", z: "電視", l: 2 },
+  { k: "ラジオ", z: "收音機", l: 2 },
+  { k: "カメラ", z: "照相機", l: 2 },
+  { k: "コンピューター", z: "電腦", l: 2 },
+  { k: "チョコレート", z: "巧克力", l: 2 },
+  { k: "コーヒー", z: "咖啡", l: 2 },
+  // 第 3 課
+  { k: "ロビー", z: "大廳、休息室", l: 3 },
+  { k: "トイレ", z: "廁所", l: 3 },
+  { k: "エレベーター", z: "電梯", l: 3 },
+  { k: "エスカレーター", z: "電扶梯", l: 3 },
+  { k: "ネクタイ", z: "領帶", l: 3 },
+  { k: "ワイン", z: "葡萄酒", l: 3 },
+  { k: "イタリア", z: "義大利", l: 3 },
+  { k: "スイス", z: "瑞士", l: 3 },
+  { k: "フランス", z: "法國", l: 3 },
+  { k: "ジャカルタ", z: "雅加達", l: 3 },
+  { k: "バンコク", z: "曼谷", l: 3 },
+  { k: "ベルリン", z: "柏林", l: 3 },
+  // 第 4 課
+  { k: "デパート", z: "百貨公司", l: 4 },
+  { k: "ニューヨーク", z: "紐約", l: 4 },
+  { k: "ペキン", z: "北京", l: 4 },
+  { k: "ロサンゼルス", z: "洛杉磯", l: 4 },
+  { k: "ロンドン", z: "倫敦", l: 4 },
+  // 第 5 課
+  { k: "スーパー", z: "超市", l: 5 },
+  { k: "バス", z: "公車、巴士", l: 5 },
+  { k: "タクシー", z: "計程車", l: 5 },
+  // 第 6 課
+  { k: "パン", z: "麵包", l: 6 },
+  { k: "ミルク", z: "牛奶", l: 6 },
+  { k: "ジュース", z: "果汁", l: 6 },
+  { k: "ビール", z: "啤酒", l: 6 },
+  { k: "レポート", z: "報告", l: 6 },
+  { k: "ビデオ", z: "影片、錄影帶", l: 6 },
+  { k: "テニス", z: "網球", l: 6 },
+  { k: "サッカー", z: "足球", l: 6 },
+  // 第 7 課
+  { k: "スプーン", z: "湯匙", l: 7 },
+  { k: "ナイフ", z: "刀子", l: 7 },
+  { k: "フォーク", z: "叉子", l: 7 },
+  { k: "パソコン", z: "個人電腦", l: 7 },
+  { k: "ケータイ", z: "手機", l: 7 },
+  { k: "メール", z: "電子郵件", l: 7 },
+  { k: "パンチ", z: "打洞機", l: 7 },
+  { k: "ホッチキス", z: "釘書機", l: 7 },
+  { k: "セロテープ", z: "透明膠帶", l: 7 },
+  { k: "シャツ", z: "襯衫", l: 7 },
+  { k: "プレゼント", z: "禮物", l: 7 },
+  { k: "クリスマス", z: "聖誕節", l: 7 },
+  // 第 8 課
+  { k: "ハンサム", z: "英俊", l: 8 },
+  { k: "レストラン", z: "餐廳", l: 8 },
+  { k: "シャンハイ", z: "上海", l: 8 },
+  // 第 9 課
+  { k: "スポーツ", z: "運動", l: 9 },
+  { k: "ダンス", z: "舞蹈", l: 9 },
+  { k: "クラシック", z: "古典音樂", l: 9 },
+  { k: "ジャズ", z: "爵士樂", l: 9 },
+  { k: "コンサート", z: "音樂會、演唱會", l: 9 },
+  { k: "カラオケ", z: "卡拉 OK", l: 9 },
+  { k: "ローマ字", z: "羅馬拼音", l: 9 },
+  { k: "チケット", z: "票", l: 9 },
+  { k: "アルバイト", z: "打工", l: 9 },
+  // 第 10 課
+  { k: "パンダ", z: "貓熊", l: 10 },
+  { k: "スイッチ", z: "開關", l: 10 },
+  { k: "テーブル", z: "餐桌", l: 10 },
+  { k: "ベッド", z: "床", l: 10 },
+  { k: "ドア", z: "門", l: 10 },
+  { k: "ポスト", z: "郵筒", l: 10 },
+  { k: "ビル", z: "大樓", l: 10 },
+  { k: "エーティーエム", z: "自動提款機（ATM）", l: 10 },
+  { k: "コンビニ", z: "便利商店", l: 10 },
+  // 第 11 課
+  { k: "サンドイッチ", z: "三明治", l: 11 },
+  { k: "カレーライス", z: "咖哩飯", l: 11 },
+  { k: "アイスクリーム", z: "冰淇淋", l: 11 },
+  { k: "クラス", z: "班級", l: 11 },
+  // 第 12 課
+  { k: "ホテル", z: "飯店", l: 12 },
+  { k: "パーティー", z: "派對、宴會", l: 12 },
+  { k: "レモン", z: "檸檬", l: 12 }
+];
+
+const QUESTIONS_PER_ROUND = 10;
+
+const $ = id => document.getElementById(id);
+const shuffle = a => {
+  const r = a.slice();
+  for (let i = r.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [r[i], r[j]] = [r[j], r[i]];
+  }
+  return r;
+};
+
+let state = { lesson: 0, mode: "k2z", queue: [], index: 0, correct: 0, wrong: [], locked: false };
+
+/* ---------- 開始畫面 ---------- */
+const lessons = [...new Set(WORDS.map(w => w.l))].sort((a, b) => a - b);
+$("lessonList").innerHTML =
+  `<button class="chip on" data-l="0">全部</button>` +
+  lessons.map(l => `<button class="chip" data-l="${l}">第 ${l} 課</button>`).join("");
+
+$("lessonList").addEventListener("click", e => {
+  const chip = e.target.closest(".chip");
+  if (!chip) return;
+  document.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+  chip.classList.add("on");
+  state.lesson = Number(chip.dataset.l);
+});
+
+document.querySelectorAll('input[name="mode"]').forEach(r =>
+  r.addEventListener("change", () => {
+    state.mode = r.value;
+    document.querySelectorAll(".mode").forEach(m => m.classList.remove("on"));
+    r.closest(".mode").classList.add("on");
+  })
+);
+
+/* ---------- 出題 ---------- */
+function pool() {
+  return state.lesson === 0 ? WORDS : WORDS.filter(w => w.l === state.lesson);
+}
+
+function startRound() {
+  const base = pool();
+  state.queue = shuffle(base).map(w => ({
+    w,
+    dir: state.mode === "mix" ? (Math.random() < 0.5 ? "k2z" : "z2k") : state.mode
+  }));
+  if (state.queue.length > QUESTIONS_PER_ROUND) {
+    state.queue = state.queue.slice(0, QUESTIONS_PER_ROUND);
+  } else {
+    const orig = state.queue.slice();
+    while (state.queue.length < QUESTIONS_PER_ROUND) {
+      state.queue = state.queue.concat(shuffle(orig));
+    }
+    state.queue = state.queue.slice(0, QUESTIONS_PER_ROUND);
+  }
+  state.index = 0;
+  state.correct = 0;
+  state.wrong = [];
+  $("qTotal").textContent = state.queue.length;
+  show("quiz");
+  renderQuestion();
+}
+
+function renderQuestion() {
+  state.locked = false;
+  const q = state.queue[state.index];
+  const askKatakana = q.dir === "k2z";
+
+  $("qNo").textContent = state.index + 1;
+  $("okNo").textContent = state.correct;
+  $("barFill").style.width = (state.index / state.queue.length * 100) + "%";
+  $("prompt").textContent = askKatakana ? "這個片假名是什麼意思？" : "哪一個是這個意思的片假名？";
+  $("word").textContent = askKatakana ? q.w.k : q.w.z;
+  $("word").style.fontSize = askKatakana ? "54px" : "34px";
+  $("feedback").textContent = "";
+  $("feedback").className = "feedback";
+  $("speakBtn").style.display = askKatakana ? "block" : "none";
+
+  const others = shuffle(WORDS.filter(x => x.k !== q.w.k && x.z !== q.w.z)).slice(0, 3);
+  const opts = shuffle([q.w, ...others]);
+  $("options").innerHTML = opts.map((o, i) => {
+    const text = askKatakana ? o.z : o.k;
+    return `<button class="opt" data-k="${o.k}"><span class="num">${i + 1}</span>${text}</button>`;
+  }).join("");
+}
+
+$("options").addEventListener("click", e => {
+  const btn = e.target.closest(".opt");
+  if (btn) answer(btn.dataset.k);
+});
+
+function answer(chosenKatakana) {
+  if (state.locked) return;
+  state.locked = true;
+  const q = state.queue[state.index];
+  const isRight = chosenKatakana === q.w.k;
+  const needKatakana = q.dir === "z2k";
+
+  document.querySelectorAll(".opt").forEach(b => {
+    b.classList.add("locked");
+    const thisK = b.dataset.k;
+    if (thisK === q.w.k) b.classList.add("correct");
+    if (!isRight && thisK === chosenKatakana) b.classList.add("wrong");
+  });
+
+  if (isRight) {
+    state.correct++;
+    $("feedback").textContent = "⭕ 答對了！";
+    $("feedback").className = "feedback ok";
+  } else {
+    state.wrong.push(q.w);
+    const rightText = needKatakana ? q.w.k : q.w.z;
+    $("feedback").textContent = `❌ 正確答案：${rightText}`;
+    $("feedback").className = "feedback no";
+  }
+  $("okNo").textContent = state.correct;
+  $("barFill").style.width = ((state.index + 1) / state.queue.length * 100) + "%";
+
+  setTimeout(() => {
+    state.index++;
+    if (state.index >= state.queue.length) showResult();
+    else renderQuestion();
+  }, 1000);
+}
+
+function showResult() {
+  $("finalScore").textContent = state.correct;
+  $("finalTotal").textContent = state.queue.length;
+  const pct = state.correct / state.queue.length;
+  $("grade").textContent =
+    pct === 1 ? "太厲害了！全部答對 🎉" :
+    pct >= 0.8 ? "很不錯，再複習一下就完美了！" :
+    pct >= 0.5 ? "有進步空間，再接再厲！" :
+    "別灰心，多看幾次就記住了 💪";
+
+  if (state.wrong.length) {
+    $("review").innerHTML =
+      `<h3>要複習的單字（${state.wrong.length}）</h3>` +
+      state.wrong.map(w =>
+        `<div class="review-item"><b>${w.k}</b><span>${w.z}</span></div>`).join("");
+  } else {
+    $("review").innerHTML = "";
+  }
+  show("result");
+}
+
+/* ---------- 畫面切換 ---------- */
+function show(name) {
+  ["start", "quiz", "result"].forEach(n =>
+    $("screen-" + n).classList.toggle("hidden", n !== name));
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+$("startBtn").addEventListener("click", startRound);
+$("againBtn").addEventListener("click", startRound);
+$("backBtn").addEventListener("click", () => show("start"));
+
+/* ---------- 發音 ---------- */
+$("speakBtn").addEventListener("click", () => {
+  const w = state.queue[state.index]?.w;
+  if (!w || !window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(w.k);
+  u.lang = "ja-JP";
+  u.rate = 0.9;
+  speechSynthesis.speak(u);
+});
+
+window.addEventListener("pagehide", () => window.speechSynthesis?.cancel());
+document.addEventListener("visibilitychange", () => { if (document.hidden) window.speechSynthesis?.cancel(); });
+
+/* ---------- 鍵盤 1–4 ---------- */
+document.addEventListener("keydown", e => {
+  if (e.repeat || e.isComposing || e.ctrlKey || e.altKey || e.metaKey || e.target.closest?.("input,textarea,select,[contenteditable=true]")) return;
+  if ($("screen-quiz").classList.contains("hidden")) return;
+  const n = Number(e.key);
+  if (n >= 1 && n <= 4) {
+    const btn = document.querySelectorAll(".opt")[n - 1];
+    if (btn) btn.click();
+  }
+});
+</script>
+</body>
+</html>

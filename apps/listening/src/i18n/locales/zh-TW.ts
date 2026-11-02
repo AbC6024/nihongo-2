@@ -106,7 +106,8 @@ export const zhTW = {
   speechSpeedLabel: "語音速度",
   speechSpeedNormal: "正常速度",
   speechSpeedSlow: "慢速",
-  speechSpeedHint: "慢速 0.5× 是最終播放速度，不會再疊加短單字的 0.75 倍調整。切換後從下一次播放題目語音開始生效。",
+  speechSpeedVerySlow: "極慢速",
+  speechSpeedHint: "語音速度：1.0× 正常速度、0.5× 慢速、0.25× 極慢速。慢速與極慢速為最終倍速，不會再疊加短單字的 0.75 倍調整。切換後從下一次播放題目語音開始生效。",
   // ---------- 音效 ----------
   sfxSection: "音效",
   sfxToggle: "答題提示音效",
@@ -151,7 +152,7 @@ export const zhTW = {
   exitConfirm: "要離開本局嗎？進度不會被保存。",
   exitContinue: "繼續玩",
   exitLeave: "離開本局",
-  shortcutsHint: "快捷鍵：Enter 送出 · Space 重播音聲（輸入框內不會觸發）· Esc 離開本局",
+  shortcutsHint: "快捷鍵：Enter 送出 · Space 重播音聲（輸入框內不會觸發）· Esc 離開本局 · 答對後再按 Enter 進入下一題",
   reviewWrongHint: "複習模式不扣分，答錯後可以立刻再試一次。",
   wordWrongHint: "可以再聽一次音聲後重新作答。",
   dailyWrongHint: "答錯不扣分，可以繼續作答，或在答錯 3 次後跳過（跳過 0 分）。",

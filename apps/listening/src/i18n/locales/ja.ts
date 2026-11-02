@@ -109,7 +109,8 @@ export const ja: Translations = {
   speechSpeedLabel: "音声速度",
   speechSpeedNormal: "通常速度",
   speechSpeedSlow: "低速",
-  speechSpeedHint: "低速 0.5× は最終速度で、短い単語の 0.75 倍調整を重ねません。切り替えると次の読み上げから反映されます。",
+  speechSpeedVerySlow: "超低速",
+  speechSpeedHint: "音声速度：1.0× 通常速度、0.5× 低速、0.25× 超低速。低速と超低速は最終倍速で、短い単語の 0.75 倍調整を重ねません。切り替えると次の読み上げから反映されます。",
   // ---------- 効果音 ----------
   sfxSection: "効果音",
   sfxToggle: "解答時の効果音",
@@ -155,7 +156,7 @@ export const ja: Translations = {
   exitContinue: "続ける",
   exitLeave: "終了する",
   shortcutsHint:
-    "ショートカット：Enter 送信 · Space 音声再生（入力欄では無効）· Esc 終了",
+    "ショートカット：Enter 送信 · Space 音声再生（入力欄では無効）· Esc 終了 · 正解後、もう一度 Enter キーを押すと次の問題に進みます",
   reviewWrongHint: "復習モードでは減点されません。もう一度挑戦できます。",
   wordWrongHint: "音声をもう一度聞いて、もう一度入力できます。",
   dailyWrongHint:

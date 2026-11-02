@@ -300,12 +300,12 @@ describe("遊戲內語音速度選項", () => {
     );
     await flush();
     const buttons = container.querySelectorAll(".speech-speed__btn");
-    expect(buttons).toHaveLength(2);
+    expect(buttons).toHaveLength(3);
     expect((buttons[0] as HTMLButtonElement).getAttribute("aria-pressed")).toBe("true");
     expect(container.textContent).toContain("1.0×");
   });
 
-  it("顯示正常速度與慢速兩個選項", async () => {
+  it("顯示正常速度、慢速與極慢速三個選項", async () => {
     mount(
       createElement(
         Shell,
@@ -316,7 +316,9 @@ describe("遊戲內語音速度選項", () => {
     await flush();
     expect(container.textContent).toContain("正常速度");
     expect(container.textContent).toContain("慢速");
+    expect(container.textContent).toContain("極慢速");
     expect(container.textContent).toContain("0.5×");
+    expect(container.textContent).toContain("0.25×");
   });
 
   it("可以切換到 0.5× 並立即套用", async () => {

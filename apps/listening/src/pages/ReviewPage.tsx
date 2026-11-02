@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useAppStore } from "../store/AppStore";
 import { useQuizEngine, type EngineResult } from "../hooks/useQuizEngine";
 import { GameShell } from "../components/GameShell";
@@ -15,17 +15,16 @@ import { isSentenceQuestion } from "../types/question";
 import { questionsForReview } from "../data/legacyReview";
 import {
   buildReviewPool,
-  buildWeightedReviewSequence,
   shuffleQuestions,
 } from "../utils/randomQuestion";
 
 interface Props {
   onExit: () => void;
-  /** 從結果頁「立刻複習錯題」進入時，預設只看錯題。 */
-  mistakesOnly?: boolean;
+  /** 從結果頁「立刻複習錯題」進入時，預設只看錯題。（現行行為永遠僅從錯題本抽題，此參數保留相容性。） */
+  _mistakesOnly?: boolean;
 }
 
-export function ReviewPage({ onExit, mistakesOnly = false }: Props) {
+export function ReviewPage({ onExit }: Props) {
   const { allWords, settings, mistakes, recordAttempt, recordGame, markReviewed, registerWrong, updateSettings } =
     useAppStore();
   const { t } = useI18n();
@@ -37,23 +36,20 @@ export function ReviewPage({ onExit, mistakesOnly = false }: Props) {
   const recordedRef = useRef(false);
 
   /**
-   * 複習題目順序：依 50%（星號）／30%（其他錯題）／20%（一般題目）加權抽題，
-   * 每輪把可用題目抽完為止，確保錯題一定會出現。
+   * 這一局的題目順序：僅從錯題本抽題，每局最多 10 題。
+   * 每次「開始新局」重新隨機抽取，同一局內不重複。
+   * 錯題本為空時不開始遊戲（在下方已有對應的 empty 狀態）。
    */
-  /**
-   * 這一局的題目順序：每次「開始新局」重新隨機抽取。
-   * 複習模式仍用 50%（星號）／30%（其他錯題）／20%（一般題目）的權重，
-   * 缺漏的比例會自動分配給還有題目的類別。
-   */
-  const pool = useMemo(() => {
-    const reviewPool = buildReviewPool(questionsForReview(allWords, mistakes), Object.values(mistakes), (item) => item.id);
-    if (mistakesOnly) {
-      // 僅複習錯題時：錯題本身已是優先來源，只做隨機洗牌。
-      return shuffleQuestions([...reviewPool.starred, ...reviewPool.otherMistakes]);
-    }
-    return buildWeightedReviewSequence(reviewPool, (item) => item.id);
-    // sessionIndex 改變代表開始新局 → 重新隨機
-  }, [allWords, mistakes, mistakesOnly, sessionIndex]);
+  // Freeze each round: updating review counts must not reshuffle in-flight questions.
+  const batch = useRef<{ session: number; questions: Question[] } | null>(null);
+  if (!batch.current || batch.current.session !== sessionIndex) {
+    const reviewPool = buildReviewPool(questionsForReview(allWords, mistakes), Object.values(mistakes), item => item.id);
+    batch.current = {
+      session: sessionIndex,
+      questions: shuffleQuestions([...reviewPool.starred, ...reviewPool.otherMistakes]).slice(0, 10),
+    };
+  }
+  const pool = batch.current.questions;
 
   const speak = useCallback(
     (question: Question) =>
@@ -67,9 +63,10 @@ export function ReviewPage({ onExit, mistakesOnly = false }: Props) {
   const engine = useQuizEngine(
     {
       mode: "review",
+      enabled: pool.length > 0,
       settings,
       questions: pool,
-      ordered: false,
+      ordered: true,
       timeLimitSeconds: 0,
       // 複習模式跳過不扣一般模式的 -50 分，只記錄 skipped，避免懲罰式複習。
       skipPenalty: false,

@@ -21,7 +21,13 @@ function isSentence(question: SpeakableQuestion): question is SentenceQuestion {
 
 /** 取得要朗讀的文字：句子題讀完整句，單字題讀日文詞彙。 */
 export function speechTextFor(question: SpeakableQuestion): string {
-  return isSentence(question) ? question.sentence : question.japanese;
+  // 優先使用已確認的假名讀音作為 TTS 輸入，避免漢字多音字被 AI 語音讀錯。
+  // 漢字仍作為顯示文字，不影響玩家看到的內容。
+  if (isSentence(question)) {
+    return question.fullSentenceKana ?? question.sentence;
+  }
+  // 單字題：優先讀取題庫中的假名欄位；缺失時才退回到漢字。
+  return question.kana ?? question.japanese;
 }
 
 /** 取得錯題本／複習模式要朗讀的文字。 */

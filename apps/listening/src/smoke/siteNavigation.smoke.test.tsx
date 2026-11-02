@@ -37,6 +37,8 @@ describe("merged site navigation", () => {
       "../gojuon.html",
       "../conjugation.html",
       "../hiragana/",
+      "../katakana_game.html",
+      "../n5_reading_game.html",
       "#/home",
     ]);
     expect(links[links.length - 1]?.getAttribute("aria-current")).toBe("page");
