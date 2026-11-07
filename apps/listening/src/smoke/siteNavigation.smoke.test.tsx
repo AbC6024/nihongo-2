@@ -42,6 +42,7 @@ describe("merged site navigation", () => {
     ]);
     expect(links[4]?.getAttribute("aria-current")).toBe("page");
     expect(container.querySelector('.learning-site-nav a[href="../gojuon.html"]')?.textContent).toBe("五十音");
+    expect(container.querySelector('.learning-site-nav a[href="../conjugation.html"]')?.textContent).toBe("動詞");
     expect(container.querySelector(".learning-site-brand")?.getAttribute("href")).toBe("../index.html");
   });
 

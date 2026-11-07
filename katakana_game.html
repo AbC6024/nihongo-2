@@ -13,106 +13,24 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"片假名單字｜遊戲學日語","url":"https://nihongo-2-static.onrender.com/katakana_game.html","applicationCategory":"EducationalApplication","operatingSystem":"Web","inLanguage":["zh-Hant","ja"]}
 </script>
-<style>
-  * { box-sizing: border-box; }
-  body {
-    font-family: "Microsoft JhengHei", "Yu Gothic", sans-serif;
-    background: linear-gradient(160deg, #eef4fb 0%, #f7f0fa 100%);
-    min-height: 100vh; margin: 0; display: flex; justify-content: center;
-    padding: 24px 16px;
-  }
-  .app { width: 100%; max-width: 560px; }
-  h1 { font-size: clamp(28px, 5vw, 36px); color: #2c3e50; margin: 0 0 4px; text-align: center; }
-  .sub { text-align: center; color: #7f8c9b; font-size: 13px; margin-bottom: 22px; }
-  .card {
-    background: #fff; border-radius: 18px; padding: 26px 22px;
-    box-shadow: 0 10px 30px rgba(44, 62, 80, .08);
-  }
-  .hidden { display: none !important; }
-
-  .label { font-size: 14px; color: #55647a; margin: 0 0 10px; font-weight: bold; }
-  .lessons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
-  .chip {
-    border: 1.5px solid #cfe0f0; background: #fff; color: #37536e;
-    border-radius: 999px; padding: 8px 14px; font-size: 14px; cursor: pointer;
-    transition: .15s;
-  }
-  .chip:hover { border-color: #7fb2dd; }
-  .chip.on { background: #2f80c8; border-color: #2f80c8; color: #fff; }
-  .modes { display: flex; flex-direction: column; gap: 8px; margin-bottom: 26px; }
-  .mode {
-    display: flex; align-items: center; gap: 10px; border: 1.5px solid #e2e9f1;
-    border-radius: 12px; padding: 12px 14px; cursor: pointer; font-size: 14px; color: #37536e;
-  }
-  .mode.on { border-color: #2f80c8; background: #f2f8fe; }
-  .mode input { accent-color: #2f80c8; }
-  .big-btn {
-    width: 100%; border: none; border-radius: 12px; padding: 15px;
-    background: linear-gradient(135deg, #3498db, #2f80c8); color: #fff;
-    font-size: 17px; font-weight: bold; cursor: pointer; letter-spacing: 1px;
-  }
-  .big-btn:hover { filter: brightness(1.06); }
-  .hint { text-align: center; color: #9aa7b6; font-size: 12px; margin-top: 12px; }
-
-  .topbar { display: flex; justify-content: space-between; font-size: 13px; color: #708090; margin-bottom: 8px; }
-  .topbar b { color: #2f80c8; }
-  .bar { height: 6px; background: #eaf1f8; border-radius: 99px; overflow: hidden; margin-bottom: 26px; }
-  .bar > i { display: block; height: 100%; width: 0; background: #54b3e8; border-radius: 99px; transition: width .3s; }
-  .prompt { text-align: center; font-size: 13px; color: #8b98a8; margin-bottom: 6px; }
-  .word {
-    text-align: center; font-size: 54px; font-weight: bold; color: #274b6d;
-    margin: 4px 0 6px; letter-spacing: 2px; line-height: 1.25; word-break: break-word;
-  }
-  .speak {
-    display: block; margin: 0 auto 24px; border: none; background: #eef4fb;
-    color: #2f80c8; border-radius: 999px; padding: 6px 16px; font-size: 13px; cursor: pointer;
-  }
-  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .opt {
-    border: 1.5px solid #dbe6f1; background: #fff; border-radius: 12px;
-    padding: 14px 10px; font-size: 16px; color: #2c3e50; cursor: pointer;
-    font-family: inherit; transition: .12s; min-height: 56px;
-  }
-  .opt:hover:not(.locked) { border-color: #7fb2dd; background: #f7fbff; }
-  .opt .num { display: block; font-size: 11px; color: #a8b6c6; margin-bottom: 2px; }
-  .opt.correct { background: #e6f7ec; border-color: #4bb870; color: #1d7a42; }
-  .opt.wrong { background: #fdeaea; border-color: #e07979; color: #b03030; }
-  .opt.locked { cursor: default; }
-  .feedback { text-align: center; font-size: 15px; font-weight: bold; height: 24px; margin-top: 16px; }
-  .feedback.ok { color: #24945a; }
-  .feedback.no { color: #cf3f3f; }
-
-  .result-title { text-align: center; font-size: 20px; color: #2c3e50; margin: 4px 0 6px; }
-  .score-big { text-align: center; font-size: 56px; font-weight: bold; color: #2f80c8; line-height: 1.1; }
-  .score-big small { font-size: 20px; color: #9aa7b6; font-weight: normal; }
-  .grade { text-align: center; color: #708090; font-size: 14px; margin: 6px 0 22px; }
-  .review { margin-bottom: 22px; }
-  .review h3 { font-size: 14px; color: #55647a; margin: 0 0 10px; }
-  .review-item {
-    display: flex; justify-content: space-between; gap: 12px;
-    padding: 9px 12px; background: #f7fafd; border-radius: 8px; font-size: 14px;
-    margin-bottom: 6px; color: #37536e;
-  }
-  .review-item b { color: #274b6d; font-size: 15px; }
-  .actions { display: flex; gap: 10px; }
-  .actions .big-btn { flex: 1; }
-  .ghost {
-    background: #fff; color: #37536e; border: 1.5px solid #dbe6f1;
-  }
-  .ghost:hover { background: #f7fbff; }
-  .game-nav { display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;justify-content:center;margin:0 0 20px;padding:12px;border-radius:12px;background:rgba(255,255,255,.8); }
-  .game-nav a { color:#37536e;font-size:16px;font-weight:700;text-decoration:none;padding:8px 5px;min-height:44px;display:inline-flex;align-items:center; }
-  .game-nav a:hover,.game-nav a:focus-visible { text-decoration:underline; }
-  .game-nav a[aria-current="page"] { font-weight:bold;color:#1f7565; }
-  .game-nav a:focus-visible,button:focus-visible { outline:2px solid #2f80c8;outline-offset:3px; }
-</style>
+<link rel="stylesheet" href="css/style.css?v=7feaa123ad0c">
+<link rel="stylesheet" href="css/home.css?v=3dadfc038f94">
+<link rel="stylesheet" href="css/imported-games.css?v=1e5f4c3d3f24">
 </head>
-<body>
-<div class="app">
-<nav class="game-nav" aria-label="遊戲導覽"><a href="index.html">首頁</a><a href="gojuon.html">五十音</a><a href="particles.html">助詞</a><a href="katakana_game.html" aria-current="page">片假名單字</a><a href="listening/">聽打</a><a href="conjugation.html">活用</a><a href="n5_reading_game.html">閱讀</a></nav>
-  <h1>片假名單字</h1>
-  <div class="sub">大家的日本語 第 1–12 課 · 片假名單字</div>
-
+<body class="imported-game-page katakana-page" data-category="katakana-words" data-screen="start">
+<div id="site-header"></div>
+<main>
+  <section class="portal-hero" aria-labelledby="gameTitle">
+    <div class="sky-decor" aria-hidden="true"><span class="cloud cl-a"></span><span class="cloud cl-b"></span><span class="sun-glow"></span></div>
+    <div class="portal-head"><div class="wrap">
+      <a class="back-site" href="index.html">‹ 回遊戲總覽</a>
+      <p class="eyebrow">Katakana Words</p>
+      <h1 id="gameTitle">片假名單字</h1>
+      <p class="portal-lede">依《大家的日本語》第 1～12 課練習片假名單字。<br>先選課次與出題方向，每輪用 10 題記住單字和中文意思。</p>
+      <div class="practice-facts"><span>第 1～12 課</span><span>每輪 10 題</span><span>三種出題方向</span></div>
+    </div></div>
+  </section>
+  <div class="wrap imported-content"><div class="app">
   <!-- ===== 開始 ===== -->
   <section id="screen-start" class="card">
     <p class="label">選擇範圍</p>
@@ -130,7 +48,8 @@
   </section>
 
   <!-- ===== 答題 ===== -->
-  <section id="screen-quiz" class="card hidden">
+  <section id="screen-quiz" class="card hidden" aria-label="片假名單字答題">
+    <div class="round-heading"><h2>片假名單字</h2><span>每輪 10 題</span></div>
     <div class="topbar">
       <span>第 <b id="qNo">1</b> / <span id="qTotal">10</span> 題</span>
       <span>答對 <b id="okNo">0</b> 題</span>
@@ -156,8 +75,18 @@
       <button class="big-btn" id="againBtn">再玩一次</button>
     </div>
   </section>
+</div></div></main>
+<div id="site-footer"></div>
+<div class="modal hidden" id="modal">
+  <div class="modal-box" role="dialog" aria-modal="true">
+    <h3 id="modalTitle"></h3><div id="modalBody"></div><div class="modal-actions" id="modalActions"></div>
+  </div>
 </div>
-
+<script src="js/core.js?v=93d33e43efa2"></script>
+<script src="js/catalog.js?v=133292fd0f6f"></script>
+<script src="js/learn.js?v=431e12c02e39"></script>
+<script src="js/site.js?v=06bd4b9f7d54"></script>
+<script src="js/imported-shell.js?v=b1765b4d6fb9"></script>
 <script>
 /* ===== 題庫：大家的日本語 第 1–12 課的片假名單字 ===== */
 const WORDS = [
@@ -335,7 +264,7 @@ function renderQuestion() {
   $("barFill").style.width = (state.index / state.queue.length * 100) + "%";
   $("prompt").textContent = askKatakana ? "這個片假名是什麼意思？" : "哪一個是這個意思的片假名？";
   $("word").textContent = askKatakana ? q.w.k : q.w.z;
-  $("word").style.fontSize = askKatakana ? "54px" : "34px";
+  $("word").style.fontSize = askKatakana ? "clamp(30px, 6vw, 54px)" : "clamp(26px, 5vw, 34px)";
   $("feedback").textContent = "";
   $("feedback").className = "feedback";
   $("speakBtn").style.display = askKatakana ? "block" : "none";
@@ -410,6 +339,7 @@ function showResult() {
 
 /* ---------- 畫面切換 ---------- */
 function show(name) {
+  document.body.dataset.screen = name;
   ["start", "quiz", "result"].forEach(n =>
     $("screen-" + n).classList.toggle("hidden", n !== name));
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -422,7 +352,7 @@ $("backBtn").addEventListener("click", () => show("start"));
 /* ---------- 發音 ---------- */
 $("speakBtn").addEventListener("click", () => {
   const w = state.queue[state.index]?.w;
-  if (!w || !window.speechSynthesis) return;
+  if (!w || !window.speechSynthesis || !JPQ.sfx.on) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(w.k);
   u.lang = "ja-JP";
@@ -436,6 +366,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) windo
 /* ---------- 鍵盤 1–4 ---------- */
 document.addEventListener("keydown", e => {
   if (e.repeat || e.isComposing || e.ctrlKey || e.altKey || e.metaKey || e.target.closest?.("input,textarea,select,[contenteditable=true]")) return;
+  if (!$("modal").classList.contains("hidden")) return;
   if ($("screen-quiz").classList.contains("hidden")) return;
   const n = Number(e.key);
   if (n >= 1 && n <= 4) {

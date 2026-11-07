@@ -30,7 +30,7 @@ JPQ.CATALOG = [
     slug: 'conjugation',
     status: 'live',
     thumb: 'verb',
-    title: '活用',
+    title: '動詞',
     titleEn: 'Verbs',
     href: 'conjugation.html',
     desc: '從台灣版《大家的日本語》初級Ⅰ、Ⅱ第 1～25 課的動詞隨機抽題，可選冊別與變化，附中文說明。',

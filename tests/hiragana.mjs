@@ -160,8 +160,8 @@ function solveMemory(h) {
 test('merged kana portal orders six categories and offers hiragana before katakana without duplicate matching', () => {
   const h = harness();
   try {
-    assert.deepEqual(Array.from(h.window.JPQ.CATALOG, game => game.title), ['五十音', '助詞', '片假名單字', '聽打', '活用', '閱讀']);
-    assert.deepEqual(h.all('.site-menu a').slice(1, -1).map(a => a.textContent), ['五十音', '助詞', '片假名單字', '聽打', '活用', '閱讀']);
+    assert.deepEqual(Array.from(h.window.JPQ.CATALOG, game => game.title), ['五十音', '助詞', '片假名單字', '聽打', '動詞', '閱讀']);
+    assert.deepEqual(h.all('.site-menu a').slice(1, -1).map(a => a.textContent), ['五十音', '助詞', '片假名單字', '聽打', '動詞', '閱讀']);
     assert.deepEqual(h.all('.kana-path').map(section => section.dataset.script), ['hiragana', 'katakana']);
     assert.equal(h.all('.kana-path[data-script="hiragana"] .pane').length, 6);
     assert.equal(h.all('.kana-path[data-script="katakana"] .pane').length, 4);

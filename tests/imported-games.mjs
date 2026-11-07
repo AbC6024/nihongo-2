@@ -21,7 +21,10 @@ function harness(file) {
   window.localStorage.setItem('jpq.progress.v1', '{"keep":true}');
   window.localStorage.setItem('niiki.mistakes', '{"keep":true}');
   for (const script of window.document.querySelectorAll('script:not([type="application/ld+json"])')) {
-    if (!script.src) new vm.Script(script.textContent).runInContext(dom.getInternalVMContext());
+    const source = script.src
+      ? readFileSync(new URL('../' + new URL(script.src).pathname.slice(1), import.meta.url), 'utf8')
+      : script.textContent;
+    new vm.Script(source).runInContext(dom.getInternalVMContext());
   }
   return {
     window, spoken, errors,
@@ -39,15 +42,23 @@ function harness(file) {
   };
 }
 
-test('new game entries have working site links and compiled inline scripts', () => {
+test('imported games use the shared header and footer with the current category highlighted', () => {
   for (const file of ['katakana_game.html', 'n5_reading_game.html']) {
     const h = harness(file);
     try {
-      assert.equal(h.query('.game-nav a[aria-current="page"]').getAttribute('href'), file);
-      for (const link of h.all('.game-nav a')) {
-        const target = link.getAttribute('href');
+      assert.equal(h.query('.site-menu a[aria-current="page"]').getAttribute('href'), file);
+      assert.deepEqual(h.all('.site-menu a').slice(1, -1).map(a => a.textContent), ['五十音', '助詞', '片假名單字', '聽打', '動詞', '閱讀']);
+      assert.ok(h.query('.site-footer'));
+      for (const link of h.all('.site-menu a')) {
+        const target = link.getAttribute('href').split('#')[0];
         assert.ok(existsSync(new URL('../' + target, import.meta.url)), `Missing navigation target: ${target}`);
       }
+      h.query('#startBtn').click();
+      assert.equal(h.window.document.body.dataset.screen, 'quiz');
+      h.query('#learnBtn').click();
+      assert.ok(!h.query('#modal').classList.contains('hidden'));
+      h.key('1');
+      assert.equal(h.query('#okNo').textContent, '0', 'Opening site tools must prevent answering behind the dialog');
     } finally { h.close(); }
   }
 });
