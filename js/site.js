@@ -48,6 +48,12 @@ const THUMBS = {
 JPQ.site = {
   thumb: function (kind) { return THUMBS[kind] || THUMBS.quiz; },
 
+  isLocal: function () {
+    return location.protocol === 'file:' ||
+      (['http:', 'https:'].includes(location.protocol) &&
+       ['localhost', '127.0.0.1', '[::1]', '::1'].includes(location.hostname));
+  },
+
   /* 產生 header（logo + 選單）與 footer */
   mountChrome: function (active) {
     const S = JPQ.SITE;
@@ -76,9 +82,9 @@ JPQ.site = {
         <button id="soundBtn" class="tool-btn" type="button" title="音效開關" aria-label="音效開關" aria-pressed="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3l4.5-3.5v12L7 14.5H4z"/><path d="M15.5 9.2a4 4 0 0 1 0 5.6"/><path d="M18 6.7a7.5 7.5 0 0 1 0 10.6"/></svg>
         </button>
-        <button id="resetBtn" class="tool-btn" type="button" title="清除所有進度" aria-label="清除所有進度">
+        ${this.isLocal() ? `<button id="resetBtn" class="tool-btn" type="button" title="清除所有進度" aria-label="清除所有進度">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4.5h-4.5"/></svg>
-        </button>
+        </button>` : ''}
       </div>
     </div>`;
 
@@ -133,7 +139,8 @@ JPQ.site = {
     }
 
     const rBtn = document.getElementById('resetBtn');
-    if (rBtn) {
+    if (rBtn && !this.isLocal()) rBtn.remove();
+    if (rBtn && this.isLocal()) {
       rBtn.addEventListener('click', () => {
         JPQ.modal.show({
           title: '清除所有進度？',

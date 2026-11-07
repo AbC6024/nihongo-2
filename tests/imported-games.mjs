@@ -4,13 +4,13 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { JSDOM, VirtualConsole } from 'jsdom';
 
-function harness(file) {
+function harness(file, url = 'https://nihongo.test/' + file) {
   const errors = [], spoken = [], timers = new Map();
   let nextTimer = 0, seed = 12345;
   const console = new VirtualConsole();
   console.on('jsdomError', error => errors.push(error));
   const html = readFileSync(new URL('../' + file, import.meta.url), 'utf8');
-  const dom = new JSDOM(html, { url: 'https://nihongo.test/' + file, runScripts: 'outside-only', virtualConsole: console });
+  const dom = new JSDOM(html, { url, runScripts: 'outside-only', virtualConsole: console });
   const { window } = dom;
   window.Math.random = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
   window.scrollTo = () => {};
@@ -41,6 +41,37 @@ function harness(file) {
     }
   };
 }
+
+test('full progress reset is available only on loopback pages and still requires local confirmation', () => {
+  for (const [host, local] of [
+    ['https://nihongo-2-static.onrender.com', false],
+    ['https://abc6024.github.io', false],
+    ['https://localhost.example.com', false],
+    ['http://192.168.1.2:8000', false],
+    ['http://localhost:8000', true],
+    ['http://127.0.0.1:8000', true],
+    ['http://[::1]:8000', true]
+  ]) {
+    const h = harness('katakana_game.html', host + '/katakana_game.html?local=1');
+    try {
+      assert.equal(Boolean(h.query('#resetBtn')), local, host);
+      if (local) {
+        h.query('#resetBtn').click();
+        assert.equal(h.query('#modalTitle').textContent, '清除所有進度？');
+        const cancel = h.all('#modalActions button').find(button => button.textContent === '取消');
+        cancel.click();
+        assert.ok(h.query('#modal').classList.contains('hidden'));
+      } else {
+        // A stale reset control must not gain a working handler on public pages.
+        const stale = h.window.document.createElement('button');
+        stale.id = 'resetBtn';
+        h.window.document.body.appendChild(stale);
+        h.window.JPQ.site.wireTools();
+        assert.equal(h.query('#resetBtn'), null);
+      }
+    } finally { h.close(); }
+  }
+});
 
 test('imported games use the shared header and footer with the current category highlighted', () => {
   for (const file of ['katakana_game.html', 'n5_reading_game.html']) {
