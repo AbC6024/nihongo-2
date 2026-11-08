@@ -196,8 +196,14 @@ body {
   }
 }
 
-.learning-site-brand { font-size:22px; }
-.learning-site-nav a { font-size:1rem; font-weight:750; color:var(--ink); }
-.learning-site-nav a[aria-current="page"] { background:#f6e6dd; font-weight:800; box-shadow:inset 0 -3px #a83b32; }
+.learning-site-brand { font-size:28px; font-weight:800; color:var(--accent-ink); padding:10px 14px; background:var(--surface); border:1px solid var(--line); border-left:4px solid #a83b32; border-radius:5px; }
+.learning-site-nav { gap:8px; }
+.learning-site-nav a { font-size:1.1875rem; font-weight:800; color:var(--ink); min-height:52px; padding:10px 12px; background:var(--surface); border:1px solid var(--line); border-bottom:3px solid rgba(47,79,111,.3); border-radius:8px; }
+.learning-site-nav a[aria-current="page"] { color:#fff; background:var(--accent-ink); border-color:var(--accent-ink); border-bottom-color:#a83b32; box-shadow:none; }
 .topbar__title, .hero__title { font-weight:800; }
-@media(max-width:600px) { .learning-site-nav a { font-size:0.9375rem; } }
+@media(max-width:600px) {
+  .learning-site-brand { font-size:24px; }
+  .learning-site-nav { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
+  .learning-site-nav a { font-size:1rem; padding:10px 2px; }
+  .learning-site-nav a[href="../katakana_game.html"] { font-size:clamp(13px,3.8vw,15px); letter-spacing:-.02em; white-space:nowrap; padding-inline:1px; }
+}

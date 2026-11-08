@@ -1406,17 +1406,23 @@ rt{
 }
 
 /* Six learning categories: clear labels and a visible current location. */
-.site-menu a { font-family:inherit; font-size:17px; font-weight:750; letter-spacing:.04em; color:var(--ink); min-height:48px; }
-.site-menu a.on { font-weight:800; background:rgba(168,59,50,.08); border-bottom-width:3px; }
+.site-logo { flex-shrink:0; padding:12px 18px; background:var(--card-solid); border:1px solid rgba(47,79,111,.3); border-left:4px solid var(--shu); box-shadow:var(--shadow); }
+.logo-games { font-size:clamp(24px,2.6vw,34px); font-weight:800; letter-spacing:.06em; padding-left:0; color:var(--brand); white-space:nowrap; }
+.logo-sub { color:var(--ink-2); letter-spacing:.2em; }
+.site-menu ul { gap:8px; border-bottom:0; }
+.site-menu a { display:flex; align-items:center; justify-content:center; font-family:inherit; font-size:20px; font-weight:800; letter-spacing:.04em; color:var(--ink); min-height:56px; padding:12px 14px; background:var(--card-solid); border:1px solid var(--line); border-bottom:3px solid rgba(47,79,111,.3); border-radius:8px; }
+.site-menu a:hover { color:var(--brand); border-color:var(--brand); background:#fffdf7; }
+.site-menu a.on { color:#fff; background:var(--brand); border-color:var(--brand); border-bottom-color:var(--shu); box-shadow:0 5px 12px -8px var(--brand); }
 .site-menu a:focus-visible { outline:3px solid var(--brand); outline-offset:2px; }
-.logo-games { font-size:32px; font-weight:800; }
 .portal-head h1 { font-size:clamp(36px,6vw,52px); font-weight:800; }
 .pane-title { font-size:28px; font-weight:800; letter-spacing:.08em; }
 .pane-title em { color:var(--ink-2); }
 .kana-path + .kana-path { margin-top:48px; }
 .kana-path-title { font-size:clamp(26px,4vw,34px); color:var(--ink); font-weight:800; border-left:5px solid var(--shu); padding-left:14px; margin:24px 0 12px; }
 @media(max-width:640px) {
-  .site-menu ul { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:4px; }
-  .site-menu a { font-size:15px; padding:10px 3px; letter-spacing:0; white-space:normal; }
+  .site-menu ul { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
+  .site-menu a { font-size:16px; padding:10px 2px; letter-spacing:0; white-space:normal; min-height:52px; height:100%; }
+  .site-menu a[href="katakana_game.html"] { font-size:clamp(13px,3.8vw,15px); letter-spacing:-.02em; white-space:nowrap; padding-inline:1px; }
+  .site-logo { padding:10px 12px; }
   .pane-title { font-size:25px; }
 }

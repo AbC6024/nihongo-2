@@ -57,17 +57,16 @@ JPQ.site = {
   /* 產生 header（logo + 選單）與 footer */
   mountChrome: function (active) {
     const S = JPQ.SITE;
-    /* 選單＝首頁 + 所有已上線的遊戲 + 關於本站 */
+    /* 選單＝首頁 + 所有已上線的遊戲 */
     const items = [{ id: 'games', label: '首頁', href: 'index.html' }]
       .concat((JPQ.CATALOG || []).filter(g => g.status === 'live')
-        .map(g => ({ id: g.slug, label: g.title, href: g.href })))
-      .concat([{ id: 'about', label: '關於本站', href: 'index.html#about' }]);
+        .map(g => ({ id: g.slug, label: g.title, href: g.href })));
 
     const header = document.createElement('header');
     header.className = 'site-header';
     header.innerHTML = `<div class="header-inner">
       <a class="site-logo" href="index.html">
-        <span class="logo-games">遊戲</span>
+        <span class="logo-games">${S.name}</span>
         <span class="logo-sub">${S.nameEn}</span>
       </a>
       <nav class="site-menu" aria-label="主選單">

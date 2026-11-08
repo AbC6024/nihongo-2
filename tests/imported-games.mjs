@@ -78,7 +78,7 @@ test('imported games use the shared header and footer with the current category 
     const h = harness(file);
     try {
       assert.equal(h.query('.site-menu a[aria-current="page"]').getAttribute('href'), file);
-      assert.deepEqual(h.all('.site-menu a').slice(1, -1).map(a => a.textContent), ['五十音', '助詞', '片假名單字', '聽打', '動詞', '閱讀']);
+      assert.deepEqual(h.all('.site-menu a').slice(1).map(a => a.textContent), ['五十音', '助詞', '片假名單字', '聽打', '動詞', '閱讀']);
       assert.ok(h.query('.site-footer'));
       for (const link of h.all('.site-menu a')) {
         const target = link.getAttribute('href').split('#')[0];
